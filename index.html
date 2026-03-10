@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" />
   <link rel="stylesheet" href="./styles.css" />
   <title>Milpa NiME</title>
 </head>
@@ -53,12 +53,16 @@
       <section class="panel collapsed" id="panel-inventory">
         <h2 class="panel-header" role="button" tabindex="0" aria-expanded="false">
           <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
-          1. Inventario
+          <span class="panel-title">1. Inventario</span>
           <span id="inventoryCount" class="panel-badge"></span>
           <span class="panel-chevron material-symbols-outlined" aria-hidden="true">expand_more</span>
         </h2>
         <div class="panel-body">
           <p class="hint">Marca lo que tienes. Usa "urgente" si conviene gastarlo pronto.</p>
+          <div class="inventory-search-wrapper">
+            <span class="inventory-search-icon material-symbols-outlined" aria-hidden="true">search</span>
+            <input type="search" id="inventorySearch" class="inventory-search" placeholder="Buscar ingrediente…" autocomplete="off" autocorrect="off" />
+          </div>
           <div class="inventory-menu-wrapper">
             <div id="inventoryFilters" class="inventory-filters-scroll"></div>
             <button id="inventoryMenuBtn" type="button" class="menu-toggle" aria-label="Mostrar más categorías" style="display: none;">
@@ -83,7 +87,7 @@
       <section class="panel" id="panel-context">
         <h2 class="panel-header" role="button" tabindex="0" aria-expanded="true">
           <span class="material-symbols-outlined" aria-hidden="true">psychology</span>
-          2. Antojo y contexto
+          <span class="panel-title">2. Antojo y contexto</span>
           <span class="panel-chevron material-symbols-outlined" aria-hidden="true">expand_more</span>
         </h2>
         <div class="panel-body">
@@ -153,7 +157,7 @@
       <section class="panel collapsed" id="resultsPanel">
         <h2 class="panel-header" role="button" tabindex="0" aria-expanded="false">
           <span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span>
-          3. Resultados
+          <span class="panel-title">3. Resultados</span>
           <span class="panel-chevron material-symbols-outlined" aria-hidden="true">expand_more</span>
         </h2>
         <div class="panel-body">

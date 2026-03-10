@@ -40,6 +40,7 @@ const state = {
 const inventoryFiltersEl = document.getElementById("inventoryFilters");
 const inventoryListEl = document.getElementById("inventoryList");
 const cravingChipsEl = document.getElementById("cravingChips");
+const inventorySearchEl = () => document.getElementById("inventorySearch");
 const suggestBtn = document.getElementById("suggestBtn");
 const resetBtn = document.getElementById("resetBtn");
 const resultsEl = document.getElementById("results");
@@ -138,6 +139,12 @@ function bindEvents() {
 
     // Build day picker buttons once
     buildDayPickerButtons();
+
+    // Inventory search
+    const searchEl = inventorySearchEl();
+    if (searchEl) {
+        searchEl.addEventListener("input", () => renderInventory());
+    }
 }
 
 // ─── Accordion Panels ───
@@ -318,6 +325,8 @@ function renderInventoryFilters() {
         btn.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">${iconName}</span> ${category === "all" ? "Todos" : capitalize(category)}`;
         btn.addEventListener("click", () => {
             activeCategoryFilter = category;
+            const searchEl = inventorySearchEl();
+            if (searchEl) searchEl.value = "";
             renderInventoryFilters();
             renderInventory();
         });
@@ -362,74 +371,114 @@ function getCategoryIcon(category) {
     return icons[category] || "inventory_2";
 }
 
+function buildInventoryItem(ingredient) {
+    const hasItem = !!state.inventory[ingredient.id]?.has;
+    const wrapper = document.createElement("div");
+    wrapper.className = `inventory-item${hasItem ? " has-item" : ""}`;
+
+    const row1 = document.createElement("div");
+    row1.className = "inventory-row";
+
+    const nameEl = document.createElement("div");
+    nameEl.innerHTML = `
+        <div class="inventory-name">${ingredient.name}</div>
+        <div class="inventory-meta">${capitalize(ingredient.category)}</div>
+    `;
+
+    const hasIt = document.createElement("input");
+    hasIt.type = "checkbox";
+    hasIt.checked = hasItem;
+    hasIt.setAttribute("aria-label", `Tengo ${ingredient.name}`);
+    hasIt.addEventListener("change", () => {
+        ensureInventoryItem(ingredient.id);
+        state.inventory[ingredient.id].has = hasIt.checked;
+        if (!hasIt.checked) {
+            state.inventory[ingredient.id].urgency = "normal";
+        }
+        persistInventory();
+        renderInventory();
+    });
+
+    row1.appendChild(nameEl);
+    row1.appendChild(hasIt);
+
+    const row2 = document.createElement("div");
+    row2.className = "small-controls";
+
+    const urgencySelect = document.createElement("select");
+    urgencySelect.setAttribute("aria-label", `Urgencia de ${ingredient.name}`);
+    urgencySelect.innerHTML = `
+        <option value="normal">Normal</option>
+        <option value="soon">Usar pronto</option>
+        <option value="urgent">Urgente</option>
+    `;
+    urgencySelect.value = state.inventory[ingredient.id]?.urgency || "normal";
+    urgencySelect.disabled = !state.inventory[ingredient.id]?.has;
+    urgencySelect.addEventListener("change", () => {
+        ensureInventoryItem(ingredient.id);
+        state.inventory[ingredient.id].urgency = urgencySelect.value;
+        persistInventory();
+    });
+
+    const isInSeason = SEASONALITY_MX[state.currentMonth]?.includes(ingredient.id);
+    const seasonalTag = document.createElement("span");
+    seasonalTag.className = "inventory-meta";
+    seasonalTag.textContent = isInSeason ? "🌱 Temporada" : (ingredient.seasonal ? "Estacional" : "Todo el año");
+
+    row2.appendChild(urgencySelect);
+    row2.appendChild(seasonalTag);
+
+    wrapper.appendChild(row1);
+    wrapper.appendChild(row2);
+    return wrapper;
+}
+
 function renderInventory() {
     inventoryListEl.innerHTML = "";
 
-    const filtered = INGREDIENTS.filter((item) =>
+    const searchText = inventorySearchEl()?.value.toLowerCase().trim() || "";
+
+    let filtered = INGREDIENTS.filter((item) =>
         activeCategoryFilter === "all" ? true : item.category === activeCategoryFilter
     );
 
-    filtered.forEach((ingredient) => {
-        const wrapper = document.createElement("div");
-        const hasItem = !!state.inventory[ingredient.id]?.has;
-        wrapper.className = `inventory-item${hasItem ? " has-item" : ""}`;
+    if (searchText) {
+        filtered = filtered.filter((item) =>
+            item.name.toLowerCase().includes(searchText) ||
+            (item.aliases || []).some((a) => a.toLowerCase().includes(searchText))
+        );
+    }
 
-        const row1 = document.createElement("div");
-        row1.className = "inventory-row";
+    if (filtered.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "inventory-no-results";
+        empty.textContent = searchText ? `Sin resultados para "${searchText}"` : "Sin ingredientes en esta categoría.";
+        inventoryListEl.appendChild(empty);
+        updateInventoryBadge();
+        return;
+    }
 
-        const nameEl = document.createElement("div");
-        nameEl.innerHTML = `
-            <div class="inventory-name">${ingredient.name}</div>
-            <div class="inventory-meta">${capitalize(ingredient.category)}</div>
-        `;
-
-        const hasIt = document.createElement("input");
-        hasIt.type = "checkbox";
-        hasIt.checked = hasItem;
-        hasIt.setAttribute("aria-label", `Tengo ${ingredient.name}`);
-        hasIt.addEventListener("change", () => {
-            ensureInventoryItem(ingredient.id);
-            state.inventory[ingredient.id].has = hasIt.checked;
-            if (!hasIt.checked) {
-                state.inventory[ingredient.id].urgency = "normal";
-            }
-            persistInventory();
-            renderInventory();
+    // When showing all categories without search, group by category
+    if (activeCategoryFilter === "all" && !searchText) {
+        const byCategory = {};
+        CATEGORY_ORDER.forEach((cat) => { byCategory[cat] = []; });
+        filtered.forEach((item) => {
+            if (!byCategory[item.category]) byCategory[item.category] = [];
+            byCategory[item.category].push(item);
         });
 
-        row1.appendChild(nameEl);
-        row1.appendChild(hasIt);
-
-        const row2 = document.createElement("div");
-        row2.className = "small-controls";
-
-        const urgencySelect = document.createElement("select");
-        urgencySelect.setAttribute("aria-label", `Urgencia de ${ingredient.name}`);
-        urgencySelect.innerHTML = `
-            <option value="normal">Normal</option>
-            <option value="soon">Usar pronto</option>
-            <option value="urgent">Urgente</option>
-        `;
-        urgencySelect.value = state.inventory[ingredient.id]?.urgency || "normal";
-        urgencySelect.disabled = !state.inventory[ingredient.id]?.has;
-        urgencySelect.addEventListener("change", () => {
-            ensureInventoryItem(ingredient.id);
-            state.inventory[ingredient.id].urgency = urgencySelect.value;
-            persistInventory();
+        Object.entries(byCategory).forEach(([cat, items]) => {
+            if (items.length === 0) return;
+            const header = document.createElement("div");
+            header.className = "inventory-category-header";
+            const iconName = getCategoryIcon(cat);
+            header.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">${iconName}</span> ${capitalize(cat)}`;
+            inventoryListEl.appendChild(header);
+            items.forEach((ingredient) => inventoryListEl.appendChild(buildInventoryItem(ingredient)));
         });
-
-        const isInSeason = SEASONALITY_MX[state.currentMonth]?.includes(ingredient.id);
-        const seasonalTag = document.createElement("span");
-        seasonalTag.className = "inventory-meta";
-        seasonalTag.textContent = isInSeason ? "🌱 Temporada" : (ingredient.seasonal ? "Estacional" : "Todo el año");
-
-        row2.appendChild(urgencySelect);
-        row2.appendChild(seasonalTag);
-
-        wrapper.appendChild(row1);
-        wrapper.appendChild(row2);
-        inventoryListEl.appendChild(wrapper);
-    });
+    } else {
+        filtered.forEach((ingredient) => inventoryListEl.appendChild(buildInventoryItem(ingredient)));
+    }
 
     updateInventoryBadge();
 }
@@ -923,6 +972,9 @@ function handleReset() {
             persistInventory();
             persistCravings();
             persistWeeklyPlan();
+            activeCategoryFilter = "all";
+            const searchEl = inventorySearchEl();
+            if (searchEl) searchEl.value = "";
             renderInventory();
             renderCravings();
             renderInitialMessage();
