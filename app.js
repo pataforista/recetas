@@ -24,7 +24,7 @@ const CRAVINGS = [
     "saludable"
 ];
 
-const CATEGORY_ORDER = ["milpa", "leguminosas", "verduras", "proteinas", "lacteos", "cereales", "basicos", "grasas", "hierbas"];
+const CATEGORY_ORDER = ["milpa", "leguminosas", "verduras", "proteinas", "lacteos", "cereales", "basicos", "grasas", "hierbas", "frutas"];
 
 const DAYS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
 
@@ -67,6 +67,7 @@ function init() {
     initAccordions();
     setupOfflineDetection();
     handleShortcutParam();
+    initSearch();
 }
 
 // Handle ?view= query param from manifest shortcuts
@@ -203,7 +204,7 @@ function showToast(message, actionText = null, actionCb = null, duration = 4000)
     const container = document.getElementById("toastContainer");
     const toast = document.createElement("div");
     toast.className = "toast";
-    
+
     const textSpan = document.createElement("span");
     textSpan.textContent = message;
     toast.appendChild(textSpan);
@@ -375,7 +376,8 @@ function getCategoryIcon(category) {
         cereales: "grass",
         basicos: "kitchen",
         grasas: "oil_barrel",
-        hierbas: "potted_plant"
+        hierbas: "potted_plant",
+        frutas: "nutrition"
     };
     return icons[category] || "inventory_2";
 }
@@ -391,14 +393,22 @@ function renderInventory() {
         const wrapper = document.createElement("div");
         const hasItem = !!state.inventory[ingredient.id]?.has;
         wrapper.className = `inventory-item${hasItem ? " has-item" : ""}`;
+        wrapper.dataset.ingId = ingredient.id;
 
         const row1 = document.createElement("div");
         row1.className = "inventory-row";
 
+        const freqLabel = { alta: "🇲🇽 Muy común", media: "Común", baja: "Especializado" };
+        const freqClass = { alta: "freq-alta", media: "freq-media", baja: "freq-baja" };
+        const freq = ingredient.frequency || "media";
+
         const nameEl = document.createElement("div");
         nameEl.innerHTML = `
             <div class="inventory-name">${ingredient.name}</div>
-            <div class="inventory-meta">${capitalize(ingredient.category)}</div>
+            <div class="inventory-meta">
+                ${capitalize(ingredient.category)}
+                <span class="freq-badge ${freqClass[freq]}">${freqLabel[freq]}</span>
+            </div>
         `;
 
         const hasIt = document.createElement("input");
@@ -536,13 +546,23 @@ function handleSuggest() {
             summaryBoxEl.textContent = "No encontré coincidencias suficientes. Marca más ingredientes o usa un modo más flexible.";
             resultsEl.innerHTML = "";
             mealPrepBoxEl.innerHTML = renderMealPrepSuggestions([]);
+            _lastRanked = [];
+            document.getElementById("resultsToolbar")?.classList.add("hidden");
             suggestBtn.disabled = false;
             return;
         }
 
+        _lastRanked = ranked;
+        _sortCriterion = "score";
+        document.querySelectorAll(".sort-chip").forEach(c => c.classList.toggle("active", c.dataset.sort === "score"));
+        document.getElementById("resultsToolbar")?.classList.remove("hidden");
+        const resSearch = document.getElementById("resultsSearch");
+        if (resSearch) resSearch.value = "";
+
         summaryBoxEl.textContent = buildSummary(userContext, ranked);
-        resultsEl.innerHTML = "";
-        ranked.forEach((item) => resultsEl.appendChild(createRecipeCard(item)));
+        renderRankedResults(ranked);
+        const countEl = document.getElementById("resultsCount");
+        if (countEl) countEl.textContent = `${ranked.length} receta${ranked.length !== 1 ? "s" : ""}`;
         mealPrepBoxEl.innerHTML = renderMealPrepSuggestions(ranked);
         suggestBtn.disabled = false;
 
@@ -551,7 +571,7 @@ function handleSuggest() {
         if (resultsPanel) {
             resultsPanel.classList.remove("collapsed");
             resultsPanel.querySelector(".panel-header")?.setAttribute("aria-expanded", "true");
-            
+
             // Wait a bit for layout
             setTimeout(() => {
                 resultsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -636,8 +656,29 @@ function scoreRecipe(recipe, context) {
 
     score += metabolicScore(recipe, context.mode, reasons);
     score += mealPrepScore(recipe, context.mode, reasons);
+    score += frequencyScore(recipe, reasons);
 
     return { recipe, score, reasons };
+}
+
+/**
+ * frequencyScore – bonus para recetas donde la mayoría de ingredientes
+ * requeridos son de alta frecuencia de consumo en México (ENSANUT/SADER/Kaggle).
+ * Refleja accesibilidad y familiaridad cultural del platillo.
+ */
+function frequencyScore(recipe, reasons) {
+    const allIds = [...recipe.ingredientsRequired, ...recipe.ingredientsOptional];
+    const highFreqCount = allIds.filter((id) => {
+        const ing = INGREDIENTS.find((i) => i.id === id);
+        return ing?.frequency === "alta";
+    }).length;
+    const ratio = allIds.length ? highFreqCount / allIds.length : 0;
+    if (ratio >= 0.6) {
+        reasons.push("Usa ingredientes muy accesibles en México");
+        return 8;
+    }
+    if (ratio >= 0.35) return 4;
+    return 0;
 }
 
 function metabolicScore(recipe, mode, reasons) {
@@ -720,16 +761,22 @@ function createRecipeCard(item) {
         whyList.appendChild(li);
     });
 
-    const assignBtn = document.createElement("button");
-    assignBtn.className = "secondary";
-    assignBtn.style.marginTop = "16px";
-    assignBtn.style.width = "100%";
-    assignBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px" aria-hidden="true">calendar_add_on</span> Asignar a la semana`;
-    assignBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        openDayPicker(recipe.id);
-    });
-    node.appendChild(assignBtn);
+    // Wire template action buttons
+    const addToPlanBtn = node.querySelector(".add-to-plan-btn");
+    if (addToPlanBtn) {
+        addToPlanBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            openDayPicker(recipe.id);
+        });
+    }
+
+    const saveBtn = node.querySelector(".save-recipe-btn");
+    if (saveBtn) {
+        saveBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            showToast(`"${recipe.name}" guardada ⭐`, null, null, 3000);
+        });
+    }
 
     return node;
 }
@@ -1097,4 +1144,335 @@ function showUpdateBanner(registration) {
     }, { once: true });
 }
 
+// ─── Search System ───────────────────────────────────────────────────────────
+
+/** Ranked recipes kept in module scope so search/sort can re-render without re-ranking */
+let _lastRanked = [];
+let _sortCriterion = "score";
+let _inventoryDebounceTimer = null;
+let _globalDebounceTimer = null;
+
+/**
+ * Wraps every occurrence of `query` inside `text` with <mark> tags.
+ * Returns a safe HTML string.
+ */
+function highlight(text, query) {
+    if (!query) return escapeHtml(text);
+    const escaped = escapeHtml(text);
+    const re = new RegExp(`(${escapeRegExp(query)})`, "gi");
+    return escaped.replace(re, "<mark>$1</mark>");
+}
+
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+function escapeRegExp(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** Returns true if `query` matches an ingredient by name, alias, or category */
+function ingredientMatches(ing, query) {
+    const q = query.toLowerCase().trim();
+    if (!q) return true;
+    if (ing.name.toLowerCase().includes(q)) return true;
+    if (ing.category.toLowerCase().includes(q)) return true;
+    if (ing.aliases?.some(a => a.toLowerCase().includes(q))) return true;
+    return false;
+}
+
+/** Returns true if `query` matches a recipe by name, description, or ingredients */
+function recipeMatches(recipe, query) {
+    const q = query.toLowerCase().trim();
+    if (!q) return true;
+    if (recipe.name.toLowerCase().includes(q)) return true;
+    if (recipe.description?.toLowerCase().includes(q)) return true;
+    const allIds = [...(recipe.ingredientsRequired || []), ...(recipe.ingredientsOptional || [])];
+    return allIds.some(id => {
+        const ing = INGREDIENTS.find(i => i.id === id);
+        return ing?.name.toLowerCase().includes(q);
+    });
+}
+
+// ── Inventory search ──────────────────────────────────────────────────────────
+
+function filterInventory(query) {
+    const q = query.trim();
+    const items = inventoryListEl.querySelectorAll(".inventory-item");
+
+    // If query is empty, show all and restore normal rendering
+    if (!q) {
+        items.forEach(item => { item.style.display = ""; });
+        // Remove highlights
+        inventoryListEl.querySelectorAll(".inventory-name mark").forEach(m => {
+            const parent = m.parentNode;
+            parent.innerHTML = parent.innerHTML.replace(/<\/?mark>/gi, "");
+        });
+        return;
+    }
+
+    const filtered = INGREDIENTS.filter(ing => ingredientMatches(ing, q));
+    const matchIds = new Set(filtered.map(i => i.id));
+
+    items.forEach(item => {
+        const nameEl = item.querySelector(".inventory-name");
+        const ingId = item.dataset.ingId;
+        if (matchIds.has(ingId)) {
+            item.style.display = "";
+            if (nameEl) {
+                nameEl.innerHTML = highlight(
+                    // strip existing marks first
+                    nameEl.textContent,
+                    q
+                );
+            }
+        } else {
+            item.style.display = "none";
+        }
+    });
+}
+
+// ── Results search & sort ─────────────────────────────────────────────────────
+
+function renderRankedResults(ranked, query = "") {
+    resultsEl.innerHTML = "";
+    if (!ranked.length) {
+        resultsEl.innerHTML = `<div class="empty-state">
+            <span class="empty-icon">🔍</span>
+            <p class="empty-title">Sin resultados</p>
+            <p class="empty-sub">Intenta con otro término o amplía el inventario</p>
+        </div>`;
+        return;
+    }
+    ranked.forEach(item => {
+        const card = createRecipeCard(item);
+        // Highlight recipe title if searching
+        if (query) {
+            const titleEl = card.querySelector(".recipe-title");
+            if (titleEl) titleEl.innerHTML = highlight(titleEl.textContent, query);
+        }
+        resultsEl.appendChild(card);
+    });
+}
+
+function applySortAndFilter() {
+    const query = document.getElementById("resultsSearch")?.value || "";
+    let working = [..._lastRanked];
+
+    // Filter
+    if (query.trim()) {
+        working = working.filter(item => recipeMatches(item.recipe, query));
+    }
+
+    // Sort
+    if (_sortCriterion === "time") {
+        working.sort((a, b) => a.recipe.timeMin - b.recipe.timeMin);
+    } else if (_sortCriterion === "name") {
+        working.sort((a, b) => a.recipe.name.localeCompare(b.recipe.name, "es"));
+    }
+    // default: score (already sorted from rankRecipes)
+
+    renderRankedResults(working, query.trim());
+    const countEl = document.getElementById("resultsCount");
+    if (countEl) countEl.textContent = `${working.length} receta${working.length !== 1 ? "s" : ""}`;
+}
+
+function sortResults(criterion) {
+    _sortCriterion = criterion;
+    document.querySelectorAll(".sort-chip").forEach(chip => {
+        chip.classList.toggle("active", chip.dataset.sort === criterion);
+    });
+    applySortAndFilter();
+}
+
+// ── Global Search Modal ───────────────────────────────────────────────────────
+
+function openSearchModal() {
+    const modal = document.getElementById("searchModal");
+    modal.classList.remove("hidden");
+    requestAnimationFrame(() => {
+        document.getElementById("globalSearch")?.focus();
+    });
+}
+
+function closeSearchModal() {
+    document.getElementById("searchModal").classList.add("hidden");
+    const input = document.getElementById("globalSearch");
+    if (input) input.value = "";
+    const resultsBox = document.getElementById("searchResults");
+    if (resultsBox) resultsBox.innerHTML = `<p class="search-placeholder">Escribe para buscar entre ${INGREDIENTS.length} ingredientes y recetas</p>`;
+}
+
+function searchAll(query) {
+    const q = query.trim();
+    const box = document.getElementById("searchResults");
+    if (!box) return;
+
+    if (!q) {
+        box.innerHTML = `<p class="search-placeholder">Escribe para buscar entre ${INGREDIENTS.length} ingredientes y recetas</p>`;
+        return;
+    }
+
+    const matchedIngredients = INGREDIENTS.filter(ing => ingredientMatches(ing, q)).slice(0, 12);
+    const matchedRecipes = RECIPES.filter(r => recipeMatches(r, q)).slice(0, 8);
+
+    if (!matchedIngredients.length && !matchedRecipes.length) {
+        box.innerHTML = `<p class="search-placeholder">Sin resultados para "<strong>${escapeHtml(q)}</strong>"</p>`;
+        return;
+    }
+
+    const freqIcon = { alta: "🇲🇽", media: "🍽️", baja: "✨" };
+    const catIcon = getCategoryIcon;
+
+    let html = "";
+
+    if (matchedIngredients.length) {
+        html += `<div class="search-result-group">
+            <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
+            Ingredientes
+        </div>`;
+        html += matchedIngredients.map(ing => {
+            const hasIt = !!state.inventory[ing.id]?.has;
+            return `<button class="search-result-item" role="option" data-type="ingredient" data-id="${ing.id}">
+                <span class="sri-icon material-symbols-outlined" aria-hidden="true">${catIcon(ing.category)}</span>
+                <span class="sri-main">
+                    <span class="sri-name">${highlight(ing.name, q)}</span>
+                    <span class="sri-sub">${capitalize(ing.category)} · ${freqIcon[ing.frequency || "media"]}</span>
+                </span>
+                <span class="sri-check ${hasIt ? "has" : ""} material-symbols-outlined" aria-hidden="true">${hasIt ? "check_circle" : "add_circle"}</span>
+            </button>`;
+        }).join("");
+    }
+
+    if (matchedRecipes.length) {
+        html += `<div class="search-result-group">
+            <span class="material-symbols-outlined" aria-hidden="true">restaurant_menu</span>
+            Recetas
+        </div>`;
+        html += matchedRecipes.map(r => {
+            const inPlan = Object.values(state.weeklyPlan).includes(r.id);
+            return `<button class="search-result-item" role="option" data-type="recipe" data-id="${r.id}">
+                <span class="sri-icon material-symbols-outlined" aria-hidden="true">skillet</span>
+                <span class="sri-main">
+                    <span class="sri-name">${highlight(r.name, q)}</span>
+                    <span class="sri-sub">${r.timeMin} min · ${capitalize(r.family || "")}</span>
+                </span>
+                ${inPlan ? `<span class="sri-check has material-symbols-outlined" aria-hidden="true">event_available</span>` : ""}
+            </button>`;
+        }).join("");
+    }
+
+    box.innerHTML = html;
+
+    // Wire click handlers
+    box.querySelectorAll(".search-result-item[data-type='ingredient']").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const id = btn.dataset.id;
+            // Toggle has
+            if (!state.inventory[id]) state.inventory[id] = { has: false, urgency: "normal" };
+            state.inventory[id].has = !state.inventory[id].has;
+            persistInventory();
+            updateInventoryBadge();
+            renderInventory();
+            // Re-render this result to reflect change
+            searchAll(document.getElementById("globalSearch")?.value || "");
+            showToast(
+                state.inventory[id].has
+                    ? `${INGREDIENTS.find(i => i.id === id)?.name} añadido al inventario ✓`
+                    : `${INGREDIENTS.find(i => i.id === id)?.name} retirado del inventario`,
+                null, null, 2500
+            );
+        });
+    });
+
+    box.querySelectorAll(".search-result-item[data-type='recipe']").forEach(btn => {
+        btn.addEventListener("click", () => {
+            closeSearchModal();
+            openDayPicker(btn.dataset.id);
+        });
+    });
+}
+
+// ── initSearch ────────────────────────────────────────────────────────────────
+
+function initSearch() {
+    // ── Global palette trigger ─────────────────────────────────
+    document.getElementById("searchBtn")?.addEventListener("click", openSearchModal);
+
+    document.addEventListener("keydown", (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+            e.preventDefault();
+            openSearchModal();
+        }
+        if (e.key === "Escape") {
+            const modal = document.getElementById("searchModal");
+            if (modal && !modal.classList.contains("hidden")) closeSearchModal();
+        }
+    });
+
+    document.getElementById("searchModal")?.addEventListener("click", (e) => {
+        if (e.target === e.currentTarget) closeSearchModal();
+    });
+
+    const globalInput = document.getElementById("globalSearch");
+    if (globalInput) {
+        globalInput.addEventListener("input", () => {
+            clearTimeout(_globalDebounceTimer);
+            _globalDebounceTimer = setTimeout(() => searchAll(globalInput.value), 150);
+        });
+    }
+
+    // ── Inventory search ───────────────────────────────────────
+    const invSearch = document.getElementById("inventorySearch");
+    const invClear = document.getElementById("inventorySearchClear");
+
+    if (invSearch) {
+        invSearch.addEventListener("input", () => {
+            const q = invSearch.value;
+            invClear?.classList.toggle("hidden", !q);
+            clearTimeout(_inventoryDebounceTimer);
+            _inventoryDebounceTimer = setTimeout(() => filterInventory(q), 120);
+        });
+    }
+
+    if (invClear) {
+        invClear.addEventListener("click", () => {
+            invSearch.value = "";
+            invClear.classList.add("hidden");
+            filterInventory("");
+            invSearch.focus();
+        });
+    }
+
+    // ── Results toolbar ────────────────────────────────────────
+    document.querySelectorAll(".sort-chip").forEach(chip => {
+        chip.addEventListener("click", () => sortResults(chip.dataset.sort));
+    });
+
+    const resSearch = document.getElementById("resultsSearch");
+    const resClear = document.getElementById("resultsSearchClear");
+
+    if (resSearch) {
+        resSearch.addEventListener("input", () => {
+            resClear?.classList.toggle("hidden", !resSearch.value);
+            clearTimeout(_inventoryDebounceTimer);
+            _inventoryDebounceTimer = setTimeout(() => applySortAndFilter(), 150);
+        });
+    }
+
+    if (resClear) {
+        resClear.addEventListener("click", () => {
+            resSearch.value = "";
+            resClear.classList.add("hidden");
+            applySortAndFilter();
+            resSearch.focus();
+        });
+    }
+}
+
 init();
+
