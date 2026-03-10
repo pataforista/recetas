@@ -75,7 +75,10 @@ function renderInventoryFilters() {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = `chip ${activeCategoryFilter === category ? "active" : ""}`;
-        btn.textContent = category === "all" ? "Todos" : capitalize(category);
+
+        const iconName = getCategoryIcon(category);
+        btn.innerHTML = `<span class="material-symbols-outlined">${iconName}</span> ${category === "all" ? "Todos" : capitalize(category)}`;
+
         btn.addEventListener("click", () => {
             activeCategoryFilter = category;
             renderInventoryFilters();
@@ -83,6 +86,22 @@ function renderInventoryFilters() {
         });
         inventoryFiltersEl.appendChild(btn);
     });
+}
+
+function getCategoryIcon(category) {
+    const icons = {
+        all: "category",
+        milpa: "agriculture",
+        leguminosas: "eco",
+        verduras: "nutrition",
+        proteinas: "egg_alt",
+        lacteos: "water_drop",
+        cereales: "grass",
+        basicos: "kitchen",
+        grasas: "oil_barrel",
+        hierbas: "potted_plant"
+    };
+    return icons[category] || "inventory_2";
 }
 
 function renderInventory() {
@@ -158,7 +177,10 @@ function renderCravings() {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = `chip ${state.selectedCravings.includes(craving) ? "active" : ""}`;
-        btn.textContent = humanizeCraving(craving);
+
+        const iconName = getCravingIcon(craving);
+        btn.innerHTML = `<span class="material-symbols-outlined">${iconName}</span> ${humanizeCraving(craving)}`;
+
         btn.addEventListener("click", () => {
             if (state.selectedCravings.includes(craving)) {
                 state.selectedCravings = state.selectedCravings.filter((c) => c !== craving);
@@ -170,6 +192,22 @@ function renderCravings() {
         });
         cravingChipsEl.appendChild(btn);
     });
+}
+
+function getCravingIcon(craving) {
+    const icons = {
+        rapido: "speed",
+        casero: "home",
+        calientito: "hot_tub",
+        reconfortante: "volunteer_activism",
+        ligero: "air",
+        fresco: "ac_unit",
+        llenador: "restaurant",
+        antojo_mexicano: "flag",
+        mealprep: "inventory",
+        saludable: "favorite"
+    };
+    return icons[craving] || "star";
 }
 
 function handleSuggest() {
@@ -333,13 +371,18 @@ function createRecipeCard(item) {
     const { recipe, score, reasons } = item;
 
     node.querySelector(".recipe-title").textContent = recipe.name;
-    node.querySelector(".recipe-meta").textContent = `${capitalize(recipe.family)} · ${recipe.format} · ${recipe.timeMin} min`;
+    node.querySelector(".recipe-meta").innerHTML = `
+        <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle;">restaurant</span> ${capitalize(recipe.family)} · 
+        <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle;">flatware</span> ${recipe.format} · 
+        <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle;">schedule</span> ${recipe.timeMin} min
+    `;
     node.querySelector(".score-badge").textContent = Math.round(score);
     node.querySelector(".recipe-description").textContent = recipe.description;
-    node.querySelector(".ingredients-text").textContent = prettyIngredients([
+    const allIngredients = recipe.ingredientsDetailed || [
         ...recipe.ingredientsRequired,
         ...recipe.ingredientsOptional
-    ]);
+    ];
+    node.querySelector(".ingredients-text").textContent = prettyIngredients(allIngredients);
     node.querySelector(".profile-text").innerHTML = buildProfileText(recipe.profile);
     node.querySelector(".mealprep-text").textContent = buildMealPrepText(recipe.mealPrep);
 
@@ -359,10 +402,10 @@ function buildProfileText(profile) {
     const glyClass = profile.glyLoad === "baja" ? "tag-good" : profile.glyLoad === "alta" ? "tag-bad" : "tag-warn";
 
     return `
-    <span class="${fiberClass}">Fibra: ${profile.fiber}</span> ·
-    <span class="${satClass}">Grasa saturada: ${profile.satFat}</span> ·
-    <span class="${glyClass}">Carga glucémica: ${profile.glyLoad}</span> ·
-    Volumen vegetal: ${profile.vegetableVolume}
+    <span class="${fiberClass}"><span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">forest</span> Fibra: ${profile.fiber}</span> ·
+    <span class="${satClass}"><span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">oil_barrel</span> Grasa saturada: ${profile.satFat}</span> ·
+    <span class="${glyClass}"><span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">bolt</span> Carga glucémica: ${profile.glyLoad}</span> ·
+    <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">nutrition</span> Volumen vegetal: ${profile.vegetableVolume}
   `;
 }
 
@@ -420,9 +463,25 @@ function buildSummary(context, ranked) {
     return `Top sugerencia: ${top}. Evalué ${inventoryCount} ingredientes marcados, tiempo máximo de ${context.maxTime} min y antojo ${cravingsText}.`;
 }
 
-function prettyIngredients(ids) {
-    return ids
-        .map((id) => INGREDIENTS.find((item) => item.id === id)?.name || id)
+function prettyIngredients(ingredients) {
+    if (!ingredients || !ingredients.length) return "Sin ingredientes";
+
+    return ingredients
+        .map((item) => {
+            if (typeof item === "string") {
+                const ing = INGREDIENTS.find((i) => i.id === item);
+                return ing ? ing.name : item;
+            } else if (typeof item === "object") {
+                const ing = INGREDIENTS.find((i) => i.id === item.id);
+                const name = ing ? ing.name : item.id;
+                const alt = ing?.mexican_alt ? ` (Alt MX: ${ing.mexican_alt})` : "";
+                if (item.amount && item.unit) {
+                    return `${item.amount}${item.unit} de ${name}${alt}`;
+                }
+                return `${name}${alt}`;
+            }
+            return item;
+        })
         .join(", ");
 }
 
