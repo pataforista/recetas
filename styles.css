@@ -46,6 +46,7 @@
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 body {
@@ -252,6 +253,7 @@ body {
   overflow-x: auto;
   overflow-y: hidden;
   scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
   flex: 1;
   padding-bottom: 4px;
   /* Custom scrollbar for better appearance */
@@ -304,6 +306,10 @@ body {
 /* ─── Craving Modal ─── */
 .craving-modal {
   position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
   z-index: 1001;
@@ -350,7 +356,9 @@ body {
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 4px;
+  padding: 10px;
+  min-width: 44px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -368,6 +376,7 @@ body {
   gap: 12px;
   padding: 16px 24px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   flex: 1;
 }
 
@@ -404,6 +413,7 @@ body {
   overflow-x: auto;
   overflow-y: hidden;
   scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
   flex: 1;
   padding-bottom: 4px;
   scrollbar-width: thin;
@@ -435,6 +445,10 @@ body {
 /* ─── Inventory Modal ─── */
 .inventory-modal {
   position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
   z-index: 1001;
@@ -468,6 +482,7 @@ body {
   gap: 12px;
   padding: 16px 24px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   flex: 1;
 }
 
@@ -496,6 +511,7 @@ body {
 }
 
 select {
+  -webkit-appearance: none;
   appearance: none;
   background-color: var(--md-sys-color-surface);
   border: 1px solid var(--md-sys-color-outline);
@@ -508,6 +524,8 @@ select {
   background-repeat: no-repeat;
   background-position: right 12px center;
   transition: border-color 0.2s;
+  /* Minimum touch target height for iOS */
+  min-height: 44px;
 }
 
 select:focus {
@@ -758,7 +776,7 @@ button.error-btn:hover {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 80px;
+  /* Sin height fija: la altura la dan los ítems + el safe-area padding */
   background: var(--md-sys-color-surface);
   display: flex;
   justify-content: space-around;
@@ -779,6 +797,8 @@ button.error-btn:hover {
   align-items: center;
   gap: 4px;
   padding: 8px;
+  /* Altura fija de 80px para el área táctil del nav */
+  height: 80px;
   width: 100%;
   border-radius: 0;
   flex: 1;
@@ -895,7 +915,7 @@ button.error-btn:hover {
 /* ─── Toast Notifications ─── */
 .toast-container {
   position: fixed;
-  bottom: 96px;
+  bottom: calc(96px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   z-index: 2000;
@@ -939,6 +959,10 @@ button.error-btn:hover {
 /* ─── Modals ─── */
 .modal-overlay {
   position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
   z-index: 1000;
@@ -1009,5 +1033,55 @@ button.error-btn:hover {
 
   .planner-grid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+
+  /* Reducir padding de modales en pantallas pequeñas */
+  .craving-modal,
+  .inventory-modal,
+  .modal-overlay {
+    padding: 12px;
+  }
+
+  /* Más altura disponible para el contenido de modales */
+  .craving-modal-content,
+  .inventory-modal-content {
+    max-height: 80vh;
+  }
+
+  /* Chips más fáciles de tocar en pantallas chicas */
+  .chip {
+    padding: 10px 14px;
+    min-height: 44px;
+  }
+
+  /* Botones de acción con más área táctil */
+  .actions button {
+    min-height: 44px;
+  }
+}
+
+/* ─── iPhone SE y pantallas de 320px ─── */
+@media (max-width: 375px) {
+  .app-header {
+    padding: 14px 14px 12px;
+  }
+
+  .app-header h1 {
+    font-size: 1.3rem;
+  }
+
+  .subtitle {
+    font-size: 0.8rem;
+  }
+
+  .craving-modal-grid,
+  .inventory-filter-grid {
+    grid-template-columns: 1fr 1fr;
+    padding: 12px 16px;
+    gap: 8px;
+  }
+
+  .panel h2 {
+    font-size: 1.2rem;
   }
 }
