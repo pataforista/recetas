@@ -1,22 +1,46 @@
 {
+  "id": "./",
   "name": "Milpa NiME",
   "short_name": "MilpaNiME",
-  "description": "PWA para decidir qué cocinar según ingredientes, antojo, tiempo y meal prep.",
-  "start_url": "./index.html",
+  "description": "Decide qué cocinar según ingredientes, antojo, tiempo y meal prep. Enfoque NiME/milpa: sano, simple y mexicano.",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
   "background_color": "#FEFBFF",
   "theme_color": "#002FA7",
   "lang": "es-MX",
+  "categories": ["food", "lifestyle", "health"],
   "icons": [
     {
-      "src": "./assets/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
+      "src": "./assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     },
     {
-      "src": "./assets/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "./assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "Sugerir receta",
+      "short_name": "Sugerir",
+      "description": "Ve directo al inventario para sugerir qué cocinar",
+      "url": "./?view=today",
+      "icons": [{ "src": "./assets/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Lista de compra",
+      "short_name": "Compra",
+      "description": "Ver tu lista de compra semanal",
+      "url": "./?view=grocery",
+      "icons": [{ "src": "./assets/icon.svg", "sizes": "any" }]
+    }
+  ],
+  "screenshots": []
 }

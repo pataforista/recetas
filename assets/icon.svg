@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background rounded square -->
+  <rect width="512" height="512" rx="120" fill="#002FA7"/>
+
+  <!-- Stylized milpa plant: stem -->
+  <rect x="244" y="200" width="24" height="180" rx="12" fill="#FFD600"/>
+
+  <!-- Leaf left -->
+  <ellipse cx="190" cy="290" rx="70" ry="28" fill="#4CAF50" transform="rotate(-30 190 290)"/>
+  <!-- Leaf right -->
+  <ellipse cx="322" cy="270" rx="70" ry="28" fill="#4CAF50" transform="rotate(30 322 270)"/>
+
+  <!-- Corn kernels (3 circles) -->
+  <circle cx="256" cy="172" r="22" fill="#FFD600"/>
+  <circle cx="224" cy="186" r="18" fill="#FFC107"/>
+  <circle cx="288" cy="186" r="18" fill="#FFC107"/>
+
+  <!-- Roots (3 lines) -->
+  <line x1="256" y1="380" x2="220" y2="420" stroke="#FFD600" stroke-width="12" stroke-linecap="round"/>
+  <line x1="256" y1="380" x2="256" y2="430" stroke="#FFD600" stroke-width="12" stroke-linecap="round"/>
+  <line x1="256" y1="380" x2="292" y2="420" stroke="#FFD600" stroke-width="12" stroke-linecap="round"/>
+</svg>

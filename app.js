@@ -26,6 +26,8 @@ const CRAVINGS = [
 
 const CATEGORY_ORDER = ["milpa", "leguminosas", "verduras", "proteinas", "lacteos", "cereales", "basicos", "grasas", "hierbas"];
 
+const DAYS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
+
 const state = {
     inventory: loadInventory(),
     selectedCravings: loadCravings(),
@@ -34,6 +36,7 @@ const state = {
     currentMonth: new Date().getMonth() + 1
 };
 
+// ─── DOM refs ───
 const inventoryFiltersEl = document.getElementById("inventoryFilters");
 const inventoryListEl = document.getElementById("inventoryList");
 const cravingChipsEl = document.getElementById("cravingChips");
@@ -48,7 +51,10 @@ const lowEnergyEl = document.getElementById("lowEnergy");
 const seasonBoostEl = document.getElementById("seasonBoost");
 
 let activeCategoryFilter = "all";
+// Pending day assignment state for day picker modal
+let _pendingRecipeId = null;
 
+// ─── Init ───
 function init() {
     renderInventoryFilters();
     renderInventory();
@@ -58,26 +64,58 @@ function init() {
     setupPWAInstall();
     registerSW();
     initNavigation();
+    setupOfflineDetection();
+    handleShortcutParam();
+}
+
+// Handle ?view= query param from manifest shortcuts
+function handleShortcutParam() {
+    const params = new URLSearchParams(window.location.search);
+    const view = params.get("view");
+    if (view && ["today", "planner", "mealprep", "grocery"].includes(view)) {
+        showView(view);
+    }
 }
 
 function bindEvents() {
     suggestBtn.addEventListener("click", handleSuggest);
-    resetBtn.addEventListener("click", resetSelections);
+    resetBtn.addEventListener("click", handleReset);
+
     const clearPlanBtn = document.getElementById("clearPlanBtn");
     if (clearPlanBtn) {
         clearPlanBtn.addEventListener("click", () => {
-            if (confirm("¿Estás seguro de que quieres borrar el plan de toda la semana?")) {
-                state.weeklyPlan = {};
-                persistWeeklyPlan();
-                renderPlanner();
-            }
+            showConfirm(
+                "¿Borrar el plan semanal?",
+                "Se eliminarán todas las recetas asignadas a la semana.",
+                () => {
+                    state.weeklyPlan = {};
+                    persistWeeklyPlan();
+                    renderPlanner();
+                    showToast("Plan semanal borrado");
+                }
+            );
         });
     }
+
+    // Modal: Day Picker
+    document.getElementById("cancelDayPicker").addEventListener("click", closeDayPicker);
+    document.getElementById("dayPickerModal").addEventListener("click", (e) => {
+        if (e.target === e.currentTarget) closeDayPicker();
+    });
+
+    // Modal: Confirm
+    document.getElementById("confirmCancel").addEventListener("click", closeConfirmModal);
+    document.getElementById("confirmModal").addEventListener("click", (e) => {
+        if (e.target === e.currentTarget) closeConfirmModal();
+    });
+
+    // Build day picker buttons once
+    buildDayPickerButtons();
 }
 
+// ─── Navigation ───
 function initNavigation() {
-    const navItems = document.querySelectorAll(".nav-item");
-    navItems.forEach((btn) => {
+    document.querySelectorAll(".nav-item").forEach((btn) => {
         btn.addEventListener("click", () => {
             const viewId = btn.getAttribute("data-view");
             showView(viewId);
@@ -86,39 +124,111 @@ function initNavigation() {
 }
 
 function showView(viewId) {
-    // Update active nav item
     document.querySelectorAll(".nav-item").forEach((btn) => {
         btn.classList.toggle("active", btn.getAttribute("data-view") === viewId);
     });
-
-    // Update active page view
     document.querySelectorAll(".page-view").forEach((view) => {
         view.classList.toggle("active", view.id === `view-${viewId}`);
     });
 
-    // Specific view renders
     if (viewId === "planner") renderPlanner();
     if (viewId === "mealprep") renderMealPrepInitial();
     if (viewId === "grocery") renderGroceryList();
 }
 
-function renderInitialMessage() {
-    summaryBoxEl.textContent = "Selecciona ingredientes, antojo y tiempo para obtener sugerencias.";
-    mealPrepBoxEl.innerHTML = renderMealPrepSuggestions([]);
+// ─── Offline Detection ───
+function setupOfflineDetection() {
+    const banner = document.getElementById("offlineBanner");
+    const update = () => banner.classList.toggle("hidden", navigator.onLine);
+    update();
+    window.addEventListener("online", update);
+    window.addEventListener("offline", update);
 }
 
+// ─── Toast ───
+function showToast(message, duration = 3000) {
+    const container = document.getElementById("toastContainer");
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.textContent = message;
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add("exit");
+        toast.addEventListener("animationend", () => toast.remove());
+    }, duration);
+}
+
+// ─── Confirm Modal ───
+let _confirmCallback = null;
+
+function showConfirm(title, message, onConfirm) {
+    document.getElementById("confirmTitle").textContent = title;
+    document.getElementById("confirmMessage").textContent = message;
+    _confirmCallback = onConfirm;
+
+    const modal = document.getElementById("confirmModal");
+    modal.classList.remove("hidden");
+
+    const okBtn = document.getElementById("confirmOk");
+    const handler = () => {
+        closeConfirmModal();
+        _confirmCallback?.();
+        okBtn.removeEventListener("click", handler);
+    };
+    okBtn.addEventListener("click", handler);
+}
+
+function closeConfirmModal() {
+    document.getElementById("confirmModal").classList.add("hidden");
+    _confirmCallback = null;
+}
+
+// ─── Day Picker Modal ───
+function buildDayPickerButtons() {
+    const grid = document.getElementById("dayPickerGrid");
+    grid.innerHTML = "";
+    DAYS.forEach((day) => {
+        const btn = document.createElement("button");
+        btn.className = "day-btn";
+        btn.type = "button";
+        btn.textContent = capitalize(day);
+        btn.addEventListener("click", () => assignRecipeToDay(day));
+        grid.appendChild(btn);
+    });
+}
+
+function openDayPicker(recipeId) {
+    const recipe = RECIPES.find((r) => r.id === recipeId);
+    _pendingRecipeId = recipeId;
+    document.getElementById("dayPickerRecipeName").textContent = recipe ? `"${recipe.name}"` : "";
+    document.getElementById("dayPickerModal").classList.remove("hidden");
+}
+
+function closeDayPicker() {
+    document.getElementById("dayPickerModal").classList.add("hidden");
+    _pendingRecipeId = null;
+}
+
+function assignRecipeToDay(day) {
+    if (!_pendingRecipeId) return;
+    state.weeklyPlan[day] = _pendingRecipeId;
+    persistWeeklyPlan();
+    const recipe = RECIPES.find((r) => r.id === _pendingRecipeId);
+    closeDayPicker();
+    showToast(`${recipe?.name ?? "Receta"} asignada al ${day}`);
+}
+
+// ─── Inventory ───
 function renderInventoryFilters() {
     const categories = ["all", ...CATEGORY_ORDER.filter((cat) => INGREDIENTS.some((i) => i.category === cat))];
-
     inventoryFiltersEl.innerHTML = "";
     categories.forEach((category) => {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = `chip ${activeCategoryFilter === category ? "active" : ""}`;
-
         const iconName = getCategoryIcon(category);
-        btn.innerHTML = `<span class="material-symbols-outlined">${iconName}</span> ${category === "all" ? "Todos" : capitalize(category)}`;
-
+        btn.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">${iconName}</span> ${category === "all" ? "Todos" : capitalize(category)}`;
         btn.addEventListener("click", () => {
             activeCategoryFilter = category;
             renderInventoryFilters();
@@ -153,20 +263,22 @@ function renderInventory() {
 
     filtered.forEach((ingredient) => {
         const wrapper = document.createElement("div");
-        wrapper.className = "inventory-item";
+        const hasItem = !!state.inventory[ingredient.id]?.has;
+        wrapper.className = `inventory-item${hasItem ? " has-item" : ""}`;
 
         const row1 = document.createElement("div");
         row1.className = "inventory-row";
 
-        const name = document.createElement("div");
-        name.innerHTML = `
-      <div class="inventory-name">${ingredient.name}</div>
-      <div class="inventory-meta">${capitalize(ingredient.category)}</div>
-    `;
+        const nameEl = document.createElement("div");
+        nameEl.innerHTML = `
+            <div class="inventory-name">${ingredient.name}</div>
+            <div class="inventory-meta">${capitalize(ingredient.category)}</div>
+        `;
 
         const hasIt = document.createElement("input");
         hasIt.type = "checkbox";
-        hasIt.checked = !!state.inventory[ingredient.id]?.has;
+        hasIt.checked = hasItem;
+        hasIt.setAttribute("aria-label", `Tengo ${ingredient.name}`);
         hasIt.addEventListener("change", () => {
             ensureInventoryItem(ingredient.id);
             state.inventory[ingredient.id].has = hasIt.checked;
@@ -177,18 +289,19 @@ function renderInventory() {
             renderInventory();
         });
 
-        row1.appendChild(name);
+        row1.appendChild(nameEl);
         row1.appendChild(hasIt);
 
         const row2 = document.createElement("div");
         row2.className = "small-controls";
 
         const urgencySelect = document.createElement("select");
+        urgencySelect.setAttribute("aria-label", `Urgencia de ${ingredient.name}`);
         urgencySelect.innerHTML = `
-      <option value="normal">Normal</option>
-      <option value="soon">Usar pronto</option>
-      <option value="urgent">Urgente</option>
-    `;
+            <option value="normal">Normal</option>
+            <option value="soon">Usar pronto</option>
+            <option value="urgent">Urgente</option>
+        `;
         urgencySelect.value = state.inventory[ingredient.id]?.urgency || "normal";
         urgencySelect.disabled = !state.inventory[ingredient.id]?.has;
         urgencySelect.addEventListener("change", () => {
@@ -197,10 +310,10 @@ function renderInventory() {
             persistInventory();
         });
 
-        const seasonalTag = document.createElement("span");
         const isInSeason = SEASONALITY_MX[state.currentMonth]?.includes(ingredient.id);
+        const seasonalTag = document.createElement("span");
         seasonalTag.className = "inventory-meta";
-        seasonalTag.textContent = isInSeason ? "En temporada" : (ingredient.seasonal ? "Estacional" : "Todo el año");
+        seasonalTag.textContent = isInSeason ? "🌱 Temporada" : (ingredient.seasonal ? "Estacional" : "Todo el año");
 
         row2.appendChild(urgencySelect);
         row2.appendChild(seasonalTag);
@@ -211,16 +324,15 @@ function renderInventory() {
     });
 }
 
+// ─── Cravings ───
 function renderCravings() {
     cravingChipsEl.innerHTML = "";
     CRAVINGS.forEach((craving) => {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = `chip ${state.selectedCravings.includes(craving) ? "active" : ""}`;
-
         const iconName = getCravingIcon(craving);
-        btn.innerHTML = `<span class="material-symbols-outlined">${iconName}</span> ${humanizeCraving(craving)}`;
-
+        btn.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">${iconName}</span> ${humanizeCraving(craving)}`;
         btn.addEventListener("click", () => {
             if (state.selectedCravings.includes(craving)) {
                 state.selectedCravings = state.selectedCravings.filter((c) => c !== craving);
@@ -238,7 +350,7 @@ function getCravingIcon(craving) {
     const icons = {
         rapido: "speed",
         casero: "home",
-        calientito: "hot_tub",
+        calientito: "local_fire_department",
         reconfortante: "volunteer_activism",
         ligero: "air",
         fresco: "ac_unit",
@@ -250,7 +362,10 @@ function getCravingIcon(craving) {
     return icons[craving] || "star";
 }
 
+// ─── Suggest ───
 function handleSuggest() {
+    suggestBtn.disabled = true;
+
     const userContext = {
         cravings: [...state.selectedCravings],
         maxTime: Number(timeSelectEl.value),
@@ -261,19 +376,27 @@ function handleSuggest() {
         month: state.currentMonth
     };
 
-    const ranked = rankRecipes(RECIPES, userContext).slice(0, 6);
+    // Use rAF to allow button state to render before heavy work
+    requestAnimationFrame(() => {
+        const ranked = rankRecipes(RECIPES, userContext).slice(0, 6);
 
-    if (!ranked.length) {
-        summaryBoxEl.textContent = "No encontré coincidencias suficientes. Marca más ingredientes o usa un modo más flexible.";
+        if (!ranked.length) {
+            summaryBoxEl.textContent = "No encontré coincidencias suficientes. Marca más ingredientes o usa un modo más flexible.";
+            resultsEl.innerHTML = "";
+            mealPrepBoxEl.innerHTML = renderMealPrepSuggestions([]);
+            suggestBtn.disabled = false;
+            return;
+        }
+
+        summaryBoxEl.textContent = buildSummary(userContext, ranked);
         resultsEl.innerHTML = "";
-        mealPrepBoxEl.innerHTML = renderMealPrepSuggestions([]);
-        return;
-    }
+        ranked.forEach((item) => resultsEl.appendChild(createRecipeCard(item)));
+        mealPrepBoxEl.innerHTML = renderMealPrepSuggestions(ranked);
+        suggestBtn.disabled = false;
 
-    summaryBoxEl.textContent = buildSummary(userContext, ranked);
-    resultsEl.innerHTML = "";
-    ranked.forEach((item) => resultsEl.appendChild(createRecipeCard(item)));
-    mealPrepBoxEl.innerHTML = renderMealPrepSuggestions(ranked);
+        // Scroll to results on mobile
+        document.getElementById("resultsPanel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
 }
 
 function rankRecipes(recipes, context) {
@@ -405,6 +528,7 @@ function mealPrepScore(recipe, mode, reasons) {
     return score;
 }
 
+// ─── Recipe Card ───
 function createRecipeCard(item) {
     const template = document.getElementById("recipeCardTemplate");
     const node = template.content.firstElementChild.cloneNode(true);
@@ -412,12 +536,14 @@ function createRecipeCard(item) {
 
     node.querySelector(".recipe-title").textContent = recipe.name;
     node.querySelector(".recipe-meta").innerHTML = `
-        <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle;">restaurant</span> ${capitalize(recipe.family)} · 
-        <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle;">flatware</span> ${recipe.format} · 
-        <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle;">schedule</span> ${recipe.timeMin} min
+        <span class="material-symbols-outlined" style="font-size:15px" aria-hidden="true">restaurant</span>${capitalize(recipe.family)}&nbsp;·&nbsp;
+        <span class="material-symbols-outlined" style="font-size:15px" aria-hidden="true">flatware</span>${recipe.format}&nbsp;·&nbsp;
+        <span class="material-symbols-outlined" style="font-size:15px" aria-hidden="true">schedule</span>${recipe.timeMin} min
     `;
     node.querySelector(".score-badge").textContent = Math.round(score);
+    node.querySelector(".score-badge").setAttribute("aria-label", `Puntuación ${Math.round(score)}`);
     node.querySelector(".recipe-description").textContent = recipe.description;
+
     const allIngredients = recipe.ingredientsDetailed || [
         ...recipe.ingredientsRequired,
         ...recipe.ingredientsOptional
@@ -437,13 +563,11 @@ function createRecipeCard(item) {
     assignBtn.className = "secondary";
     assignBtn.style.marginTop = "16px";
     assignBtn.style.width = "100%";
-    assignBtn.innerHTML = `<span class="material-symbols-outlined" style="vertical-align: middle;">calendar_add_on</span> Asignar a la semana`;
-
+    assignBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px" aria-hidden="true">calendar_add_on</span> Asignar a la semana`;
     assignBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         openDayPicker(recipe.id);
     });
-
     node.appendChild(assignBtn);
 
     return node;
@@ -455,11 +579,11 @@ function buildProfileText(profile) {
     const glyClass = profile.glyLoad === "baja" ? "tag-good" : profile.glyLoad === "alta" ? "tag-bad" : "tag-warn";
 
     return `
-    <span class="${fiberClass}"><span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">forest</span> Fibra: ${profile.fiber}</span> ·
-    <span class="${satClass}"><span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">oil_barrel</span> Grasa saturada: ${profile.satFat}</span> ·
-    <span class="${glyClass}"><span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">bolt</span> Carga glucémica: ${profile.glyLoad}</span> ·
-    <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">nutrition</span> Volumen vegetal: ${profile.vegetableVolume}
-  `;
+        <span class="${fiberClass}"><span class="material-symbols-outlined" style="font-size:13px;vertical-align:middle" aria-hidden="true">forest</span> Fibra: ${profile.fiber}</span> ·
+        <span class="${satClass}"><span class="material-symbols-outlined" style="font-size:13px;vertical-align:middle" aria-hidden="true">oil_barrel</span> Grasa sat.: ${profile.satFat}</span> ·
+        <span class="${glyClass}"><span class="material-symbols-outlined" style="font-size:13px;vertical-align:middle" aria-hidden="true">bolt</span> CG: ${profile.glyLoad}</span> ·
+        <span><span class="material-symbols-outlined" style="font-size:13px;vertical-align:middle" aria-hidden="true">nutrition</span> Vegetal: ${profile.vegetableVolume}</span>
+    `;
 }
 
 function buildMealPrepText(mealPrep) {
@@ -469,21 +593,24 @@ function buildMealPrepText(mealPrep) {
     return `${uses}${leaves}${derivatives}`;
 }
 
+// ─── Meal Prep View ───
+function renderMealPrepInitial() {
+    mealPrepBoxEl.innerHTML = renderMealPrepSuggestions([]);
+}
+
 function renderMealPrepSuggestions(ranked) {
     if (!ranked.length) {
         const topBases = MEALPREP_BASES.map((base) => `
-      <div class="mealprep-block">
-        <strong>${base.name}</strong>
-        <p>Ingredientes: ${prettyIngredients(base.ingredients)}</p>
-        <p>Sirve para: ${base.derivatives.join(", ")}</p>
-      </div>
-    `).join("");
-
+            <div class="mealprep-block">
+                <strong>${base.name}</strong>
+                <p>Ingredientes: ${prettyIngredients(base.ingredients)}</p>
+                <p>Sirve para: ${base.derivatives.join(", ")}</p>
+            </div>
+        `).join("");
         return `<p class="hint">Bases recomendadas para preparar una vez y reutilizar después.</p>${topBases}`;
     }
 
     const baseCounts = new Map();
-
     ranked.forEach(({ recipe }) => {
         (recipe.mealPrep?.usesBases || []).forEach((baseId) => {
             baseCounts.set(baseId, (baseCounts.get(baseId) || 0) + 1);
@@ -501,153 +628,73 @@ function renderMealPrepSuggestions(ranked) {
     }
 
     return suggestedBases.map((base) => `
-    <div class="mealprep-block">
-      <strong>${base.name}</strong>
-      <p>Ingredientes base: ${prettyIngredients(base.ingredients)}</p>
-      <p>Te abre estas opciones: ${base.derivatives.join(", ")}</p>
-    </div>
-  `).join("");
+        <div class="mealprep-block">
+            <strong>${base.name}</strong>
+            <p>Ingredientes base: ${prettyIngredients(base.ingredients)}</p>
+            <p>Te abre estas opciones: ${base.derivatives.join(", ")}</p>
+        </div>
+    `).join("");
 }
 
+// ─── Summary ───
 function buildSummary(context, ranked) {
     const top = ranked[0]?.recipe?.name || "sin resultado";
     const inventoryCount = Object.values(context.inventory).filter((v) => v.has).length;
     const cravingsText = context.cravings.length ? context.cravings.map(humanizeCraving).join(", ") : "sin antojo específico";
-    return `Top sugerencia: ${top}. Evalué ${inventoryCount} ingredientes marcados, tiempo máximo de ${context.maxTime} min y antojo ${cravingsText}.`;
+    return `Top sugerencia: ${top}. Evalué ${inventoryCount} ingrediente${inventoryCount !== 1 ? "s" : ""} marcado${inventoryCount !== 1 ? "s" : ""}, tiempo máximo de ${context.maxTime} min y antojo ${cravingsText}.`;
 }
 
-function prettyIngredients(ingredients) {
-    if (!ingredients || !ingredients.length) return "Sin ingredientes";
-
-    return ingredients
-        .map((item) => {
-            if (typeof item === "string") {
-                const ing = INGREDIENTS.find((i) => i.id === item);
-                return ing ? ing.name : item;
-            } else if (typeof item === "object") {
-                const ing = INGREDIENTS.find((i) => i.id === item.id);
-                const name = ing ? ing.name : item.id;
-                const alt = ing?.mexican_alt ? ` (Alt MX: ${ing.mexican_alt})` : "";
-                if (item.amount && item.unit) {
-                    return `${item.amount}${item.unit} de ${name}${alt}`;
-                }
-                return `${name}${alt}`;
-            }
-            return item;
-        })
-        .join(", ");
-}
-
-function ensureInventoryItem(id) {
-    if (!state.inventory[id]) {
-        state.inventory[id] = { has: false, urgency: "normal" };
-    }
-}
-
-function loadInventory() {
-    try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEYS.inventory)) || {};
-    } catch {
-        return {};
-    }
-}
-
-function persistInventory() {
-    localStorage.setItem(STORAGE_KEYS.inventory, JSON.stringify(state.inventory));
-}
-
-function loadWeeklyPlan() {
-    const saved = localStorage.getItem(STORAGE_KEYS.weeklyPlan);
-    return saved ? JSON.parse(saved) : {};
-}
-
-function persistWeeklyPlan() {
-    localStorage.setItem(STORAGE_KEYS.weeklyPlan, JSON.stringify(state.weeklyPlan));
-}
-
-function loadShoppingList() {
-    const saved = localStorage.getItem(STORAGE_KEYS.shoppingList);
-    return saved ? JSON.parse(saved) : [];
-}
-
-function persistShoppingList() {
-    localStorage.setItem(STORAGE_KEYS.shoppingList, JSON.stringify(state.shoppingList));
-}
-
-function renderMealPrepInitial() {
-    mealPrepBoxEl.innerHTML = renderMealPrepSuggestions([]);
-}
-
+// ─── Planner ───
 function renderPlanner() {
     const grid = document.getElementById("weeklyPlannerGrid");
-    const days = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
     grid.innerHTML = "";
 
-    days.forEach((day) => {
+    DAYS.forEach((day) => {
         const dayEl = document.createElement("div");
         dayEl.className = "planner-day";
-        dayEl.innerHTML = `<h3>${day}</h3>`;
+        dayEl.innerHTML = `<h3>${capitalize(day)}</h3>`;
 
         const slot = document.createElement("div");
-        slot.className = "planner-slot";
         const plannedId = state.weeklyPlan[day];
-        const recipe = plannedId ? RECIPES.find(r => r.id === plannedId) : null;
+        const recipe = plannedId ? RECIPES.find((r) => r.id === plannedId) : null;
 
         if (recipe) {
-            slot.innerHTML = `
-                <strong>${recipe.name}</strong><br>
-                <small>Toca para cambiar</small>
-                <button class="remove-btn" style="background:none; border:none; padding: 4px; color: var(--md-sys-color-error); cursor: pointer;" title="Quitar">
-                    <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
-                </button>
-            `;
-            slot.style.borderStyle = "solid";
-            slot.style.borderColor = "var(--md-sys-color-primary)";
+            slot.className = "planner-slot has-recipe";
+            const nameSpan = document.createElement("span");
+            nameSpan.className = "planner-slot-name";
+            nameSpan.textContent = recipe.name;
 
-            const btn = slot.querySelector(".remove-btn");
-            btn.addEventListener("click", (e) => {
+            const removeBtn = document.createElement("button");
+            removeBtn.className = "remove-btn";
+            removeBtn.title = "Quitar receta";
+            removeBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px" aria-hidden="true">delete</span>`;
+            removeBtn.addEventListener("click", (e) => {
                 e.stopPropagation();
                 delete state.weeklyPlan[day];
                 persistWeeklyPlan();
                 renderPlanner();
+                showToast(`Receta quitada del ${day}`);
             });
-        } else {
-            slot.textContent = "+ Agregar receta";
-        }
 
-        slot.addEventListener("click", () => {
-            // Focus Today view to pick a recipe (simple flow for now)
-            alert("Ve a la pestaña 'Hoy' y elige una receta para asignar (sección en desarrollo)");
-            // In a full version, we'd open a recipe picker modal or change state to 'picking'
-        });
+            slot.appendChild(nameSpan);
+            slot.appendChild(removeBtn);
+        } else {
+            slot.className = "planner-slot";
+            slot.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px;opacity:0.4" aria-hidden="true">add_circle</span><br>Agregar receta`;
+            slot.addEventListener("click", () => {
+                showView("today");
+                showToast("Sugiere recetas y toca 'Asignar' para programarlas");
+            });
+        }
 
         dayEl.appendChild(slot);
         grid.appendChild(dayEl);
     });
 }
 
-function openDayPicker(recipeId) {
-    const days = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
-    const input = prompt("¿A qué día quieres asignar esta receta?\n(Escribe: lunes, martes, miércoles, etc.)");
-
-    if (!input) return;
-
-    const day = input.toLowerCase().trim();
-    const validDay = days.find(d => d.normalize("NFD").replace(/[\u0300-\u036f]/g, "") === day.normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
-
-    if (validDay) {
-        state.weeklyPlan[validDay] = recipeId;
-        persistWeeklyPlan();
-        alert(`Receta asignada al ${validDay}`);
-    } else {
-        alert("Día no válido. Asegúrate de escribirlo correctamente.");
-    }
-}
-
+// ─── Grocery List ───
 function renderGroceryList() {
     const container = document.getElementById("shoppingListContainer");
-    container.innerHTML = "<h3>Cargando...</h3>";
-
     const derivedList = generateGroceryListFromPlan();
 
     if (Object.keys(derivedList).length === 0) {
@@ -660,10 +707,11 @@ function renderGroceryList() {
         const item = document.createElement("div");
         item.className = "grocery-item";
         const hasIt = !!state.inventory[ingredientId]?.has;
+        const amountText = data.amount ? `${data.amount} ${data.unit} de ` : "";
 
         item.innerHTML = `
-            <input type="checkbox" ${hasIt ? "checked" : ""}>
-            <span>${data.amount} ${data.unit} de <strong>${data.name}</strong></span>
+            <input type="checkbox" ${hasIt ? "checked" : ""} aria-label="${data.name}">
+            <span>${amountText}<strong>${data.name}</strong></span>
         `;
 
         if (hasIt) item.classList.add("checked");
@@ -679,37 +727,36 @@ function renderGroceryList() {
     copyBtn.className = "secondary";
     copyBtn.style.marginTop = "24px";
     copyBtn.style.width = "100%";
-    copyBtn.innerHTML = `<span class="material-symbols-outlined">content_copy</span> Copiar lista`;
+    copyBtn.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">content_copy</span> Copiar lista`;
     copyBtn.addEventListener("click", () => {
         const text = Object.values(derivedList)
-            .map(d => `- ${d.amount} ${d.unit} de ${d.name}`)
+            .map((d) => `- ${d.amount ? `${d.amount} ${d.unit} de ` : ""}${d.name}`)
             .join("\n");
         navigator.clipboard.writeText(`Lista de Compra Milpa NiME:\n${text}`)
-            .then(() => alert("¡Lista copiada al portapapeles!"));
+            .then(() => showToast("¡Lista copiada al portapapeles!"))
+            .catch(() => showToast("No se pudo copiar. Intenta de nuevo."));
     });
     container.appendChild(copyBtn);
 }
 
 function generateGroceryListFromPlan() {
     const list = {};
-    Object.values(state.weeklyPlan).forEach(recipeId => {
-        const recipe = RECIPES.find(r => r.id === recipeId);
+    Object.values(state.weeklyPlan).forEach((recipeId) => {
+        const recipe = RECIPES.find((r) => r.id === recipeId);
         if (!recipe) return;
 
-        const ingredients = recipe.ingredientsDetailed || recipe.ingredientsRequired.map(id => ({ id }));
+        const ingredients = recipe.ingredientsDetailed || recipe.ingredientsRequired.map((id) => ({ id }));
 
-        ingredients.forEach(ing => {
-            const ingredient = INGREDIENTS.find(i => i.id === ing.id);
+        ingredients.forEach((ing) => {
+            const ingredient = INGREDIENTS.find((i) => i.id === ing.id);
             if (!ingredient) return;
-
-            // Simple check: if user HAS it in inventory, skip it
             if (state.inventory[ing.id]?.has) return;
 
             if (!list[ing.id]) {
                 list[ing.id] = {
                     name: ingredient.name,
                     amount: ing.amount || 0,
-                    unit: ing.unit || "unidad"
+                    unit: ing.unit || ""
                 };
             } else if (ing.amount && list[ing.id].unit === ing.unit) {
                 list[ing.id].amount += ing.amount;
@@ -719,29 +766,62 @@ function generateGroceryListFromPlan() {
     return list;
 }
 
-function loadCravings() {
-    try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEYS.cravings)) || [];
-    } catch {
-        return [];
+// ─── Initial message ───
+function renderInitialMessage() {
+    summaryBoxEl.textContent = "Selecciona ingredientes, antojo y tiempo para obtener sugerencias.";
+    mealPrepBoxEl.innerHTML = renderMealPrepSuggestions([]);
+}
+
+// ─── Reset ───
+function handleReset() {
+    showConfirm(
+        "¿Limpiar todo?",
+        "Se borrarán el inventario, antojos y plan seleccionados.",
+        () => {
+            state.inventory = {};
+            state.selectedCravings = [];
+            state.weeklyPlan = {};
+            persistInventory();
+            persistCravings();
+            persistWeeklyPlan();
+            renderInventory();
+            renderCravings();
+            renderInitialMessage();
+            resultsEl.innerHTML = "";
+            showToast("Selecciones limpiadas");
+        }
+    );
+}
+
+// ─── Utilities ───
+function prettyIngredients(ingredients) {
+    if (!ingredients || !ingredients.length) return "Sin ingredientes";
+    return ingredients.map((item) => {
+        if (typeof item === "string") {
+            const ing = INGREDIENTS.find((i) => i.id === item);
+            return ing ? ing.name : item;
+        } else if (typeof item === "object") {
+            const ing = INGREDIENTS.find((i) => i.id === item.id);
+            const name = ing ? ing.name : item.id;
+            const alt = ing?.mexican_alt ? ` (Alt MX: ${ing.mexican_alt})` : "";
+            if (item.amount && item.unit) {
+                return `${item.amount}${item.unit} de ${name}${alt}`;
+            }
+            return `${name}${alt}`;
+        }
+        return item;
+    }).join(", ");
+}
+
+function ensureInventoryItem(id) {
+    if (!state.inventory[id]) {
+        state.inventory[id] = { has: false, urgency: "normal" };
     }
 }
 
-function persistCravings() {
-    localStorage.setItem(STORAGE_KEYS.cravings, JSON.stringify(state.selectedCravings));
-}
-
-function resetSelections() {
-    state.inventory = {};
-    state.selectedCravings = [];
-    state.weeklyPlan = {};
-    persistInventory();
-    persistCravings();
-    persistWeeklyPlan();
-    renderInventory();
-    renderCravings();
-    renderInitialMessage();
-    resultsEl.innerHTML = "";
+function capitalize(str) {
+    if (!str) return "";
+    return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 function humanizeCraving(value) {
@@ -760,11 +840,33 @@ function humanizeCraving(value) {
     return table[value] || capitalize(value);
 }
 
-function capitalize(str) {
-    if (!str) return "";
-    return str.charAt(0).toUpperCase() + str.slice(1);
+// ─── Storage ───
+function loadInventory() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.inventory)) || {}; } catch { return {}; }
+}
+function persistInventory() {
+    localStorage.setItem(STORAGE_KEYS.inventory, JSON.stringify(state.inventory));
+}
+function loadWeeklyPlan() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.weeklyPlan)) || {}; } catch { return {}; }
+}
+function persistWeeklyPlan() {
+    localStorage.setItem(STORAGE_KEYS.weeklyPlan, JSON.stringify(state.weeklyPlan));
+}
+function loadShoppingList() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.shoppingList)) || []; } catch { return []; }
+}
+function persistShoppingList() {
+    localStorage.setItem(STORAGE_KEYS.shoppingList, JSON.stringify(state.shoppingList));
+}
+function loadCravings() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.cravings)) || []; } catch { return []; }
+}
+function persistCravings() {
+    localStorage.setItem(STORAGE_KEYS.cravings, JSON.stringify(state.selectedCravings));
 }
 
+// ─── PWA Install ───
 function setupPWAInstall() {
     let deferredPrompt;
     const installBtn = document.getElementById("installBtn");
@@ -782,16 +884,56 @@ function setupPWAInstall() {
         deferredPrompt.userChoice.then((choiceResult) => {
             if (choiceResult.outcome === "accepted") {
                 installBtn.classList.add("hidden");
+                showToast("¡App instalada! Búscala en tu pantalla de inicio.");
             }
             deferredPrompt = null;
         });
     });
+
+    window.addEventListener("appinstalled", () => {
+        installBtn.classList.add("hidden");
+    });
 }
 
+// ─── Service Worker ───
 function registerSW() {
-    if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("./sw.js").catch(console.error);
-    }
+    if (!("serviceWorker" in navigator)) return;
+
+    navigator.serviceWorker.register("./sw.js").then((registration) => {
+        // Detect when a new SW is waiting
+        const onUpdateFound = () => {
+            const newWorker = registration.installing;
+            if (!newWorker) return;
+            newWorker.addEventListener("statechange", () => {
+                if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+                    showUpdateBanner(registration);
+                }
+            });
+        };
+
+        registration.addEventListener("updatefound", onUpdateFound);
+
+        // If there's already a waiting SW on load
+        if (registration.waiting && navigator.serviceWorker.controller) {
+            showUpdateBanner(registration);
+        }
+    }).catch(console.error);
+
+    // When the SW controller changes (after skipWaiting), reload
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+        window.location.reload();
+    });
+}
+
+function showUpdateBanner(registration) {
+    const banner = document.getElementById("updateBanner");
+    const updateBtn = document.getElementById("updateBtn");
+    banner.classList.remove("hidden");
+
+    updateBtn.addEventListener("click", () => {
+        const sw = registration.waiting;
+        if (sw) sw.postMessage("skipWaiting");
+    }, { once: true });
 }
 
 init();

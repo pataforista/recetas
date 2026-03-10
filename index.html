@@ -7,7 +7,14 @@
   <meta name="theme-color" content="#002FA7" />
   <meta name="description"
     content="PWA para decidir qué cocinar según ingredientes, antojo, tiempo y meal prep con enfoque NiME/milpa." />
+
+  <!-- PWA / iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Milpa NiME" />
+  <link rel="apple-touch-icon" href="./assets/icon.svg" />
   <link rel="manifest" href="./manifest.webmanifest" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -18,26 +25,40 @@
 </head>
 
 <body>
+  <!-- Offline Banner -->
+  <div id="offlineBanner" class="offline-banner hidden" role="status">
+    <span class="material-symbols-outlined" aria-hidden="true">wifi_off</span>
+    Sin conexión — la app funciona igual en modo offline
+  </div>
+
+  <!-- Update Banner -->
+  <div id="updateBanner" class="update-banner hidden" role="status">
+    <span><span class="material-symbols-outlined" aria-hidden="true">system_update</span> Nueva versión disponible</span>
+    <button id="updateBtn" class="secondary" type="button">Actualizar</button>
+  </div>
+
   <header class="app-header">
     <div>
       <h1>Milpa NiME</h1>
       <p class="subtitle">Qué cocinar hoy con lo que hay</p>
     </div>
-    <button id="installBtn" class="secondary hidden" type="button">Instalar</button>
+    <button id="installBtn" class="secondary hidden" type="button">
+      <span class="material-symbols-outlined" aria-hidden="true">download</span> Instalar
+    </button>
   </header>
 
   <main class="layout">
     <!-- View: Today -->
     <div id="view-today" class="page-view active">
       <section class="panel">
-        <h2><span class="material-symbols-outlined">inventory_2</span> 1. Inventario</h2>
-        <p class="hint">Marca lo que tienes. Usa “urgente” si conviene gastarlo pronto.</p>
+        <h2><span class="material-symbols-outlined" aria-hidden="true">inventory_2</span> 1. Inventario</h2>
+        <p class="hint">Marca lo que tienes. Usa "urgente" si conviene gastarlo pronto.</p>
         <div id="inventoryFilters" class="chips"></div>
         <div id="inventoryList" class="inventory-grid"></div>
       </section>
 
       <section class="panel">
-        <h2><span class="material-symbols-outlined">psychology</span> 2. Antojo y contexto</h2>
+        <h2><span class="material-symbols-outlined" aria-hidden="true">psychology</span> 2. Antojo y contexto</h2>
 
         <label class="field">
           <span>Antojo</span>
@@ -76,13 +97,17 @@
         </label>
 
         <div class="actions">
-          <button id="suggestBtn" type="button">Sugerir</button>
-          <button id="resetBtn" class="secondary" type="button">Limpiar</button>
+          <button id="suggestBtn" type="button">
+            <span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span> Sugerir
+          </button>
+          <button id="resetBtn" class="secondary" type="button">
+            <span class="material-symbols-outlined" aria-hidden="true">restart_alt</span> Limpiar
+          </button>
         </div>
       </section>
 
-      <section class="panel">
-        <h2><span class="material-symbols-outlined">auto_awesome</span> 3. Resultados</h2>
+      <section class="panel" id="resultsPanel">
+        <h2><span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span> 3. Resultados</h2>
         <div id="summaryBox" class="summary-box"></div>
         <div id="results" class="results"></div>
       </section>
@@ -91,13 +116,12 @@
     <!-- View: Planner -->
     <div id="view-planner" class="page-view">
       <section class="panel">
-        <h2><span class="material-symbols-outlined">calendar_month</span> Plan Semanal</h2>
+        <h2><span class="material-symbols-outlined" aria-hidden="true">calendar_month</span> Plan Semanal</h2>
         <p class="hint">Organiza tus comidas de la semana. Los ingredientes se sumarán a tu lista de compra.</p>
         <div id="weeklyPlannerGrid" class="planner-grid"></div>
         <div class="actions" style="margin-top: 24px;">
-          <button id="clearPlanBtn" class="error-btn" type="button"
-            style="background-color: var(--md-sys-color-error-container); color: var(--md-sys-color-on-error-container); border: none; padding: 12px 24px; border-radius: 20px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-            <span class="material-symbols-outlined">delete_sweep</span> Limpiar Semana
+          <button id="clearPlanBtn" class="error-btn" type="button">
+            <span class="material-symbols-outlined" aria-hidden="true">delete_sweep</span> Limpiar Semana
           </button>
         </div>
       </section>
@@ -106,7 +130,7 @@
     <!-- View: Meal Prep -->
     <div id="view-mealprep" class="page-view">
       <section class="panel">
-        <h2><span class="material-symbols-outlined">set_meal</span> Meal Prep</h2>
+        <h2><span class="material-symbols-outlined" aria-hidden="true">set_meal</span> Meal Prep</h2>
         <p class="hint">Prepara bases para ahorrar tiempo después.</p>
         <div id="mealPrepBox"></div>
       </section>
@@ -115,31 +139,56 @@
     <!-- View: Grocery -->
     <div id="view-grocery" class="page-view">
       <section class="panel">
-        <h2><span class="material-symbols-outlined">shopping_cart</span> Lista de Compra</h2>
+        <h2><span class="material-symbols-outlined" aria-hidden="true">shopping_cart</span> Lista de Compra</h2>
         <p class="hint">Ingredientes necesarios para tu plan semanal (restando lo que ya tienes).</p>
         <div id="shoppingListContainer"></div>
       </section>
     </div>
   </main>
 
-  <nav class="bottom-nav">
-    <button class="nav-item active" data-view="today">
-      <span class="material-symbols-outlined">restaurant</span>
+  <nav class="bottom-nav" aria-label="Navegación principal">
+    <button class="nav-item active" data-view="today" aria-label="Hoy">
+      <span class="material-symbols-outlined" aria-hidden="true">restaurant</span>
       <span>Hoy</span>
     </button>
-    <button class="nav-item" data-view="planner">
-      <span class="material-symbols-outlined">calendar_month</span>
+    <button class="nav-item" data-view="planner" aria-label="Plan semanal">
+      <span class="material-symbols-outlined" aria-hidden="true">calendar_month</span>
       <span>Plan</span>
     </button>
-    <button class="nav-item" data-view="mealprep">
-      <span class="material-symbols-outlined">set_meal</span>
+    <button class="nav-item" data-view="mealprep" aria-label="Meal prep">
+      <span class="material-symbols-outlined" aria-hidden="true">set_meal</span>
       <span>Prep</span>
     </button>
-    <button class="nav-item" data-view="grocery">
-      <span class="material-symbols-outlined">shopping_cart</span>
+    <button class="nav-item" data-view="grocery" aria-label="Lista de compra">
+      <span class="material-symbols-outlined" aria-hidden="true">shopping_cart</span>
       <span>Lista</span>
     </button>
   </nav>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="false"></div>
+
+  <!-- Modal: Day Picker -->
+  <div id="dayPickerModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="dayPickerTitle">
+    <div class="modal">
+      <h3 id="dayPickerTitle">¿A qué día asignar esta receta?</h3>
+      <p id="dayPickerRecipeName" class="hint"></p>
+      <div class="day-picker-grid" id="dayPickerGrid"></div>
+      <button id="cancelDayPicker" class="secondary" type="button" style="width:100%; margin-top: 8px;">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Modal: Confirm Action -->
+  <div id="confirmModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <div class="modal">
+      <h3 id="confirmTitle"></h3>
+      <p id="confirmMessage" class="hint"></p>
+      <div class="actions" style="justify-content: flex-end; margin-top: 8px;">
+        <button id="confirmCancel" class="secondary" type="button">Cancelar</button>
+        <button id="confirmOk" class="error-btn" type="button">Confirmar</button>
+      </div>
+    </div>
+  </div>
 
   <template id="recipeCardTemplate">
     <article class="recipe-card">
@@ -148,7 +197,7 @@
           <h3 class="recipe-title"></h3>
           <p class="recipe-meta"></p>
         </div>
-        <div class="score-badge"></div>
+        <div class="score-badge" aria-label="Puntuación"></div>
       </div>
 
       <p class="recipe-description"></p>
@@ -168,7 +217,7 @@
         <p class="profile-text"></p>
       </div>
 
-      <div class="recipe-section">
+      <div class="recipe-section mealprep-section">
         <strong>Meal prep:</strong>
         <p class="mealprep-text"></p>
       </div>
