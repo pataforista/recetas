@@ -109,6 +109,32 @@ function bindEvents() {
         if (e.target === e.currentTarget) closeConfirmModal();
     });
 
+    // Modal: Inventory Menu
+    const inventoryMenuBtn = document.getElementById("inventoryMenuBtn");
+    const inventoryModal = document.getElementById("inventoryFilterModal");
+    const closeInventoryModalBtn = document.getElementById("closeInventoryModal");
+
+    if (inventoryMenuBtn && inventoryModal) {
+        inventoryMenuBtn.addEventListener("click", openInventoryModal);
+        closeInventoryModalBtn.addEventListener("click", closeInventoryModal);
+        inventoryModal.addEventListener("click", (e) => {
+            if (e.target === e.currentTarget) closeInventoryModal();
+        });
+    }
+
+    // Modal: Craving Menu
+    const cravingMenuBtn = document.getElementById("cravingMenuBtn");
+    const cravingMenuModal = document.getElementById("cravingMenuModal");
+    const closeCravingModalBtn = document.getElementById("closeCravingModal");
+
+    if (cravingMenuBtn && cravingMenuModal) {
+        cravingMenuBtn.addEventListener("click", openCravingModal);
+        closeCravingModalBtn.addEventListener("click", closeCravingModal);
+        cravingMenuModal.addEventListener("click", (e) => {
+            if (e.target === e.currentTarget) closeCravingModal();
+        });
+    }
+
     // Build day picker buttons once
     buildDayPickerButtons();
 }
@@ -219,11 +245,45 @@ function assignRecipeToDay(day) {
     showToast(`${recipe?.name ?? "Receta"} asignada al ${day}`);
 }
 
+// ─── Craving Modal ───
+function openCravingModal() {
+    const modal = document.getElementById("cravingMenuModal");
+    if (modal) {
+        modal.classList.remove("hidden");
+    }
+}
+
+function closeCravingModal() {
+    const modal = document.getElementById("cravingMenuModal");
+    if (modal) {
+        modal.classList.add("hidden");
+    }
+}
+
+// ─── Inventory Modal ───
+function openInventoryModal() {
+    const modal = document.getElementById("inventoryFilterModal");
+    if (modal) {
+        modal.classList.remove("hidden");
+    }
+}
+
+function closeInventoryModal() {
+    const modal = document.getElementById("inventoryFilterModal");
+    if (modal) {
+        modal.classList.add("hidden");
+    }
+}
+
 // ─── Inventory ───
 function renderInventoryFilters() {
     const categories = ["all", ...CATEGORY_ORDER.filter((cat) => INGREDIENTS.some((i) => i.category === cat))];
     inventoryFiltersEl.innerHTML = "";
-    categories.forEach((category) => {
+
+    const inventoryFilterGrid = document.getElementById("inventoryFilterGrid");
+    if (inventoryFilterGrid) inventoryFilterGrid.innerHTML = "";
+
+    const createCategoryChip = (category) => {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = `chip ${activeCategoryFilter === category ? "active" : ""}`;
@@ -234,8 +294,29 @@ function renderInventoryFilters() {
             renderInventoryFilters();
             renderInventory();
         });
-        inventoryFiltersEl.appendChild(btn);
+        return btn;
+    };
+
+    // Render filters in scrollable container - show first 4 items
+    const visibleCount = 4;
+    categories.slice(0, visibleCount).forEach((category) => {
+        inventoryFiltersEl.appendChild(createCategoryChip(category));
     });
+
+    // Show menu toggle button if there are more items
+    const menuBtn = document.getElementById("inventoryMenuBtn");
+    if (categories.length > visibleCount) {
+        menuBtn.style.display = "flex";
+    } else {
+        menuBtn.style.display = "none";
+    }
+
+    // Render all filters in modal
+    if (inventoryFilterGrid) {
+        categories.forEach((category) => {
+            inventoryFilterGrid.appendChild(createCategoryChip(category));
+        });
+    }
 }
 
 function getCategoryIcon(category) {
@@ -327,7 +408,10 @@ function renderInventory() {
 // ─── Cravings ───
 function renderCravings() {
     cravingChipsEl.innerHTML = "";
-    CRAVINGS.forEach((craving) => {
+    const cravingModalGrid = document.getElementById("cravingModalGrid");
+    if (cravingModalGrid) cravingModalGrid.innerHTML = "";
+
+    const createCravingChip = (craving) => {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = `chip ${state.selectedCravings.includes(craving) ? "active" : ""}`;
@@ -342,8 +426,29 @@ function renderCravings() {
             persistCravings();
             renderCravings();
         });
-        cravingChipsEl.appendChild(btn);
+        return btn;
+    };
+
+    // Render chips in scrollable container - show first 6 items
+    const visibleCount = 6;
+    CRAVINGS.slice(0, visibleCount).forEach((craving) => {
+        cravingChipsEl.appendChild(createCravingChip(craving));
     });
+
+    // Show menu toggle button if there are more items
+    const menuBtn = document.getElementById("cravingMenuBtn");
+    if (CRAVINGS.length > visibleCount) {
+        menuBtn.style.display = "flex";
+    } else {
+        menuBtn.style.display = "none";
+    }
+
+    // Render all chips in modal
+    if (cravingModalGrid) {
+        CRAVINGS.forEach((craving) => {
+            cravingModalGrid.appendChild(createCravingChip(craving));
+        });
+    }
 }
 
 function getCravingIcon(craving) {

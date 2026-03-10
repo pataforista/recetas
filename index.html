@@ -53,7 +53,23 @@
       <section class="panel">
         <h2><span class="material-symbols-outlined" aria-hidden="true">inventory_2</span> 1. Inventario</h2>
         <p class="hint">Marca lo que tienes. Usa "urgente" si conviene gastarlo pronto.</p>
-        <div id="inventoryFilters" class="chips"></div>
+        <div class="inventory-menu-wrapper">
+          <div id="inventoryFilters" class="inventory-filters-scroll"></div>
+          <button id="inventoryMenuBtn" type="button" class="menu-toggle" aria-label="Mostrar más categorías" style="display: none;">
+            <span class="material-symbols-outlined" aria-hidden="true">more_horiz</span>
+          </button>
+        </div>
+        <div id="inventoryFilterModal" class="inventory-modal hidden" role="dialog" aria-modal="true">
+          <div class="inventory-modal-content">
+            <div class="modal-header">
+              <h3>Selecciona categoría</h3>
+              <button id="closeInventoryModal" type="button" class="modal-close" aria-label="Cerrar menú">
+                <span class="material-symbols-outlined" aria-hidden="true">close</span>
+              </button>
+            </div>
+            <div id="inventoryFilterGrid" class="inventory-filter-grid"></div>
+          </div>
+        </div>
         <div id="inventoryList" class="inventory-grid"></div>
       </section>
 
@@ -62,7 +78,23 @@
 
         <label class="field">
           <span>Antojo</span>
-          <div id="cravingChips" class="chips"></div>
+          <div class="craving-menu-wrapper">
+            <div id="cravingChips" class="craving-chips-scroll"></div>
+            <button id="cravingMenuBtn" type="button" class="menu-toggle" aria-label="Mostrar más opciones de antojo" style="display: none;">
+              <span class="material-symbols-outlined" aria-hidden="true">more_horiz</span>
+            </button>
+          </div>
+          <div id="cravingMenuModal" class="craving-modal hidden" role="dialog" aria-modal="true">
+            <div class="craving-modal-content">
+              <div class="modal-header">
+                <h3>Selecciona tu antojo</h3>
+                <button id="closeCravingModal" type="button" class="modal-close" aria-label="Cerrar menú">
+                  <span class="material-symbols-outlined" aria-hidden="true">close</span>
+                </button>
+              </div>
+              <div id="cravingModalGrid" class="craving-modal-grid"></div>
+            </div>
+          </div>
         </label>
 
         <label class="field">
