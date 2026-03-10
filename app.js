@@ -64,6 +64,7 @@ function init() {
     setupPWAInstall();
     registerSW();
     initNavigation();
+    initAccordions();
     setupOfflineDetection();
     handleShortcutParam();
 }
@@ -137,6 +138,32 @@ function bindEvents() {
 
     // Build day picker buttons once
     buildDayPickerButtons();
+}
+
+// ─── Accordion Panels ───
+function initAccordions() {
+    document.querySelectorAll("#view-today .panel-header").forEach((header) => {
+        header.addEventListener("click", () => {
+            const panel = header.closest(".panel");
+            const isCollapsed = panel.classList.toggle("collapsed");
+            header.setAttribute("aria-expanded", String(!isCollapsed));
+        });
+        header.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                header.click();
+            }
+        });
+    });
+    updateInventoryBadge();
+}
+
+function updateInventoryBadge() {
+    const count = Object.values(state.inventory).filter((v) => v.has).length;
+    const badge = document.getElementById("inventoryCount");
+    if (badge) {
+        badge.textContent = count > 0 ? `${count} seleccionados` : "Sin selección";
+    }
 }
 
 // ─── Navigation ───
@@ -403,6 +430,8 @@ function renderInventory() {
         wrapper.appendChild(row2);
         inventoryListEl.appendChild(wrapper);
     });
+
+    updateInventoryBadge();
 }
 
 // ─── Cravings ───
@@ -499,8 +528,13 @@ function handleSuggest() {
         mealPrepBoxEl.innerHTML = renderMealPrepSuggestions(ranked);
         suggestBtn.disabled = false;
 
-        // Scroll to results on mobile
-        document.getElementById("resultsPanel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        // Auto-expand results panel and scroll to it
+        const resultsPanel = document.getElementById("resultsPanel");
+        if (resultsPanel) {
+            resultsPanel.classList.remove("collapsed");
+            resultsPanel.querySelector(".panel-header")?.setAttribute("aria-expanded", "true");
+            resultsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
     });
 }
 
