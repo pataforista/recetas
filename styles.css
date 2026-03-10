@@ -395,3 +395,119 @@ button.secondary:hover {
     font-size: 1.5rem;
   }
 }
+
+/* SPA Navigation */
+.page-view {
+  display: none;
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.page-view.active {
+  display: block;
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: var(--md-sys-color-surface);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border-top: 1px solid var(--md-sys-color-surface-variant);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  z-index: 1000;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.nav-item {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: var(--md-sys-color-on-surface-variant);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  width: 100%;
+  border-radius: 0;
+}
+
+.nav-item .material-symbols-outlined {
+  font-size: 24px;
+  padding: 4px 20px;
+  border-radius: 16px;
+  transition: all 0.2s ease;
+}
+
+.nav-item.active {
+  color: var(--md-sys-color-on-surface);
+}
+
+.nav-item.active .material-symbols-outlined {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+
+.nav-item span:not(.material-symbols-outlined) {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Page adjustments for Bottom Nav */
+body {
+  padding-bottom: 90px;
+}
+
+/* Planner Styles */
+.planner-grid {
+  display: grid;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.planner-day {
+  background: var(--md-sys-color-surface-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
+  padding: 16px;
+  min-height: 100px;
+  border: 1px solid transparent;
+}
+
+.planner-day h3 {
+  margin: 0 0 12px;
+  font-size: 1rem;
+  color: var(--md-sys-color-primary);
+  text-transform: capitalize;
+}
+
+.planner-slot {
+  border: 2px dashed var(--md-sys-color-outline);
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+  color: var(--md-sys-color-on-surface-variant);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.planner-slot:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Grocery Styles */
+.grocery-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-bottom: 1px solid var(--md-sys-color-surface-variant);
+}
+
+.grocery-item.checked {
+  opacity: 0.5;
+  text-decoration: line-through;
+}

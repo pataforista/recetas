@@ -27,69 +27,119 @@
   </header>
 
   <main class="layout">
-    <section class="panel">
-      <h2>1. Inventario</h2>
-      <p class="hint">Marca lo que tienes. Usa “urgente” si conviene gastarlo pronto.</p>
-      <div id="inventoryFilters" class="chips"></div>
-      <div id="inventoryList" class="inventory-grid"></div>
-    </section>
+    <!-- View: Today -->
+    <div id="view-today" class="page-view active">
+      <section class="panel">
+        <h2><span class="material-symbols-outlined">inventory_2</span> 1. Inventario</h2>
+        <p class="hint">Marca lo que tienes. Usa “urgente” si conviene gastarlo pronto.</p>
+        <div id="inventoryFilters" class="chips"></div>
+        <div id="inventoryList" class="inventory-grid"></div>
+      </section>
 
-    <section class="panel">
-      <h2>2. Antojo y contexto</h2>
+      <section class="panel">
+        <h2><span class="material-symbols-outlined">psychology</span> 2. Antojo y contexto</h2>
 
-      <label class="field">
-        <span>Antojo</span>
-        <div id="cravingChips" class="chips"></div>
-      </label>
+        <label class="field">
+          <span>Antojo</span>
+          <div id="cravingChips" class="chips"></div>
+        </label>
 
-      <label class="field">
-        <span>Tiempo disponible</span>
-        <select id="timeSelect">
-          <option value="15">15 min o menos</option>
-          <option value="20">20 min</option>
-          <option value="30" selected>30 min</option>
-          <option value="45">45 min</option>
-          <option value="60">60 min o más</option>
-        </select>
-      </label>
+        <label class="field">
+          <span>Tiempo disponible</span>
+          <select id="timeSelect">
+            <option value="15">15 min o menos</option>
+            <option value="20">20 min</option>
+            <option value="30" selected>30 min</option>
+            <option value="45">45 min</option>
+            <option value="60">60 min o más</option>
+          </select>
+        </label>
 
-      <label class="field">
-        <span>Modo</span>
-        <select id="modeSelect">
-          <option value="today" selected>Hoy</option>
-          <option value="rescue">Rescate</option>
-          <option value="mealprep">Meal prep</option>
-          <option value="metabolic">Metabólico suave</option>
-        </select>
-      </label>
+        <label class="field">
+          <span>Modo</span>
+          <select id="modeSelect">
+            <option value="today" selected>Hoy</option>
+            <option value="rescue">Rescate</option>
+            <option value="mealprep">Meal prep</option>
+            <option value="metabolic">Metabólico suave</option>
+          </select>
+        </label>
 
-      <label class="checkbox">
-        <input id="lowEnergy" type="checkbox" />
-        <span>Poca energía / baja fricción</span>
-      </label>
+        <label class="checkbox">
+          <input id="lowEnergy" type="checkbox" />
+          <span>Poca energía / baja fricción</span>
+        </label>
 
-      <label class="checkbox">
-        <input id="seasonBoost" type="checkbox" checked />
-        <span>Favorecer temporada en México</span>
-      </label>
+        <label class="checkbox">
+          <input id="seasonBoost" type="checkbox" checked />
+          <span>Favorecer temporada en México</span>
+        </label>
 
-      <div class="actions">
-        <button id="suggestBtn" type="button">Sugerir</button>
-        <button id="resetBtn" class="secondary" type="button">Limpiar</button>
-      </div>
-    </section>
+        <div class="actions">
+          <button id="suggestBtn" type="button">Sugerir</button>
+          <button id="resetBtn" class="secondary" type="button">Limpiar</button>
+        </div>
+      </section>
 
-    <section class="panel">
-      <h2>3. Resultados</h2>
-      <div id="summaryBox" class="summary-box"></div>
-      <div id="results" class="results"></div>
-    </section>
+      <section class="panel">
+        <h2><span class="material-symbols-outlined">auto_awesome</span> 3. Resultados</h2>
+        <div id="summaryBox" class="summary-box"></div>
+        <div id="results" class="results"></div>
+      </section>
+    </div>
 
-    <section class="panel">
-      <h2>4. Meal prep</h2>
-      <div id="mealPrepBox"></div>
-    </section>
+    <!-- View: Planner -->
+    <div id="view-planner" class="page-view">
+      <section class="panel">
+        <h2><span class="material-symbols-outlined">calendar_month</span> Plan Semanal</h2>
+        <p class="hint">Organiza tus comidas de la semana. Los ingredientes se sumarán a tu lista de compra.</p>
+        <div id="weeklyPlannerGrid" class="planner-grid"></div>
+        <div class="actions" style="margin-top: 24px;">
+          <button id="clearPlanBtn" class="error-btn" type="button"
+            style="background-color: var(--md-sys-color-error-container); color: var(--md-sys-color-on-error-container); border: none; padding: 12px 24px; border-radius: 20px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <span class="material-symbols-outlined">delete_sweep</span> Limpiar Semana
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- View: Meal Prep -->
+    <div id="view-mealprep" class="page-view">
+      <section class="panel">
+        <h2><span class="material-symbols-outlined">set_meal</span> Meal Prep</h2>
+        <p class="hint">Prepara bases para ahorrar tiempo después.</p>
+        <div id="mealPrepBox"></div>
+      </section>
+    </div>
+
+    <!-- View: Grocery -->
+    <div id="view-grocery" class="page-view">
+      <section class="panel">
+        <h2><span class="material-symbols-outlined">shopping_cart</span> Lista de Compra</h2>
+        <p class="hint">Ingredientes necesarios para tu plan semanal (restando lo que ya tienes).</p>
+        <div id="shoppingListContainer"></div>
+      </section>
+    </div>
   </main>
+
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-view="today">
+      <span class="material-symbols-outlined">restaurant</span>
+      <span>Hoy</span>
+    </button>
+    <button class="nav-item" data-view="planner">
+      <span class="material-symbols-outlined">calendar_month</span>
+      <span>Plan</span>
+    </button>
+    <button class="nav-item" data-view="mealprep">
+      <span class="material-symbols-outlined">set_meal</span>
+      <span>Prep</span>
+    </button>
+    <button class="nav-item" data-view="grocery">
+      <span class="material-symbols-outlined">shopping_cart</span>
+      <span>Lista</span>
+    </button>
+  </nav>
 
   <template id="recipeCardTemplate">
     <article class="recipe-card">

@@ -6,7 +6,9 @@ import { RECIPES } from "./data/recipes.js";
 
 const STORAGE_KEYS = {
     inventory: "milpa_nime_inventory_v1",
-    cravings: "milpa_nime_cravings_v1"
+    cravings: "milpa_nime_cravings_v1",
+    weeklyPlan: "milpa_nime_weekly_plan_v1",
+    shoppingList: "milpa_nime_shopping_list_v1"
 };
 
 const CRAVINGS = [
@@ -27,6 +29,8 @@ const CATEGORY_ORDER = ["milpa", "leguminosas", "verduras", "proteinas", "lacteo
 const state = {
     inventory: loadInventory(),
     selectedCravings: loadCravings(),
+    weeklyPlan: loadWeeklyPlan(),
+    shoppingList: loadShoppingList(),
     currentMonth: new Date().getMonth() + 1
 };
 
@@ -45,8 +49,6 @@ const seasonBoostEl = document.getElementById("seasonBoost");
 
 let activeCategoryFilter = "all";
 
-init();
-
 function init() {
     renderInventoryFilters();
     renderInventory();
@@ -55,11 +57,49 @@ function init() {
     renderInitialMessage();
     setupPWAInstall();
     registerSW();
+    initNavigation();
 }
 
 function bindEvents() {
     suggestBtn.addEventListener("click", handleSuggest);
     resetBtn.addEventListener("click", resetSelections);
+    const clearPlanBtn = document.getElementById("clearPlanBtn");
+    if (clearPlanBtn) {
+        clearPlanBtn.addEventListener("click", () => {
+            if (confirm("¿Estás seguro de que quieres borrar el plan de toda la semana?")) {
+                state.weeklyPlan = {};
+                persistWeeklyPlan();
+                renderPlanner();
+            }
+        });
+    }
+}
+
+function initNavigation() {
+    const navItems = document.querySelectorAll(".nav-item");
+    navItems.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const viewId = btn.getAttribute("data-view");
+            showView(viewId);
+        });
+    });
+}
+
+function showView(viewId) {
+    // Update active nav item
+    document.querySelectorAll(".nav-item").forEach((btn) => {
+        btn.classList.toggle("active", btn.getAttribute("data-view") === viewId);
+    });
+
+    // Update active page view
+    document.querySelectorAll(".page-view").forEach((view) => {
+        view.classList.toggle("active", view.id === `view-${viewId}`);
+    });
+
+    // Specific view renders
+    if (viewId === "planner") renderPlanner();
+    if (viewId === "mealprep") renderMealPrepInitial();
+    if (viewId === "grocery") renderGroceryList();
 }
 
 function renderInitialMessage() {
@@ -393,6 +433,19 @@ function createRecipeCard(item) {
         whyList.appendChild(li);
     });
 
+    const assignBtn = document.createElement("button");
+    assignBtn.className = "secondary";
+    assignBtn.style.marginTop = "16px";
+    assignBtn.style.width = "100%";
+    assignBtn.innerHTML = `<span class="material-symbols-outlined" style="vertical-align: middle;">calendar_add_on</span> Asignar a la semana`;
+
+    assignBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openDayPicker(recipe.id);
+    });
+
+    node.appendChild(assignBtn);
+
     return node;
 }
 
@@ -503,6 +556,169 @@ function persistInventory() {
     localStorage.setItem(STORAGE_KEYS.inventory, JSON.stringify(state.inventory));
 }
 
+function loadWeeklyPlan() {
+    const saved = localStorage.getItem(STORAGE_KEYS.weeklyPlan);
+    return saved ? JSON.parse(saved) : {};
+}
+
+function persistWeeklyPlan() {
+    localStorage.setItem(STORAGE_KEYS.weeklyPlan, JSON.stringify(state.weeklyPlan));
+}
+
+function loadShoppingList() {
+    const saved = localStorage.getItem(STORAGE_KEYS.shoppingList);
+    return saved ? JSON.parse(saved) : [];
+}
+
+function persistShoppingList() {
+    localStorage.setItem(STORAGE_KEYS.shoppingList, JSON.stringify(state.shoppingList));
+}
+
+function renderMealPrepInitial() {
+    mealPrepBoxEl.innerHTML = renderMealPrepSuggestions([]);
+}
+
+function renderPlanner() {
+    const grid = document.getElementById("weeklyPlannerGrid");
+    const days = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
+    grid.innerHTML = "";
+
+    days.forEach((day) => {
+        const dayEl = document.createElement("div");
+        dayEl.className = "planner-day";
+        dayEl.innerHTML = `<h3>${day}</h3>`;
+
+        const slot = document.createElement("div");
+        slot.className = "planner-slot";
+        const plannedId = state.weeklyPlan[day];
+        const recipe = plannedId ? RECIPES.find(r => r.id === plannedId) : null;
+
+        if (recipe) {
+            slot.innerHTML = `
+                <strong>${recipe.name}</strong><br>
+                <small>Toca para cambiar</small>
+                <button class="remove-btn" style="background:none; border:none; padding: 4px; color: var(--md-sys-color-error); cursor: pointer;" title="Quitar">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
+                </button>
+            `;
+            slot.style.borderStyle = "solid";
+            slot.style.borderColor = "var(--md-sys-color-primary)";
+
+            const btn = slot.querySelector(".remove-btn");
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                delete state.weeklyPlan[day];
+                persistWeeklyPlan();
+                renderPlanner();
+            });
+        } else {
+            slot.textContent = "+ Agregar receta";
+        }
+
+        slot.addEventListener("click", () => {
+            // Focus Today view to pick a recipe (simple flow for now)
+            alert("Ve a la pestaña 'Hoy' y elige una receta para asignar (sección en desarrollo)");
+            // In a full version, we'd open a recipe picker modal or change state to 'picking'
+        });
+
+        dayEl.appendChild(slot);
+        grid.appendChild(dayEl);
+    });
+}
+
+function openDayPicker(recipeId) {
+    const days = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
+    const input = prompt("¿A qué día quieres asignar esta receta?\n(Escribe: lunes, martes, miércoles, etc.)");
+
+    if (!input) return;
+
+    const day = input.toLowerCase().trim();
+    const validDay = days.find(d => d.normalize("NFD").replace(/[\u0300-\u036f]/g, "") === day.normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
+
+    if (validDay) {
+        state.weeklyPlan[validDay] = recipeId;
+        persistWeeklyPlan();
+        alert(`Receta asignada al ${validDay}`);
+    } else {
+        alert("Día no válido. Asegúrate de escribirlo correctamente.");
+    }
+}
+
+function renderGroceryList() {
+    const container = document.getElementById("shoppingListContainer");
+    container.innerHTML = "<h3>Cargando...</h3>";
+
+    const derivedList = generateGroceryListFromPlan();
+
+    if (Object.keys(derivedList).length === 0) {
+        container.innerHTML = "<p class='hint'>Agrega recetas a tu plan semanal para generar la lista de compra.</p>";
+        return;
+    }
+
+    container.innerHTML = "";
+    Object.entries(derivedList).forEach(([ingredientId, data]) => {
+        const item = document.createElement("div");
+        item.className = "grocery-item";
+        const hasIt = !!state.inventory[ingredientId]?.has;
+
+        item.innerHTML = `
+            <input type="checkbox" ${hasIt ? "checked" : ""}>
+            <span>${data.amount} ${data.unit} de <strong>${data.name}</strong></span>
+        `;
+
+        if (hasIt) item.classList.add("checked");
+
+        item.querySelector("input").addEventListener("change", (e) => {
+            item.classList.toggle("checked", e.target.checked);
+        });
+
+        container.appendChild(item);
+    });
+
+    const copyBtn = document.createElement("button");
+    copyBtn.className = "secondary";
+    copyBtn.style.marginTop = "24px";
+    copyBtn.style.width = "100%";
+    copyBtn.innerHTML = `<span class="material-symbols-outlined">content_copy</span> Copiar lista`;
+    copyBtn.addEventListener("click", () => {
+        const text = Object.values(derivedList)
+            .map(d => `- ${d.amount} ${d.unit} de ${d.name}`)
+            .join("\n");
+        navigator.clipboard.writeText(`Lista de Compra Milpa NiME:\n${text}`)
+            .then(() => alert("¡Lista copiada al portapapeles!"));
+    });
+    container.appendChild(copyBtn);
+}
+
+function generateGroceryListFromPlan() {
+    const list = {};
+    Object.values(state.weeklyPlan).forEach(recipeId => {
+        const recipe = RECIPES.find(r => r.id === recipeId);
+        if (!recipe) return;
+
+        const ingredients = recipe.ingredientsDetailed || recipe.ingredientsRequired.map(id => ({ id }));
+
+        ingredients.forEach(ing => {
+            const ingredient = INGREDIENTS.find(i => i.id === ing.id);
+            if (!ingredient) return;
+
+            // Simple check: if user HAS it in inventory, skip it
+            if (state.inventory[ing.id]?.has) return;
+
+            if (!list[ing.id]) {
+                list[ing.id] = {
+                    name: ingredient.name,
+                    amount: ing.amount || 0,
+                    unit: ing.unit || "unidad"
+                };
+            } else if (ing.amount && list[ing.id].unit === ing.unit) {
+                list[ing.id].amount += ing.amount;
+            }
+        });
+    });
+    return list;
+}
+
 function loadCravings() {
     try {
         return JSON.parse(localStorage.getItem(STORAGE_KEYS.cravings)) || [];
@@ -518,8 +734,10 @@ function persistCravings() {
 function resetSelections() {
     state.inventory = {};
     state.selectedCravings = [];
+    state.weeklyPlan = {};
     persistInventory();
     persistCravings();
+    persistWeeklyPlan();
     renderInventory();
     renderCravings();
     renderInitialMessage();
@@ -527,7 +745,7 @@ function resetSelections() {
 }
 
 function humanizeCraving(value) {
-    return ({
+    const table = {
         rapido: "Rápido",
         casero: "Casero",
         calientito: "Calientito",
@@ -538,38 +756,42 @@ function humanizeCraving(value) {
         antojo_mexicano: "Antojo mexicano",
         mealprep: "Meal prep",
         saludable: "Saludable"
-    })[value] || value;
+    };
+    return table[value] || capitalize(value);
 }
 
-function capitalize(value) {
-    return value.charAt(0).toUpperCase() + value.slice(1);
+function capitalize(str) {
+    if (!str) return "";
+    return str.charAt(0).toUpperCase() + str.slice(1);
 }
-
-let deferredPrompt = null;
 
 function setupPWAInstall() {
+    let deferredPrompt;
     const installBtn = document.getElementById("installBtn");
-    window.addEventListener("beforeinstallprompt", (event) => {
-        event.preventDefault();
-        deferredPrompt = event;
+    if (!installBtn) return;
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
         installBtn.classList.remove("hidden");
     });
 
-    installBtn.addEventListener("click", async () => {
+    installBtn.addEventListener("click", () => {
         if (!deferredPrompt) return;
         deferredPrompt.prompt();
-        await deferredPrompt.userChoice;
-        deferredPrompt = null;
-        installBtn.classList.add("hidden");
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === "accepted") {
+                installBtn.classList.add("hidden");
+            }
+            deferredPrompt = null;
+        });
     });
 }
 
 function registerSW() {
     if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
-            navigator.serviceWorker.register("./sw.js").catch((error) => {
-                console.error("Error registrando service worker:", error);
-            });
-        });
+        navigator.serviceWorker.register("./sw.js").catch(console.error);
     }
 }
+
+init();
