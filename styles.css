@@ -1,46 +1,47 @@
 :root {
-  /* M3 Tonal Palette - Klein Blue Primary */
-  --md-sys-color-primary: #002FA7;
+  /* Ultramarine Blue Primary */
+  --md-sys-color-primary: #120A8F;
   --md-sys-color-on-primary: #FFFFFF;
-  --md-sys-color-primary-container: #DDE1FF;
-  --md-sys-color-on-primary-container: #001453;
+  --md-sys-color-primary-container: #E0E0FF;
+  --md-sys-color-on-primary-container: #000066;
 
-  /* M3 Tonal Palette - Purple Secondary */
-  --md-sys-color-secondary: #6750A4;
+  /* Terracotta Secondary */
+  --md-sys-color-secondary: #C04000;
   --md-sys-color-on-secondary: #FFFFFF;
-  --md-sys-color-secondary-container: #E9DDFF;
-  --md-sys-color-on-secondary-container: #22005D;
+  --md-sys-color-secondary-container: #FFDBCB;
+  --md-sys-color-on-secondary-container: #341100;
 
-  /* M3 Tonal Palette - Yellow Tertiary */
-  --md-sys-color-tertiary: #FFD600;
-  --md-sys-color-on-tertiary: #322D00;
-  --md-sys-color-tertiary-container: #FFF2AA;
-  --md-sys-color-on-tertiary-container: #211D00;
+  /* Sage Green Tertiary (Milpa) */
+  --md-sys-color-tertiary: #4F6630;
+  --md-sys-color-on-tertiary: #FFFFFF;
+  --md-sys-color-tertiary-container: #D2EABD;
+  --md-sys-color-on-tertiary-container: #101F00;
 
-  /* Neutrals */
-  --md-sys-color-background: #FEFBFF;
-  --md-sys-color-on-background: #1B1B1F;
-  --md-sys-color-surface: #FEFBFF;
-  --md-sys-color-on-surface: #1B1B1F;
-  --md-sys-color-surface-variant: #E1E2EC;
-  --md-sys-color-on-surface-variant: #44464F;
-  --md-sys-color-outline: #757780;
+  /* Neutrals - Warm & Less Sterile */
+  --md-sys-color-background: #FDFCF0; /* Warm cream */
+  --md-sys-color-on-background: #1C1C17;
+  --md-sys-color-surface: #FDFCF0;
+  --md-sys-color-on-surface: #1C1C17;
+  --md-sys-color-surface-variant: #E6E3D1;
+  --md-sys-color-on-surface-variant: #48473B;
+  --md-sys-color-outline: #797869;
 
   /* Semantic */
-  --md-sys-color-success: #2E6C27;
+  --md-sys-color-success: #386633;
   --md-sys-color-error: #BA1A1A;
   --md-sys-color-error-container: #FFDAD6;
   --md-sys-color-on-error-container: #410002;
   --md-sys-color-warning: #8F4E00;
 
-  /* Shapes & Shadows */
-  --md-sys-shape-corner-extra-large: 28px;
+  /* Shapes & Shadows - Premium */
+  --md-sys-shape-corner-extra-large: 32px;
   --md-sys-shape-corner-large: 24px;
   --md-sys-shape-corner-medium: 16px;
   --md-sys-shape-corner-small: 12px;
 
-  --md-sys-elevation-1: 0 1px 3px 1px rgba(0, 0, 0, 0.15), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --md-sys-elevation-2: 0 2px 6px 2px rgba(0, 0, 0, 0.15), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --md-sys-elevation-1: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --md-sys-elevation-2: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --md-sys-elevation-3: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
 }
 
 * {
@@ -53,10 +54,14 @@ body {
   margin: 0;
   font-family: 'Outfit', system-ui, sans-serif;
   background-color: var(--md-sys-color-background);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(18, 10, 143, 0.03) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(192, 64, 0, 0.03) 0px, transparent 50%);
+  background-attachment: fixed;
   color: var(--md-sys-color-on-background);
   line-height: 1.5;
   /* Space for bottom nav + safe area */
-  padding-bottom: calc(80px + env(safe-area-inset-bottom));
+  padding-bottom: calc(90px + env(safe-area-inset-bottom, 16px));
 }
 
 /* Utility */
@@ -98,15 +103,28 @@ body {
 
 /* ─── Header ─── */
 .app-header {
-  padding: 20px 20px 16px;
-  background: linear-gradient(135deg, var(--md-sys-color-primary) 0%, #001D6E 100%);
+  padding: 32px 24px 24px;
+  background: linear-gradient(165deg, var(--md-sys-color-primary) 0%, #000044 100%);
   color: white;
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom-left-radius: var(--md-sys-shape-corner-extra-large);
   border-bottom-right-radius: var(--md-sys-shape-corner-extra-large);
-  box-shadow: var(--md-sys-elevation-2);
+  box-shadow: 0 8px 32px rgba(18, 10, 143, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.app-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -20%;
+  width: 150%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .app-header h1 {
@@ -132,10 +150,17 @@ body {
 
 /* ─── Panels ─── */
 .panel {
-  background: var(--md-sys-color-surface);
+  background: rgba(253, 252, 240, 0.7);
+  backdrop-filter: blur(10px);
   border: 1px solid var(--md-sys-color-surface-variant);
   border-radius: var(--md-sys-shape-corner-extra-large);
   padding: 24px;
+  box-shadow: var(--md-sys-elevation-1);
+  transition: box-shadow 0.3s ease;
+}
+
+.panel:focus-within {
+  box-shadow: var(--md-sys-elevation-2);
 }
 
 .panel h2 {
@@ -158,7 +183,8 @@ body {
 /* ─── Inventory ─── */
 .inventory-grid {
   display: grid;
-  gap: 10px;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
 }
 
 .inventory-item {
@@ -229,10 +255,15 @@ body {
 }
 
 .chip.active {
-  background: var(--md-sys-color-secondary-container);
-  color: var(--md-sys-color-on-secondary-container);
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
   border-color: transparent;
-  box-shadow: inset 0 0 0 1px var(--md-sys-color-secondary);
+  transform: scale(1.05);
+  box-shadow: var(--md-sys-elevation-2);
+}
+
+.chip:active {
+  transform: scale(0.95);
 }
 
 .chip:hover {
@@ -240,13 +271,6 @@ body {
 }
 
 /* ─── Craving Menu ─── */
-.craving-menu-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 8px 0 12px;
-}
-
 .craving-chips-scroll {
   display: flex;
   gap: 8px;
@@ -255,27 +279,34 @@ body {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   flex: 1;
-  padding-bottom: 4px;
-  /* Custom scrollbar for better appearance */
-  scrollbar-width: thin;
-  scrollbar-color: var(--md-sys-color-outline) transparent;
+  padding: 4px 0;
+  /* Custom scrollbar */
+  scrollbar-width: none;
 }
 
 .craving-chips-scroll::-webkit-scrollbar {
-  height: 4px;
+  display: none;
 }
 
-.craving-chips-scroll::-webkit-scrollbar-track {
-  background: transparent;
+.craving-menu-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 12px;
 }
 
-.craving-chips-scroll::-webkit-scrollbar-thumb {
-  background: var(--md-sys-color-outline);
-  border-radius: 2px;
-}
-
-.craving-chips-scroll::-webkit-scrollbar-thumb:hover {
-  background: var(--md-sys-color-on-surface-variant);
+/* Fading edges for scroll */
+.craving-menu-wrapper::after {
+  content: '';
+  position: absolute;
+  right: 44px;
+  top: 0;
+  bottom: 0;
+  width: 32px;
+  background: linear-gradient(to right, transparent, var(--md-sys-color-background));
+  pointer-events: none;
+  z-index: 1;
 }
 
 .craving-chips-scroll .chip {
@@ -415,26 +446,32 @@ body {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   flex: 1;
-  padding-bottom: 4px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--md-sys-color-outline) transparent;
+  padding: 4px 0;
+  scrollbar-width: none;
 }
 
 .inventory-filters-scroll::-webkit-scrollbar {
-  height: 4px;
+  display: none;
 }
 
-.inventory-filters-scroll::-webkit-scrollbar-track {
-  background: transparent;
+.inventory-menu-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
-.inventory-filters-scroll::-webkit-scrollbar-thumb {
-  background: var(--md-sys-color-outline);
-  border-radius: 2px;
-}
-
-.inventory-filters-scroll::-webkit-scrollbar-thumb:hover {
-  background: var(--md-sys-color-on-surface-variant);
+.inventory-menu-wrapper::after {
+  content: '';
+  position: absolute;
+  right: 44px;
+  top: 0;
+  bottom: 0;
+  width: 32px;
+  background: linear-gradient(to right, transparent, var(--md-sys-color-background));
+  pointer-events: none;
+  z-index: 1;
 }
 
 .inventory-filters-scroll .chip {
@@ -597,10 +634,13 @@ button.secondary {
   background: var(--md-sys-color-secondary-container);
   color: var(--md-sys-color-on-secondary-container);
   flex: 1;
+  box-shadow: none;
 }
 
 button.secondary:hover {
-  background: #d8ccf0;
+  background: var(--md-sys-color-secondary);
+  color: var(--md-sys-color-on-secondary);
+  box-shadow: var(--md-sys-elevation-1);
 }
 
 button.error-btn {
@@ -629,12 +669,19 @@ button.error-btn:hover {
 .recipe-card {
   background: var(--md-sys-color-surface);
   border: 1px solid var(--md-sys-color-surface-variant);
-  border-radius: var(--md-sys-shape-corner-large);
-  padding: 20px;
-  margin-bottom: 16px;
+  border-radius: var(--md-sys-shape-corner-extra-large);
+  padding: 24px;
+  margin-bottom: 20px;
   overflow: hidden;
   position: relative;
+  box-shadow: var(--md-sys-elevation-2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   animation: fadeIn 0.4s ease forwards;
+}
+
+.recipe-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--md-sys-elevation-3);
 }
 
 .recipe-top {
@@ -954,6 +1001,22 @@ button.error-btn:hover {
 @keyframes toastOut {
   from { opacity: 1; transform: translateY(0); }
   to   { opacity: 0; transform: translateY(-8px); }
+}
+
+.toast-action {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-primary);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-left: 12px;
+  box-shadow: none;
+}
+
+.toast-action:hover {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
 }
 
 /* ─── Modals ─── */

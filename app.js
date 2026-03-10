@@ -199,16 +199,34 @@ function setupOfflineDetection() {
 }
 
 // ─── Toast ───
-function showToast(message, duration = 3000) {
+function showToast(message, actionText = null, actionCb = null, duration = 4000) {
     const container = document.getElementById("toastContainer");
     const toast = document.createElement("div");
     toast.className = "toast";
-    toast.textContent = message;
+    
+    const textSpan = document.createElement("span");
+    textSpan.textContent = message;
+    toast.appendChild(textSpan);
+
+    if (actionText && actionCb) {
+        const btn = document.createElement("button");
+        btn.className = "toast-action";
+        btn.textContent = actionText;
+        btn.addEventListener("click", () => {
+            actionCb();
+            toast.classList.add("exit");
+            setTimeout(() => toast.remove(), 300);
+        });
+        toast.appendChild(btn);
+    }
+
     container.appendChild(toast);
 
     setTimeout(() => {
-        toast.classList.add("exit");
-        toast.addEventListener("animationend", () => toast.remove());
+        if (toast.parentElement) {
+            toast.classList.add("exit");
+            toast.addEventListener("animationend", () => toast.remove());
+        }
     }, duration);
 }
 
@@ -269,7 +287,7 @@ function assignRecipeToDay(day) {
     persistWeeklyPlan();
     const recipe = RECIPES.find((r) => r.id === _pendingRecipeId);
     closeDayPicker();
-    showToast(`${recipe?.name ?? "Receta"} asignada al ${day}`);
+    showToast(`${recipe?.name ?? "Receta"} asignada al ${day}`, "Ver Plan", () => showView("planner"));
 }
 
 // ─── Craving Modal ───
@@ -533,7 +551,11 @@ function handleSuggest() {
         if (resultsPanel) {
             resultsPanel.classList.remove("collapsed");
             resultsPanel.querySelector(".panel-header")?.setAttribute("aria-expanded", "true");
-            resultsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+            
+            // Wait a bit for layout
+            setTimeout(() => {
+                resultsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 100);
         }
     });
 }
