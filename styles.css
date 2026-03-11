@@ -2140,3 +2140,249 @@ mark {
   font-weight: 600;
   font-style: normal;
 }
+
+/* ─── Flow Stepper ─── */
+.flow-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 10px 20px;
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 96%, var(--md-sys-color-primary) 4%);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.flow-step {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: none;
+  border: none;
+  padding: 7px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  color: var(--md-sys-color-on-surface-variant);
+  opacity: 0.55;
+  min-height: 0;
+  font-size: 0.82rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.flow-step-num {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  border-radius: 50%;
+  background: var(--md-sys-color-surface-variant);
+  border: 1.5px solid currentColor;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.flow-step-label {
+  font-size: 0.82rem;
+}
+
+.flow-step.active {
+  opacity: 1;
+  color: var(--md-sys-color-primary);
+  background: color-mix(in srgb, var(--md-sys-color-primary-container) 60%, transparent 40%);
+}
+
+.flow-step.active .flow-step-num {
+  background: var(--md-sys-color-primary);
+  border-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+.flow-step.done {
+  opacity: 0.75;
+  color: var(--md-sys-color-tertiary);
+}
+
+.flow-step.done .flow-step-num {
+  background: var(--md-sys-color-tertiary);
+  border-color: var(--md-sys-color-tertiary);
+  color: var(--md-sys-color-on-tertiary);
+  font-size: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 14px;
+}
+
+.flow-step:hover:not(.active) {
+  opacity: 1;
+  background: color-mix(in srgb, var(--md-sys-color-surface-variant) 80%, transparent);
+}
+
+.flow-step-divider {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: var(--md-sys-color-outline-variant);
+  border-radius: 999px;
+  flex-shrink: 0;
+  margin: 0 2px;
+}
+
+/* Body needs extra top compensation for the stepper only on today view */
+body {
+  padding-top: 0;
+}
+
+/* ─── Option Chips (Time & Mode selectors) ─── */
+.option-chips-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.option-chip {
+  background: var(--md-sys-color-surface-variant);
+  color: var(--md-sys-color-on-surface-variant);
+  border: 1.5px solid transparent;
+  border-radius: 999px;
+  padding: 7px 14px;
+  cursor: pointer;
+  font-size: 0.83rem;
+  font-weight: 500;
+  font-family: inherit;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
+  white-space: nowrap;
+  box-shadow: none;
+}
+
+.option-chip .material-symbols-outlined {
+  font-size: 16px !important;
+  width: 16px !important;
+}
+
+.option-chip.active {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  border-color: transparent;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.option-chip:hover:not(.active) {
+  background: color-mix(in srgb, var(--md-sys-color-surface-variant) 80%, var(--md-sys-color-primary-container) 20%);
+  border-color: var(--md-sys-color-outline);
+}
+
+.option-chip:active {
+  scale: 0.96;
+}
+
+/* ─── Recipe Card: Collapsible Details ─── */
+.recipe-collapsible {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.28s ease;
+  pointer-events: none;
+}
+
+.recipe-collapsible.expanded {
+  max-height: 800px;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.recipe-expand-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  box-shadow: none;
+  color: var(--md-sys-color-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: inherit;
+  padding: 6px 2px;
+  cursor: pointer;
+  margin-top: 4px;
+  min-height: 0;
+  transition: color 0.2s, opacity 0.2s;
+  opacity: 0.85;
+}
+
+.recipe-expand-btn .material-symbols-outlined {
+  font-size: 18px !important;
+  width: 18px !important;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.recipe-expand-btn[aria-expanded="true"] .material-symbols-outlined {
+  transform: rotate(180deg);
+}
+
+.recipe-expand-btn:hover {
+  opacity: 1;
+  background: none;
+  box-shadow: none;
+}
+
+@media (max-width: 600px) {
+  .flow-stepper {
+    padding: 8px 10px;
+    gap: 0;
+  }
+
+  .flow-step {
+    padding: 6px 10px;
+    font-size: 0.77rem;
+  }
+
+  .flow-step-label {
+    font-size: 0.77rem;
+  }
+
+  .flow-step-divider {
+    width: 16px;
+  }
+
+  .option-chips-group {
+    gap: 5px;
+  }
+
+  .option-chip {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    min-height: 34px;
+  }
+}
+
+@media (max-width: 375px) {
+  .flow-step-label {
+    display: none;
+  }
+
+  .flow-step {
+    padding: 6px 8px;
+  }
+
+  .flow-step-num {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    font-size: 0.78rem;
+  }
+}

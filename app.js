@@ -50,6 +50,12 @@ const modeSelectEl = document.getElementById("modeSelect");
 const lowEnergyEl = document.getElementById("lowEnergy");
 const seasonBoostEl = document.getElementById("seasonBoost");
 
+// ─── Chip group helper ───
+function getSelectedChipValue(groupId) {
+    const active = document.querySelector(`#${groupId} .option-chip.active`);
+    return active ? active.dataset.value : null;
+}
+
 let activeCategoryFilter = "all";
 // Pending day assignment state for day picker modal
 let _pendingRecipeId = null;
@@ -137,8 +143,49 @@ function bindEvents() {
         });
     }
 
+    // Chip groups for Time and Mode
+    document.querySelectorAll('#timeChips .option-chip, #modeChips .option-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            chip.closest('.option-chips-group').querySelectorAll('.option-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+        });
+    });
+
+    // Stepper navigation
+    document.querySelectorAll('.flow-step[data-panel]').forEach(stepBtn => {
+        stepBtn.addEventListener('click', () => {
+            const panelId = stepBtn.dataset.panel;
+            const panel = document.getElementById(panelId);
+            if (!panel) return;
+            // Expand the targeted panel
+            panel.classList.remove('collapsed');
+            panel.querySelector('.panel-header')?.setAttribute('aria-expanded', 'true');
+            // Collapse the others
+            document.querySelectorAll('#view-today .panel').forEach(p => {
+                if (p.id !== panelId) {
+                    p.classList.add('collapsed');
+                    p.querySelector('.panel-header')?.setAttribute('aria-expanded', 'false');
+                }
+            });
+            // Scroll to panel
+            setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+            updateStepperState(panelId);
+        });
+    });
+
     // Build day picker buttons once
     buildDayPickerButtons();
+}
+
+function updateStepperState(activePanelId) {
+    const steps = document.querySelectorAll('.flow-step');
+    const panelOrder = ['panel-inventory', 'panel-context', 'resultsPanel'];
+    const activeIdx = panelOrder.indexOf(activePanelId);
+    steps.forEach((step, i) => {
+        step.classList.remove('active', 'done');
+        if (i < activeIdx) step.classList.add('done');
+        else if (i === activeIdx) step.classList.add('active');
+    });
 }
 
 // ─── Accordion Panels ───
@@ -530,8 +577,8 @@ function handleSuggest() {
 
     const userContext = {
         cravings: [...state.selectedCravings],
-        maxTime: Number(timeSelectEl.value),
-        mode: modeSelectEl.value,
+        maxTime: Number(getSelectedChipValue('timeChips') || 30),
+        mode: getSelectedChipValue('modeChips') || 'today',
         lowEnergy: lowEnergyEl.checked,
         seasonBoost: seasonBoostEl.checked,
         inventory: state.inventory,
@@ -571,6 +618,7 @@ function handleSuggest() {
         if (resultsPanel) {
             resultsPanel.classList.remove("collapsed");
             resultsPanel.querySelector(".panel-header")?.setAttribute("aria-expanded", "true");
+            updateStepperState('resultsPanel');
 
             // Wait a bit for layout
             setTimeout(() => {
@@ -775,6 +823,19 @@ function createRecipeCard(item) {
         saveBtn.addEventListener("click", (e) => {
             e.stopPropagation();
             showToast(`"${recipe.name}" guardada ⭐`, null, null, 3000);
+        });
+    }
+
+    // Wire expand/collapse button
+    const expandBtn = node.querySelector('.recipe-expand-btn');
+    const collapsible = node.querySelector('.recipe-collapsible');
+    if (expandBtn && collapsible) {
+        expandBtn.addEventListener('click', () => {
+            const isExpanded = expandBtn.getAttribute('aria-expanded') === 'true';
+            expandBtn.setAttribute('aria-expanded', String(!isExpanded));
+            expandBtn.querySelector('.expand-label').textContent = isExpanded ? 'Ver detalles' : 'Ocultar detalles';
+            expandBtn.querySelector('.material-symbols-outlined').textContent = isExpanded ? 'expand_more' : 'expand_less';
+            collapsible.classList.toggle('expanded', !isExpanded);
         });
     }
 

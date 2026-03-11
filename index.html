@@ -56,6 +56,24 @@
     </div>
   </header>
 
+  <!-- Flow Stepper -->
+  <div class="flow-stepper" id="flowStepper">
+    <button class="flow-step done" data-panel="panel-inventory" type="button">
+      <span class="flow-step-num">1</span>
+      <span class="flow-step-label">Inventario</span>
+    </button>
+    <span class="flow-step-divider" aria-hidden="true"></span>
+    <button class="flow-step active" data-panel="panel-context" type="button">
+      <span class="flow-step-num">2</span>
+      <span class="flow-step-label">Contexto</span>
+    </button>
+    <span class="flow-step-divider" aria-hidden="true"></span>
+    <button class="flow-step" data-panel="resultsPanel" type="button">
+      <span class="flow-step-num">3</span>
+      <span class="flow-step-label">Resultados</span>
+    </button>
+  </div>
+
   <main class="layout">
     <!-- View: Today -->
     <div id="view-today" class="page-view active">
@@ -135,23 +153,31 @@
 
           <label class="field">
             <span>Tiempo disponible</span>
-            <select id="timeSelect">
-              <option value="15">15 min o menos</option>
-              <option value="20">20 min</option>
-              <option value="30" selected>30 min</option>
-              <option value="45">45 min</option>
-              <option value="60">60 min o más</option>
-            </select>
+            <div class="option-chips-group" id="timeChips" role="group" aria-label="Tiempo disponible">
+              <button type="button" class="option-chip" data-value="15">15 min</button>
+              <button type="button" class="option-chip" data-value="20">20 min</button>
+              <button type="button" class="option-chip active" data-value="30">30 min</button>
+              <button type="button" class="option-chip" data-value="45">45 min</button>
+              <button type="button" class="option-chip" data-value="60">60+ min</button>
+            </div>
           </label>
 
           <label class="field">
             <span>Modo</span>
-            <select id="modeSelect">
-              <option value="today" selected>Hoy</option>
-              <option value="rescue">Rescate</option>
-              <option value="mealprep">Meal prep</option>
-              <option value="metabolic">Metabólico suave</option>
-            </select>
+            <div class="option-chips-group" id="modeChips" role="group" aria-label="Modo de cocina">
+              <button type="button" class="option-chip active" data-value="today">
+                <span class="material-symbols-outlined" aria-hidden="true">today</span> Hoy
+              </button>
+              <button type="button" class="option-chip" data-value="rescue">
+                <span class="material-symbols-outlined" aria-hidden="true">recycling</span> Rescate
+              </button>
+              <button type="button" class="option-chip" data-value="mealprep">
+                <span class="material-symbols-outlined" aria-hidden="true">inventory</span> Meal prep
+              </button>
+              <button type="button" class="option-chip" data-value="metabolic">
+                <span class="material-symbols-outlined" aria-hidden="true">favorite</span> Met. suave
+              </button>
+            </div>
           </label>
 
           <label class="toggle-wrap">
@@ -262,7 +288,7 @@
     </button>
     <button class="nav-item" data-view="planner" aria-label="Plan semanal">
       <span class="material-symbols-outlined" aria-hidden="true">calendar_month</span>
-      <span>Plan</span>
+      <span>Semana</span>
     </button>
     <button class="nav-item" data-view="mealprep" aria-label="Meal prep">
       <span class="material-symbols-outlined" aria-hidden="true">set_meal</span>
@@ -270,7 +296,7 @@
     </button>
     <button class="nav-item" data-view="grocery" aria-label="Lista de compra">
       <span class="material-symbols-outlined" aria-hidden="true">shopping_cart</span>
-      <span>Lista</span>
+      <span>Compras</span>
     </button>
   </nav>
 
@@ -329,25 +355,32 @@
 
         <p class="recipe-description"></p>
 
-        <div class="recipe-section">
-          <strong>Por qué salió:</strong>
-          <ul class="why-list"></ul>
+        <div class="recipe-collapsible">
+          <div class="recipe-section collapsible-section">
+            <strong>Por qué salió:</strong>
+            <ul class="why-list"></ul>
+          </div>
+
+          <div class="recipe-section collapsible-section">
+            <strong>Ingredientes clave:</strong>
+            <p class="ingredients-text"></p>
+          </div>
+
+          <div class="recipe-section collapsible-section">
+            <strong>Perfil:</strong>
+            <p class="profile-text"></p>
+          </div>
+
+          <div class="recipe-section collapsible-section mealprep-section">
+            <strong>Meal prep:</strong>
+            <p class="mealprep-text"></p>
+          </div>
         </div>
 
-        <div class="recipe-section">
-          <strong>Ingredientes clave:</strong>
-          <p class="ingredients-text"></p>
-        </div>
-
-        <div class="recipe-section">
-          <strong>Perfil:</strong>
-          <p class="profile-text"></p>
-        </div>
-
-        <div class="recipe-section mealprep-section">
-          <strong>Meal prep:</strong>
-          <p class="mealprep-text"></p>
-        </div>
+        <button type="button" class="recipe-expand-btn" aria-expanded="false">
+          <span class="material-symbols-outlined" aria-hidden="true">expand_more</span>
+          <span class="expand-label">Ver detalles</span>
+        </button>
       </div>
 
       <div class="recipe-actions">
