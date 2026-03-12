@@ -1,41 +1,41 @@
 :root {
-  /* Ultramarine Primary */
-  --md-sys-color-primary: #4042E3;
+  /* Earth-tone Primary */
+  --md-sys-color-primary: #5B6F3A;
   --md-sys-color-on-primary: #FFFFFF;
-  --md-sys-color-primary-container: #E0E0FF;
-  --md-sys-color-on-primary-container: #00006E;
+  --md-sys-color-primary-container: #DEE8C7;
+  --md-sys-color-on-primary-container: #1A2605;
 
   /* Terracotta Secondary */
-  --md-sys-color-secondary: #9C4300;
+  --md-sys-color-secondary: #A65A2A;
   --md-sys-color-on-secondary: #FFFFFF;
-  --md-sys-color-secondary-container: #FFDBCB;
-  --md-sys-color-on-secondary-container: #341100;
+  --md-sys-color-secondary-container: #FADBCB;
+  --md-sys-color-on-secondary-container: #3B1704;
 
   /* Sage Green Tertiary (Milpa) */
-  --md-sys-color-tertiary: #4F6630;
+  --md-sys-color-tertiary: #7F8C3A;
   --md-sys-color-on-tertiary: #FFFFFF;
-  --md-sys-color-tertiary-container: #D2EABD;
-  --md-sys-color-on-tertiary-container: #101F00;
+  --md-sys-color-tertiary-container: #E8E7B9;
+  --md-sys-color-on-tertiary-container: #2A2F00;
 
   /* Neutrals - Warm M3 tones */
-  --md-sys-color-background: #FFFBFF;
-  --md-sys-color-on-background: #1B1B1F;
-  --md-sys-color-surface: #FFFBFF;
-  --md-sys-color-on-surface: #1B1B1F;
-  --md-sys-color-surface-variant: #E3E1EC;
-  --md-sys-color-on-surface-variant: #46464F;
-  --md-sys-color-outline: #767680;
-  --md-sys-color-outline-variant: #C7C5D0;
+  --md-sys-color-background: #F6F1E8;
+  --md-sys-color-on-background: #28221A;
+  --md-sys-color-surface: #FCF8F1;
+  --md-sys-color-on-surface: #28221A;
+  --md-sys-color-surface-variant: #E8DED1;
+  --md-sys-color-on-surface-variant: #5A4E40;
+  --md-sys-color-outline: #8E7D6B;
+  --md-sys-color-outline-variant: #D4C7B8;
 
   /* M3 Surface Containers */
   --md-sys-color-surface-container-lowest: #FFFFFF;
-  --md-sys-color-surface-container-low: #F8F8FD;
-  --md-sys-color-surface-container: #F3F3F7;
-  --md-sys-color-surface-container-high: #EDEDF1;
-  --md-sys-color-surface-container-highest: #E7E7EB;
+  --md-sys-color-surface-container-low: #F8F2E8;
+  --md-sys-color-surface-container: #F1E7D9;
+  --md-sys-color-surface-container-high: #E9DDCE;
+  --md-sys-color-surface-container-highest: #E1D3C2;
 
   /* Semantic */
-  --md-sys-color-success: #386633;
+  --md-sys-color-success: #3D7A58;
   --md-sys-color-error: #BA1A1A;
   --md-sys-color-error-container: #FFDAD6;
   --md-sys-color-on-error-container: #410002;
@@ -144,8 +144,8 @@ body {
   font-family: 'Outfit', system-ui, sans-serif;
   background-color: var(--md-sys-color-background);
   background-image:
-    radial-gradient(at 0% 0%, rgba(18, 10, 143, 0.04) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(192, 64, 0, 0.04) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(91, 111, 58, 0.14) 0px, transparent 55%),
+    radial-gradient(at 100% 100%, rgba(166, 90, 42, 0.11) 0px, transparent 55%);
   background-attachment: fixed;
   color: var(--md-sys-color-on-background);
   line-height: 1.5;
@@ -192,7 +192,7 @@ body {
 /* ─── Header ─── */
 .app-header {
   padding: 24px 24px 20px;
-  background: var(--md-sys-color-primary-container);
+  background: color-mix(in srgb, var(--md-sys-color-primary-container) 84%, #ffffff 16%);
   color: var(--md-sys-color-on-primary-container);
   display: flex;
   justify-content: space-between;
@@ -201,6 +201,8 @@ body {
   border-bottom-right-radius: var(--md-sys-shape-corner-extra-large);
   position: relative;
   overflow: hidden;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 /* Milpa geometric decoration - Adjusted for M3 */
@@ -268,21 +270,24 @@ body {
 
 /* ─── Panels ─── */
 .panel {
-  background: var(--md-sys-color-surface);
+  background: color-mix(in srgb, var(--md-sys-color-surface) 84%, #ffffff 16%);
   border: 1px solid var(--md-sys-color-outline-variant);
-  border-radius: var(--md-sys-shape-corner-medium);
+  border-radius: 26px;
   padding: 20px 22px;
-  box-shadow: none;
-  transition: background 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  box-shadow: 0 10px 28px rgba(35, 25, 14, 0.07);
+  transition: transform 0.25s ease, background 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .panel:focus-within {
-  box-shadow: var(--md-sys-elevation-1);
+  box-shadow: 0 14px 30px rgba(35, 25, 14, 0.12);
+  transform: translateY(-2px);
 }
 
 /* When collapsed, give header a tinted background */
 .panel.collapsed {
-  background: var(--md-sys-color-surface-container-low);
+  background: color-mix(in srgb, var(--md-sys-color-surface-container-low) 90%, white 10%);
   border-color: transparent;
 }
 
@@ -860,12 +865,20 @@ button {
   letter-spacing: 0.1px;
   font-family: inherit;
   cursor: pointer;
-  transition: background-color 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1), color 0.2s cubic-bezier(0.2, 0, 0, 1);
+  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1), color 0.2s cubic-bezier(0.2, 0, 0, 1);
   box-shadow: none;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   min-height: 40px;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 button:focus-visible {
@@ -1142,9 +1155,28 @@ button.error-btn:hover {
 
 .page-view.active {
   display: grid;
-  gap: 14px;
+  gap: 16px;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   animation: fadeIn 0.3s ease-out forwards;
+}
+
+@media (min-width: 960px) {
+  #view-today.page-view.active {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  #panel-context {
+    grid-column: span 2;
+  }
+
+  #panel-inventory {
+    grid-column: span 2;
+  }
+
+  #resultsPanel {
+    grid-column: 1 / -1;
+  }
 }
 
 /* ─── Bottom Nav ─── */
