@@ -9,7 +9,8 @@ const STORAGE_KEYS = {
     cravings: "milpa_nime_cravings_v1",
     weeklyPlan: "milpa_nime_weekly_plan_v1",
     shoppingList: "milpa_nime_shopping_list_v1",
-    customLists: "milpa_nime_custom_lists_v1"
+    customLists: "milpa_nime_custom_lists_v1",
+    recipeHistory: "milpa_nime_history_v1"
 };
 
 const CRAVINGS = [
@@ -607,6 +608,9 @@ function handleSuggest() {
             return;
         }
 
+        // Register shown recipes in history to avoid repeating them next time
+        addToRecipeHistory(ranked.map(r => r.recipe.id));
+
         _lastRanked = ranked;
         _sortCriterion = "score";
         document.querySelectorAll(".sort-chip").forEach(c => c.classList.toggle("active", c.dataset.sort === "score"));
@@ -649,25 +653,84 @@ const SUBSTITUTIONS = {
     pimiento_rojo: ["jitomate", "chile_ancho"],
 };
 
+// ─── Recipe History ───────────────────────────────────────────────────────────
+// Tracks the last 30 shown recipe IDs with timestamps to avoid repetition.
+
+const HISTORY_MAX = 30;
+
+function loadRecipeHistory() {
+    try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEYS.recipeHistory) || "[]");
+    } catch {
+        return [];
+    }
+}
+
+function saveRecipeHistory(history) {
+    localStorage.setItem(STORAGE_KEYS.recipeHistory, JSON.stringify(history));
+}
+
+function addToRecipeHistory(recipeIds) {
+    const now = Date.now();
+    let history = loadRecipeHistory();
+    // Remove entries already present so we can bump them to the top
+    history = history.filter(e => !recipeIds.includes(e.id));
+    // Prepend new entries
+    const newEntries = recipeIds.map(id => ({ id, ts: now }));
+    history = [...newEntries, ...history].slice(0, HISTORY_MAX);
+    saveRecipeHistory(history);
+}
+
+/**
+ * Returns a penalty (positive number) for a recipe based on how recently it
+ * was shown. Recipes shown in the last suggestion get -20 pts, older ones
+ * decay linearly to 0 over HISTORY_MAX slots.
+ */
+function recentlySeenPenalty(recipeId) {
+    const history = loadRecipeHistory();
+    const idx = history.findIndex(e => e.id === recipeId);
+    if (idx === -1) return 0;
+    // idx 0 = most recent; penalty decreases as idx grows
+    return Math.round(20 * (1 - idx / HISTORY_MAX));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 function rankRecipes(recipes, context) {
+    const history = loadRecipeHistory();
+    const recentMap = {};
+    history.forEach((e, idx) => {
+        // penalty: 20 for idx 0 (most recent), decays to 1 at idx HISTORY_MAX-1
+        recentMap[e.id] = Math.round(20 * (1 - idx / HISTORY_MAX));
+    });
+
     const scored = recipes.map((recipe) => scoreRecipe(recipe, context))
         .filter((item) => item.score > 10);
 
-    // Variety penalty: avoid suggesting too many recipes from the same family in the top results
+    // Apply recently-seen penalty before sorting so the shuffle is fair
+    scored.forEach((item) => {
+        item.score -= (recentMap[item.recipe.id] || 0);
+    });
+
+    // Variety penalty: avoid suggesting too many recipes from the same family
+    // or the same format in the top results
     scored.sort((a, b) => (b.score - a.score) || (Math.random() - 0.5));
 
     const finalRanked = [];
     const familyCounts = {};
+    const formatCounts = {};
 
     scored.forEach((item) => {
         const family = item.recipe.family;
-        const count = familyCounts[family] || 0;
-        
-        // If we already have 2 of this family, apply a diversity penalty for ranking
-        const adjustedScore = item.score - (count * 8);
+        const format = item.recipe.format;
+        const familyCount = familyCounts[family] || 0;
+        const formatCount = formatCounts[format] || 0;
+
+        const adjustedScore = item.score - (familyCount * 8) - (formatCount * 5);
         item.adjustedScore = adjustedScore;
         finalRanked.push(item);
-        familyCounts[family] = count + 1;
+        familyCounts[family] = familyCount + 1;
+        if (format) formatCounts[format] = formatCount + 1;
     });
 
     return finalRanked.sort((a, b) => (b.adjustedScore - a.adjustedScore) || (Math.random() - 0.5));
