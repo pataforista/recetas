@@ -269,13 +269,50 @@
     <div id="view-grocery" class="page-view">
       <section class="panel">
         <h2><span class="material-symbols-outlined" aria-hidden="true">shopping_cart</span> Lista de Compra</h2>
-        <p class="hint">Ingredientes necesarios para tu plan semanal (restando lo que ya tienes).</p>
-        <div id="shoppingListContainer">
-          <div class="empty-state">
-            <span class="empty-icon">🛒</span>
-            <p class="empty-title">Lista vacía</p>
-            <p class="empty-sub">Planifica comidas para la semana y tu lista se generará automáticamente</p>
+        <p class="hint">Crea listas manuales, usa la autogenerada y sincroniza entre dispositivos.</p>
+
+        <div class="grocery-mode-toggle" role="tablist" aria-label="Tipo de lista">
+          <button id="autoListTab" class="mode-tab active" type="button" role="tab" aria-selected="true">Generada del plan</button>
+          <button id="customListTab" class="mode-tab" type="button" role="tab" aria-selected="false">Mis listas</button>
+        </div>
+
+        <div id="autoListView" class="grocery-view active">
+          <div id="shoppingListContainer">
+            <div class="empty-state">
+              <span class="empty-icon">🛒</span>
+              <p class="empty-title">Lista vacía</p>
+              <p class="empty-sub">Planifica comidas para la semana y tu lista se generará automáticamente</p>
+            </div>
           </div>
+        </div>
+
+        <div id="customListView" class="grocery-view">
+          <form id="createCustomListForm" class="inline-form">
+            <input id="customListName" type="text" maxlength="40" placeholder="Ej. Súper del sábado" required />
+            <button type="submit" class="secondary">Crear</button>
+          </form>
+          <div id="customListsContainer" class="custom-lists-container"></div>
+          <form id="addCustomItemForm" class="stack-form hidden">
+            <h3 id="activeCustomListTitle">Nueva compra</h3>
+            <input id="customItemName" type="text" maxlength="50" placeholder="Ingrediente o producto" required />
+            <div class="inline-form compact">
+              <input id="customItemQty" type="number" step="0.25" min="0" placeholder="Cantidad (opcional)" />
+              <input id="customItemUnit" type="text" maxlength="12" placeholder="Unidad" />
+            </div>
+            <button type="submit">Agregar a la lista</button>
+          </form>
+          <div id="customListItems" class="custom-list-items"></div>
+        </div>
+
+        <div class="sync-card">
+          <div>
+            <strong>Sincronizar entre dispositivos</strong>
+            <p class="hint">Genera un enlace con tus datos y ábrelo en otro celular para importar todo.</p>
+          </div>
+          <button id="shareSyncBtn" class="secondary" type="button">
+            <span class="material-symbols-outlined" aria-hidden="true">sync</span> Compartir sincronización
+          </button>
+          <button id="importSyncBtn" class="text-btn" type="button">Importar desde enlace</button>
         </div>
       </section>
     </div>
@@ -341,6 +378,21 @@
       </div>
     </div>
   </div>
+
+
+
+  <div id="syncModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="syncModalTitle">
+    <div class="modal">
+      <h3 id="syncModalTitle">Importar sincronización</h3>
+      <p class="hint">Pega aquí el enlace o código compartido desde otro dispositivo.</p>
+      <textarea id="syncPayloadInput" rows="4" placeholder="https://...#sync=..." style="width:100%;"></textarea>
+      <div class="actions" style="justify-content: flex-end; margin-top: 8px;">
+        <button id="syncCancel" class="secondary" type="button">Cancelar</button>
+        <button id="syncApply" type="button">Importar</button>
+      </div>
+    </div>
+  </div>
+
 
   <template id="recipeCardTemplate">
     <article class="recipe-card">
