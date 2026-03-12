@@ -475,9 +475,12 @@ function renderInventory() {
             state.inventory[ingredient.id].has = hasIt.checked;
             if (!hasIt.checked) {
                 state.inventory[ingredient.id].urgency = "normal";
+                urgencySelect.value = "normal";
             }
+            urgencySelect.disabled = !hasIt.checked;
+            wrapper.classList.toggle("has-item", hasIt.checked);
             persistInventory();
-            renderInventory();
+            updateInventoryBadge();
         });
 
         row1.appendChild(nameEl);
@@ -636,11 +639,46 @@ function handleSuggest() {
     });
 }
 
+const SUBSTITUTIONS = {
+    // Milpa / Proteína
+    pollo: ["tofu", "huevo", "atun", "setas"],
+    tofu: ["pollo", "huevo", "atun"],
+    res_magra: ["pollo", "cerdo_magro"],
+    frijol: ["garbanzo", "lenteja", "haba"],
+    garbanzo: ["frijol", "lenteja"],
+    lenteja: ["frijol", "garbanzo"],
+    // Salsas / Bases
+    salsa_verde: ["salsa_roja", "jitomate", "tomate_verde"],
+    salsa_roja: ["salsa_verde", "jitomate"],
+    crema: ["yogurt_natural", "crema_acida"],
+    // Carbohidratos
+    tortilla_maiz: ["tostada", "pan_blanco", "masa_maiz"],
+    arroz_blanco: ["arroz_integral", "quinoa", "pasta_seca"],
+    papa: ["camote", "yuca"],
+};
+
 function rankRecipes(recipes, context) {
-    return recipes
-        .map((recipe) => scoreRecipe(recipe, context))
-        .filter((item) => item.score > 10)
-        .sort((a, b) => b.score - a.score);
+    const scored = recipes.map((recipe) => scoreRecipe(recipe, context))
+        .filter((item) => item.score > 10);
+
+    // Variety penalty: avoid suggesting too many recipes from the same family in the top results
+    scored.sort((a, b) => (b.score - a.score) || (Math.random() - 0.5));
+
+    const finalRanked = [];
+    const familyCounts = {};
+
+    scored.forEach((item) => {
+        const family = item.recipe.family;
+        const count = familyCounts[family] || 0;
+        
+        // If we already have 2 of this family, apply a diversity penalty for ranking
+        const adjustedScore = item.score - (count * 8);
+        item.adjustedScore = adjustedScore;
+        finalRanked.push(item);
+        familyCounts[family] = count + 1;
+    });
+
+    return finalRanked.sort((a, b) => (b.adjustedScore - a.adjustedScore) || (Math.random() - 0.5));
 }
 
 function scoreRecipe(recipe, context) {
@@ -651,21 +689,35 @@ function scoreRecipe(recipe, context) {
         .filter(([, value]) => value.has)
         .map(([id]) => id);
 
-    const requiredMatches = recipe.ingredientsRequired.filter((id) => ownedIngredients.includes(id)).length;
+    // Ingredient matching with substitution logic
+    const requiredMatches = recipe.ingredientsRequired.filter((id) => {
+        if (ownedIngredients.includes(id)) return true;
+        // Check substitutions
+        const subs = SUBSTITUTIONS[id] || [];
+        return subs.some(subId => ownedIngredients.includes(subId));
+    }).length;
+
     const optionalMatches = recipe.ingredientsOptional.filter((id) => ownedIngredients.includes(id)).length;
     const requiredRatio = recipe.ingredientsRequired.length ? requiredMatches / recipe.ingredientsRequired.length : 0;
 
-    score += requiredMatches * 18;
-    score += optionalMatches * 4;
+    score += requiredMatches * 20; // Increased base weight
+    score += optionalMatches * 5;
+
+    // Detect if we are using substitutions
+    const usedSubs = recipe.ingredientsRequired.filter(id => !ownedIngredients.includes(id) && (SUBSTITUTIONS[id] || []).some(sid => ownedIngredients.includes(sid)));
+    if (usedSubs.length) {
+        score -= usedSubs.length * 5; // Slight penalty for not having precise ingredient
+        reasons.push(`Puedes sustituir: ${usedSubs.join(', ')}`);
+    }
 
     if (requiredRatio === 1) {
-        score += 12;
-        reasons.push("Tienes todos los ingredientes requeridos");
+        score += 15;
+        reasons.push("Tienes (o puedes sustituir) todos los ingredientes requeridos");
     } else if (requiredRatio >= 0.5) {
-        score += 4;
+        score += 6;
         reasons.push("Tienes buena parte de la base");
     } else {
-        score -= 12;
+        score -= 15;
     }
 
     const cravingMatches = recipe.cravings.filter((c) => context.cravings.includes(c));
@@ -1086,7 +1138,21 @@ function renderGroceryList() {
             }
             state.inventory[ingredientId].has = e.target.checked;
             persistInventory();
-            renderInventory();
+            updateInventoryBadge();
+            
+            // Find and selectively update main inventory list DOM node if visible
+            const invNode = document.querySelector(`.inventory-item[data-ing-id="${ingredientId}"]`);
+            if (invNode) {
+                invNode.classList.toggle("has-item", state.inventory[ingredientId].has);
+                const checkbox = invNode.querySelector("input[type='checkbox']");
+                if (checkbox) checkbox.checked = state.inventory[ingredientId].has;
+                const select = invNode.querySelector("select");
+                if (select) {
+                    if (!state.inventory[ingredientId].has) select.value = "normal";
+                    select.disabled = !state.inventory[ingredientId].has;
+                }
+            }
+
             renderGroceryList();
         });
 
@@ -1708,8 +1774,21 @@ function searchAll(query) {
             state.inventory[id].has = !state.inventory[id].has;
             persistInventory();
             updateInventoryBadge();
-            renderInventory();
-            // Re-render this result to reflect change
+
+            // Find and selectively update main inventory list DOM node if visible
+            const invNode = document.querySelector(`.inventory-item[data-ing-id="${id}"]`);
+            if (invNode) {
+                invNode.classList.toggle("has-item", state.inventory[id].has);
+                const checkbox = invNode.querySelector("input[type='checkbox']");
+                if (checkbox) checkbox.checked = state.inventory[id].has;
+                const select = invNode.querySelector("select");
+                if (select) {
+                    if (!state.inventory[id].has) select.value = "normal";
+                    select.disabled = !state.inventory[id].has;
+                }
+            }
+            
+            // Re-render this result to reflect change in search modal
             searchAll(document.getElementById("globalSearch")?.value || "");
             showToast(
                 state.inventory[id].has
