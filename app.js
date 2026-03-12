@@ -8,7 +8,8 @@ const STORAGE_KEYS = {
     inventory: "milpa_nime_inventory_v1",
     cravings: "milpa_nime_cravings_v1",
     weeklyPlan: "milpa_nime_weekly_plan_v1",
-    shoppingList: "milpa_nime_shopping_list_v1"
+    shoppingList: "milpa_nime_shopping_list_v1",
+    customLists: "milpa_nime_custom_lists_v1"
 };
 
 const CRAVINGS = [
@@ -33,6 +34,9 @@ const state = {
     selectedCravings: loadCravings(),
     weeklyPlan: loadWeeklyPlan(),
     shoppingList: loadShoppingList(),
+    customLists: loadCustomLists(),
+    activeCustomListId: null,
+    groceryView: "auto",
     currentMonth: new Date().getMonth() + 1
 };
 
@@ -65,6 +69,7 @@ function init() {
     renderInventoryFilters();
     renderInventory();
     renderCravings();
+    initializeCustomListState();
     bindEvents();
     renderInitialMessage();
     setupPWAInstall();
@@ -73,6 +78,7 @@ function init() {
     initAccordions();
     setupOfflineDetection();
     handleShortcutParam();
+    maybeImportFromUrl();
     initSearch();
 }
 
@@ -175,6 +181,8 @@ function bindEvents() {
 
     // Build day picker buttons once
     buildDayPickerButtons();
+
+    setupGroceryEvents();
 }
 
 function updateStepperState(activePanelId) {
@@ -234,7 +242,7 @@ function showView(viewId) {
 
     if (viewId === "planner") renderPlanner();
     if (viewId === "mealprep") renderMealPrepInitial();
-    if (viewId === "grocery") renderGroceryList();
+    if (viewId === "grocery") renderGroceryHub();
 }
 
 // ─── Offline Detection ───
@@ -962,6 +970,90 @@ function renderPlanner() {
 }
 
 // ─── Grocery List ───
+function initializeCustomListState() {
+    if (!state.customLists.length) return;
+    state.activeCustomListId = state.customLists[0].id;
+}
+
+function renderGroceryHub() {
+    renderGroceryMode();
+    renderGroceryList();
+    renderCustomLists();
+    renderCustomListItems();
+}
+
+function renderGroceryMode() {
+    const isAuto = state.groceryView === "auto";
+    document.getElementById("autoListTab")?.classList.toggle("active", isAuto);
+    document.getElementById("customListTab")?.classList.toggle("active", !isAuto);
+    document.getElementById("autoListView")?.classList.toggle("active", isAuto);
+    document.getElementById("customListView")?.classList.toggle("active", !isAuto);
+}
+
+function setupGroceryEvents() {
+    document.getElementById("autoListTab")?.addEventListener("click", () => {
+        state.groceryView = "auto";
+        renderGroceryMode();
+    });
+    document.getElementById("customListTab")?.addEventListener("click", () => {
+        state.groceryView = "custom";
+        renderGroceryMode();
+    });
+
+    document.getElementById("createCustomListForm")?.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const input = document.getElementById("customListName");
+        const name = input.value.trim();
+        if (!name) return;
+        const list = {
+            id: `lst_${Date.now()}`,
+            name,
+            items: []
+        };
+        state.customLists.unshift(list);
+        state.activeCustomListId = list.id;
+        persistCustomLists();
+        input.value = "";
+        state.groceryView = "custom";
+        renderGroceryHub();
+        showToast("Lista creada");
+    });
+
+    document.getElementById("addCustomItemForm")?.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const list = getActiveCustomList();
+        if (!list) return;
+        const nameInput = document.getElementById("customItemName");
+        const qtyInput = document.getElementById("customItemQty");
+        const unitInput = document.getElementById("customItemUnit");
+        const name = nameInput.value.trim();
+        if (!name) return;
+
+        list.items.push({
+            id: `itm_${Date.now()}`,
+            name,
+            qty: qtyInput.value ? Number(qtyInput.value) : null,
+            unit: unitInput.value.trim(),
+            have: false,
+            bought: false
+        });
+
+        persistCustomLists();
+        nameInput.value = "";
+        qtyInput.value = "";
+        unitInput.value = "";
+        renderCustomListItems();
+    });
+
+    document.getElementById("shareSyncBtn")?.addEventListener("click", shareSyncData);
+    document.getElementById("importSyncBtn")?.addEventListener("click", openSyncModal);
+    document.getElementById("syncCancel")?.addEventListener("click", closeSyncModal);
+    document.getElementById("syncModal")?.addEventListener("click", (e) => {
+        if (e.target === e.currentTarget) closeSyncModal();
+    });
+    document.getElementById("syncApply")?.addEventListener("click", importFromSyncInput);
+}
+
 function renderGroceryList() {
     const container = document.getElementById("shoppingListContainer");
     const derivedList = generateGroceryListFromPlan();
@@ -979,14 +1071,23 @@ function renderGroceryList() {
         const amountText = data.amount ? `${data.amount} ${data.unit} de ` : "";
 
         item.innerHTML = `
-            <input type="checkbox" ${hasIt ? "checked" : ""} aria-label="${data.name}">
-            <span>${amountText}<strong>${data.name}</strong></span>
+            <label class="grocery-checkline">
+              <input type="checkbox" ${hasIt ? "checked" : ""} aria-label="${data.name}">
+              <span>${amountText}<strong>${data.name}</strong></span>
+            </label>
+            <small>Ya lo tengo</small>
         `;
 
         if (hasIt) item.classList.add("checked");
 
         item.querySelector("input").addEventListener("change", (e) => {
-            item.classList.toggle("checked", e.target.checked);
+            if (!state.inventory[ingredientId]) {
+                state.inventory[ingredientId] = { has: false, urgency: "normal" };
+            }
+            state.inventory[ingredientId].has = e.target.checked;
+            persistInventory();
+            renderInventory();
+            renderGroceryList();
         });
 
         container.appendChild(item);
@@ -994,7 +1095,7 @@ function renderGroceryList() {
 
     const copyBtn = document.createElement("button");
     copyBtn.className = "secondary";
-    copyBtn.style.marginTop = "24px";
+    copyBtn.style.marginTop = "16px";
     copyBtn.style.width = "100%";
     copyBtn.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">content_copy</span> Copiar lista`;
     copyBtn.addEventListener("click", () => {
@@ -1006,6 +1107,164 @@ function renderGroceryList() {
             .catch(() => showToast("No se pudo copiar. Intenta de nuevo."));
     });
     container.appendChild(copyBtn);
+}
+
+function renderCustomLists() {
+    const container = document.getElementById("customListsContainer");
+    const addForm = document.getElementById("addCustomItemForm");
+    container.innerHTML = "";
+
+    if (!state.customLists.length) {
+        addForm?.classList.add("hidden");
+        container.innerHTML = "<p class='hint'>Crea tu primera lista para organizar tus compras.</p>";
+        return;
+    }
+
+    addForm?.classList.remove("hidden");
+    state.customLists.forEach((list) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `chip ${list.id === state.activeCustomListId ? "active" : ""}`;
+        btn.textContent = `${list.name} (${list.items.length})`;
+        btn.addEventListener("click", () => {
+            state.activeCustomListId = list.id;
+            renderCustomLists();
+            renderCustomListItems();
+        });
+        container.appendChild(btn);
+    });
+}
+
+function renderCustomListItems() {
+    const list = getActiveCustomList();
+    const title = document.getElementById("activeCustomListTitle");
+    const container = document.getElementById("customListItems");
+    container.innerHTML = "";
+
+    if (!list) {
+        title.textContent = "Nueva compra";
+        return;
+    }
+
+    title.textContent = `Agregar a: ${list.name}`;
+
+    if (!list.items.length) {
+        container.innerHTML = "<p class='hint'>Tu lista está vacía. Agrega elementos arriba.</p>";
+        return;
+    }
+
+    list.items.forEach((item) => {
+        const row = document.createElement("div");
+        row.className = `grocery-item ${item.bought ? "checked" : ""}`;
+        row.innerHTML = `
+            <label class="grocery-checkline">
+              <input type="checkbox" ${item.bought ? "checked" : ""} aria-label="Comprado ${item.name}">
+              <span><strong>${item.name}</strong> ${item.qty ? `• ${item.qty}${item.unit ? ` ${item.unit}` : ""}` : ""}</span>
+            </label>
+            <label class="mini-toggle">Tengo <input type="checkbox" ${item.have ? "checked" : ""}></label>
+            <button type="button" class="text-btn">Eliminar</button>
+        `;
+
+        const [boughtInput, haveInput] = row.querySelectorAll("input");
+        boughtInput.addEventListener("change", (e) => {
+            item.bought = e.target.checked;
+            persistCustomLists();
+            row.classList.toggle("checked", item.bought);
+        });
+        haveInput.addEventListener("change", (e) => {
+            item.have = e.target.checked;
+            persistCustomLists();
+        });
+        row.querySelector("button").addEventListener("click", () => {
+            list.items = list.items.filter((it) => it.id !== item.id);
+            persistCustomLists();
+            renderCustomLists();
+            renderCustomListItems();
+        });
+
+        container.appendChild(row);
+    });
+}
+
+function getActiveCustomList() {
+    if (!state.activeCustomListId) return null;
+    return state.customLists.find((l) => l.id === state.activeCustomListId) || null;
+}
+
+function shareSyncData() {
+    const payload = {
+        inventory: state.inventory,
+        selectedCravings: state.selectedCravings,
+        weeklyPlan: state.weeklyPlan,
+        customLists: state.customLists,
+        at: Date.now()
+    };
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+    const url = `${window.location.origin}${window.location.pathname}#sync=${encoded}`;
+
+    if (navigator.share) {
+        navigator.share({ title: "Sincronización Milpa NiME", text: "Importa tus datos", url })
+            .catch(() => navigator.clipboard.writeText(url));
+    } else {
+        navigator.clipboard.writeText(url)
+            .then(() => showToast("Enlace de sincronización copiado"))
+            .catch(() => showToast("No se pudo copiar el enlace"));
+    }
+}
+
+function openSyncModal() {
+    document.getElementById("syncModal")?.classList.remove("hidden");
+}
+
+function closeSyncModal() {
+    document.getElementById("syncModal")?.classList.add("hidden");
+}
+
+function importFromSyncInput() {
+    const input = document.getElementById("syncPayloadInput");
+    const value = input.value.trim();
+    if (!value) return;
+    const success = importSyncPayload(value);
+    if (success) {
+        input.value = "";
+        closeSyncModal();
+    }
+}
+
+function maybeImportFromUrl() {
+    const hash = window.location.hash || "";
+    if (!hash.includes("sync=")) return;
+    importSyncPayload(hash);
+    history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+}
+
+function importSyncPayload(raw) {
+    try {
+        const encoded = raw.includes("sync=") ? raw.split("sync=")[1].split("&")[0] : raw;
+        const decoded = decodeURIComponent(escape(atob(encoded)));
+        const parsed = JSON.parse(decoded);
+
+        state.inventory = parsed.inventory || {};
+        state.selectedCravings = parsed.selectedCravings || [];
+        state.weeklyPlan = parsed.weeklyPlan || {};
+        state.customLists = parsed.customLists || [];
+        state.activeCustomListId = state.customLists[0]?.id || null;
+
+        persistInventory();
+        persistCravings();
+        persistWeeklyPlan();
+        persistCustomLists();
+
+        renderInventory();
+        renderCravings();
+        renderPlanner();
+        renderGroceryHub();
+        showToast("Datos importados y sincronizados");
+        return true;
+    } catch {
+        showToast("No se pudo importar ese enlace");
+        return false;
+    }
 }
 
 function generateGroceryListFromPlan() {
@@ -1045,17 +1304,21 @@ function renderInitialMessage() {
 function handleReset() {
     showConfirm(
         "¿Limpiar todo?",
-        "Se borrarán el inventario, antojos y plan seleccionados.",
+        "Se borrarán inventario, antojos, plan y listas personalizadas.",
         () => {
             state.inventory = {};
             state.selectedCravings = [];
             state.weeklyPlan = {};
+            state.customLists = [];
+            state.activeCustomListId = null;
             persistInventory();
             persistCravings();
             persistWeeklyPlan();
+            persistCustomLists();
             renderInventory();
             renderCravings();
             renderInitialMessage();
+            renderGroceryHub();
             resultsEl.innerHTML = "";
             showToast("Selecciones limpiadas");
         }
@@ -1127,6 +1390,13 @@ function loadShoppingList() {
 }
 function persistShoppingList() {
     localStorage.setItem(STORAGE_KEYS.shoppingList, JSON.stringify(state.shoppingList));
+}
+
+function loadCustomLists() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.customLists)) || []; } catch { return []; }
+}
+function persistCustomLists() {
+    localStorage.setItem(STORAGE_KEYS.customLists, JSON.stringify(state.customLists));
 }
 function loadCravings() {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.cravings)) || []; } catch { return []; }
@@ -1536,4 +1806,3 @@ function initSearch() {
 }
 
 init();
-
