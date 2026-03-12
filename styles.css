@@ -114,6 +114,14 @@
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
+}
+
+button,
+[role="button"],
+.chip,
+.option-chip,
+.menu-toggle,
+.flow-step {
   touch-action: manipulation;
 }
 
@@ -447,8 +455,9 @@ body {
   gap: 8px;
   overflow-x: auto;
   overflow-y: hidden;
-  scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
   flex: 1;
   padding: 4px 0 6px;
   scrollbar-width: none;
@@ -481,6 +490,7 @@ body {
 
 .craving-chips-scroll .chip {
   flex-shrink: 0;
+  scroll-snap-align: start;
 }
 
 .menu-toggle {
@@ -617,8 +627,9 @@ body {
   gap: 8px;
   overflow-x: auto;
   overflow-y: hidden;
-  scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
   flex: 1;
   padding: 4px 0 6px;
   scrollbar-width: none;
@@ -642,6 +653,7 @@ body {
 
 .inventory-filters-scroll .chip {
   flex-shrink: 0;
+  scroll-snap-align: start;
 }
 
 /* ─── Inventory Modal ─── */
@@ -2486,6 +2498,8 @@ body {
     flex-wrap: nowrap;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
     scrollbar-width: none;
     padding-bottom: 2px;
   }
@@ -2499,6 +2513,7 @@ body {
     font-size: 0.8rem;
     min-height: 34px;
     flex: 0 0 auto;
+    scroll-snap-align: start;
   }
 }
 
@@ -2611,16 +2626,6 @@ body {
 }
 
 @media (max-width: 600px) {
-  .flow-stepper {
-    padding: 8px 10px;
-    overflow-x: auto;
-    gap: 4px;
-  }
-
-  .flow-step {
-    min-width: 96px;
-  }
-
   .inline-form {
     flex-direction: column;
   }
