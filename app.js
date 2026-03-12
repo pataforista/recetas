@@ -52,6 +52,13 @@ const timeSelectEl = document.getElementById("timeSelect");
 const modeSelectEl = document.getElementById("modeSelect");
 const lowEnergyEl = document.getElementById("lowEnergy");
 const seasonBoostEl = document.getElementById("seasonBoost");
+const centralIngSearchEl = document.getElementById("centralIngSearch");
+const centralIngClearEl = document.getElementById("centralIngClear");
+const centralIngDropdownEl = document.getElementById("centralIngDropdown");
+const centralIngSelectedEl = document.getElementById("centralIngSelected");
+
+// ID del ingrediente central seleccionado (null = sin filtro)
+let _centralIngredientId = null;
 
 // ─── Chip group helper ───
 function getSelectedChipValue(groupId) {
@@ -70,6 +77,7 @@ function init() {
     renderCravings();
     initializeCustomListState();
     bindEvents();
+    initCentralIngredient();
     renderInitialMessage();
     setupPWAInstall();
     registerSW();
@@ -79,6 +87,83 @@ function init() {
     handleShortcutParam();
     maybeImportFromUrl();
     initSearch();
+}
+
+// ─── Central Ingredient ───
+function initCentralIngredient() {
+    if (!centralIngSearchEl) return;
+
+    centralIngSearchEl.addEventListener("input", () => {
+        const q = centralIngSearchEl.value.trim();
+        centralIngClearEl?.classList.toggle("hidden", !q && !_centralIngredientId);
+        if (!q) {
+            hideCentralIngDropdown();
+            return;
+        }
+        const matches = INGREDIENTS.filter(ing => ingredientMatches(ing, q)).slice(0, 8);
+        renderCentralIngDropdown(matches, q);
+    });
+
+    centralIngClearEl?.addEventListener("click", () => {
+        clearCentralIngredient();
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener("click", (e) => {
+        if (!e.target.closest(".central-ing-wrap")) hideCentralIngDropdown();
+    });
+}
+
+function renderCentralIngDropdown(matches, query) {
+    if (!centralIngDropdownEl) return;
+    if (!matches.length) {
+        centralIngDropdownEl.innerHTML = `<div class="ci-no-results">Sin coincidencias</div>`;
+        centralIngDropdownEl.classList.remove("hidden");
+        return;
+    }
+    centralIngDropdownEl.innerHTML = matches.map(ing =>
+        `<button type="button" class="ci-option" data-id="${ing.id}">
+            ${highlight(ing.name, query)}
+         </button>`
+    ).join("");
+    centralIngDropdownEl.classList.remove("hidden");
+    centralIngDropdownEl.querySelectorAll(".ci-option").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const ing = INGREDIENTS.find(i => i.id === btn.dataset.id);
+            if (ing) selectCentralIngredient(ing);
+        });
+    });
+}
+
+function hideCentralIngDropdown() {
+    centralIngDropdownEl?.classList.add("hidden");
+    if (centralIngDropdownEl) centralIngDropdownEl.innerHTML = "";
+}
+
+function selectCentralIngredient(ing) {
+    _centralIngredientId = ing.id;
+    centralIngSearchEl.value = "";
+    hideCentralIngDropdown();
+    centralIngClearEl?.classList.remove("hidden");
+
+    if (centralIngSelectedEl) {
+        centralIngSelectedEl.classList.remove("hidden");
+        centralIngSelectedEl.innerHTML =
+            `<span class="ci-chip-label">${ing.name}</span>
+             <button type="button" class="ci-chip-remove" aria-label="Quitar">
+               <span class="material-symbols-outlined" aria-hidden="true">close</span>
+             </button>`;
+        centralIngSelectedEl.querySelector(".ci-chip-remove").addEventListener("click", clearCentralIngredient);
+    }
+}
+
+function clearCentralIngredient() {
+    _centralIngredientId = null;
+    if (centralIngSearchEl) centralIngSearchEl.value = "";
+    centralIngClearEl?.classList.add("hidden");
+    centralIngSelectedEl?.classList.add("hidden");
+    if (centralIngSelectedEl) centralIngSelectedEl.innerHTML = "";
+    hideCentralIngDropdown();
 }
 
 // Handle ?view= query param from manifest shortcuts
@@ -590,7 +675,8 @@ function handleSuggest() {
         lowEnergy: lowEnergyEl.checked,
         seasonBoost: seasonBoostEl.checked,
         inventory: state.inventory,
-        month: state.currentMonth
+        month: state.currentMonth,
+        centralIngredient: _centralIngredientId || null
     };
 
     // Use rAF to allow button state to render before heavy work
@@ -680,6 +766,22 @@ function scoreRecipe(recipe, context) {
     const ownedIngredients = Object.entries(context.inventory)
         .filter(([, value]) => value.has)
         .map(([id]) => id);
+
+    // ── Ingrediente central: filtro estricto ──
+    if (context.centralIngredient) {
+        const ci = context.centralIngredient;
+        const allRecipeIngs = [...recipe.ingredientsRequired, ...recipe.ingredientsOptional];
+        // El ingrediente (o algún sustituto suyo) debe aparecer en la receta
+        const ciSubs = SUBSTITUTIONS[ci] || [];
+        const recipeHasCi = allRecipeIngs.includes(ci) || ciSubs.some(s => allRecipeIngs.includes(s));
+        if (!recipeHasCi) {
+            return { recipe, score: -9999, reasons: ["No incluye el ingrediente central"] };
+        }
+        const ing = INGREDIENTS.find(i => i.id === ci);
+        const name = ing?.name ?? ci;
+        score += 40;
+        reasons.push(`Incluye tu ingrediente central: ${name}`);
+    }
 
     // Ingredient matching with substitution logic
     const requiredMatches = recipe.ingredientsRequired.filter((id) => {
@@ -979,7 +1081,12 @@ function buildSummary(context, ranked) {
     const top = ranked[0]?.recipe?.name || "sin resultado";
     const inventoryCount = Object.values(context.inventory).filter((v) => v.has).length;
     const cravingsText = context.cravings.length ? context.cravings.map(humanizeCraving).join(", ") : "sin antojo específico";
-    return `Top sugerencia: ${top}. Evalué ${inventoryCount} ingrediente${inventoryCount !== 1 ? "s" : ""} marcado${inventoryCount !== 1 ? "s" : ""}, tiempo máximo de ${context.maxTime} min y antojo ${cravingsText}.`;
+    let summary = `Top sugerencia: ${top}. Evalué ${inventoryCount} ingrediente${inventoryCount !== 1 ? "s" : ""} marcado${inventoryCount !== 1 ? "s" : ""}, tiempo máximo de ${context.maxTime} min y antojo ${cravingsText}.`;
+    if (context.centralIngredient) {
+        const ing = INGREDIENTS.find(i => i.id === context.centralIngredient);
+        summary += ` Filtrado por ingrediente central: ${ing?.name ?? context.centralIngredient}.`;
+    }
+    return summary;
 }
 
 // ─── Planner ───

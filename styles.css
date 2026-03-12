@@ -3015,3 +3015,93 @@ body {
 .sri-check.has {
     color: var(--md-sys-color-primary);
 }
+/* ─── Central Ingredient ─────────────────────────────────────────────── */
+.field-hint {
+  font-weight: 400;
+  font-size: 0.72rem;
+  color: var(--md-sys-color-outline);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.central-ing-wrap {
+  position: relative;
+}
+
+.central-ing-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--md-sys-color-surface);
+  border: 1.5px solid var(--md-sys-color-outline-variant);
+  border-radius: 12px;
+  overflow: hidden;
+  z-index: 200;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.ci-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  font-size: 0.92rem;
+  color: var(--md-sys-color-on-surface);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.ci-option:hover,
+.ci-option:focus {
+  background: var(--md-sys-color-surface-variant);
+  outline: none;
+}
+
+.ci-option mark {
+  background: transparent;
+  color: var(--md-sys-color-primary);
+  font-weight: 700;
+}
+
+.ci-no-results {
+  padding: 10px 14px;
+  font-size: 0.88rem;
+  color: var(--md-sys-color-outline);
+}
+
+.central-ing-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  border-radius: 20px;
+  padding: 4px 10px 4px 12px;
+  width: fit-content;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.ci-chip-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  color: inherit;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+
+.ci-chip-remove:hover { opacity: 1; }
+
+.ci-chip-remove .material-symbols-outlined {
+  font-size: 16px !important;
+}

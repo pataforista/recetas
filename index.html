@@ -166,6 +166,23 @@
           </label>
 
           <label class="field">
+            <span>Ingrediente central <span class="field-hint">(opcional — solo recetas que lo incluyan)</span></span>
+            <div class="central-ing-wrap">
+              <div class="search-bar-wrap">
+                <span class="search-bar-icon material-symbols-outlined" aria-hidden="true">grocery</span>
+                <input id="centralIngSearch" class="search-bar" type="search"
+                  placeholder="Ej. frijol, pollo, calabaza…"
+                  autocomplete="off" spellcheck="false" />
+                <button id="centralIngClear" class="search-clear hidden" type="button" aria-label="Quitar ingrediente central">
+                  <span class="material-symbols-outlined" aria-hidden="true">close</span>
+                </button>
+              </div>
+              <div id="centralIngDropdown" class="central-ing-dropdown hidden"></div>
+              <div id="centralIngSelected" class="central-ing-chip hidden"></div>
+            </div>
+          </label>
+
+          <label class="field">
             <span>Tiempo disponible</span>
             <div class="option-chips-group" id="timeChips" role="group" aria-label="Tiempo disponible">
               <button type="button" class="option-chip" data-value="15">15 min</button>
