@@ -45,7 +45,6 @@ const inventoryFiltersEl = document.getElementById("inventoryFilters");
 const inventoryListEl = document.getElementById("inventoryList");
 const cravingChipsEl = document.getElementById("cravingChips");
 const suggestBtn = document.getElementById("suggestBtn");
-const resetBtn = document.getElementById("resetBtn");
 const resultsEl = document.getElementById("results");
 const summaryBoxEl = document.getElementById("summaryBox");
 const mealPrepBoxEl = document.getElementById("mealPrepBox");
@@ -93,7 +92,6 @@ function handleShortcutParam() {
 
 function bindEvents() {
     suggestBtn.addEventListener("click", handleSuggest);
-    resetBtn.addEventListener("click", handleReset);
 
     const clearPlanBtn = document.getElementById("clearPlanBtn");
     if (clearPlanBtn) {
@@ -630,20 +628,25 @@ function handleSuggest() {
 
 const SUBSTITUTIONS = {
     // Milpa / Proteína
-    pollo: ["tofu", "huevo", "atun", "setas"],
-    tofu: ["pollo", "huevo", "atun"],
-    res_magra: ["pollo", "cerdo_magro"],
-    frijol: ["garbanzo", "lenteja", "haba"],
-    garbanzo: ["frijol", "lenteja"],
+    pollo: ["tofu", "huevo", "atun", "setas", "cerdo_magro"],
+    tofu: ["pollo", "huevo", "atun", "garbanzo"],
+    res_magra: ["pollo", "cerdo_magro", "setas", "res_molida"],
+    frijol: ["garbanzo", "lenteja", "haba", "ayocote"],
+    garbanzo: ["frijol", "lenteja", "haba"],
     lenteja: ["frijol", "garbanzo"],
     // Salsas / Bases
-    salsa_verde: ["salsa_roja", "jitomate", "tomate_verde"],
-    salsa_roja: ["salsa_verde", "jitomate"],
-    crema: ["yogurt_natural", "crema_acida"],
+    salsa_verde: ["salsa_roja", "jitomate", "tomate_verde", "chile_serrano"],
+    salsa_roja: ["salsa_verde", "jitomate", "chile_guajillo"],
+    crema: ["yogurt_natural", "crema_acida", "leche_coco"],
     // Carbohidratos
-    tortilla_maiz: ["tostada", "pan_blanco", "masa_maiz"],
-    arroz_blanco: ["arroz_integral", "quinoa", "pasta_seca"],
-    papa: ["camote", "yuca"],
+    tortilla_maiz: ["tostada", "pan_blanco", "masa_maiz", "totopos"],
+    arroz_blanco: ["arroz_integral", "quinoa", "pasta_seca", "maiz_pozolero"],
+    papa: ["camote", "yuca", "chayote"],
+    // Verduras
+    calabacita: ["chayote", "nopal", "pimiento_verde"],
+    chayote: ["calabacita", "papa", "nopal"],
+    pimiento_verde: ["chile_poblano", "calabacita"],
+    pimiento_rojo: ["jitomate", "chile_ancho"],
 };
 
 function rankRecipes(recipes, context) {
@@ -721,11 +724,28 @@ function scoreRecipe(recipe, context) {
         score -= Math.min(excess, 15);
     }
 
-    if (context.lowEnergy && recipe.lowFriction) {
+    if (context.lowEnergy) {
+        if (recipe.lowFriction) {
+            score += 12;
+            reasons.push("Ideal para poca energía (baja fricción)");
+        } else if (recipe.effort === "alto") {
+            score -= 20;
+            reasons.push("Evitado: requiere mucho esfuerzo");
+        } else if (recipe.effort === "medio") {
+            score -= 10;
+            reasons.push("Evitado: requiere esfuerzo moderado");
+        }
+    }
+
+    // Complete Protein Bonus (Cereal + Legume matching)
+    const combinedIngs = [...recipe.ingredientsRequired, ...recipe.ingredientsOptional];
+    const categoriesInRecipe = combinedIngs.map(id => INGREDIENTS.find(i => i.id === id)?.category).filter(Boolean);
+    const hasCereal = categoriesInRecipe.includes('cereales') || combinedIngs.some(id => id.includes('maiz') || id.includes('tortilla') || id.includes('platano'));
+    const hasLegume = categoriesInRecipe.includes('leguminosas') || combinedIngs.some(id => id.includes('frijol') || id.includes('lenteja') || id.includes('garbanzo'));
+    
+    if (hasCereal && hasLegume) {
         score += 10;
-        reasons.push("Es de baja fricción");
-    } else if (context.lowEnergy && !recipe.lowFriction) {
-        score -= 8;
+        reasons.push("Bono NiME: Proteína completa (Cereal + Leguminosa)");
     }
 
     const urgencies = ownedIngredients

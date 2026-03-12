@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   /* Earth-tone Primary */
   --md-sys-color-primary: #5B6F3A;
   --md-sys-color-on-primary: #FFFFFF;
@@ -47,12 +47,12 @@
   --md-sys-shape-corner-medium: 12px;
   --md-sys-shape-corner-small: 8px;
 
-  /* Elevations (Simplified M3 Box Shadows) */
-  --md-sys-elevation-1: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
-  --md-sys-elevation-2: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 2px 6px 2px rgba(0, 0, 0, 0.15);
-  --md-sys-elevation-3: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 4px 8px 3px rgba(0, 0, 0, 0.15);
-  --md-sys-elevation-4: 0 2px 3px 0 rgba(0, 0, 0, 0.3), 0 6px 10px 4px rgba(0, 0, 0, 0.15);
-  --md-sys-elevation-5: 0 4px 4px 0 rgba(0, 0, 0, 0.3), 0 8px 12px 6px rgba(0, 0, 0, 0.15);
+  /* Elevations (Refined High-End Shadows) */
+  --md-sys-elevation-1: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --md-sys-elevation-2: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+  --md-sys-elevation-3: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --md-sys-elevation-4: 0 25px 50px -12px rgba(0, 0, 0, 0.12);
+  --md-sys-elevation-5: 0 35px 60px -15px rgba(0, 0, 0, 0.2);
 
   /* Nav */
   --nav-height: 80px;
@@ -64,7 +64,7 @@
   --toggle-thumb: 24px;
 }
 
-/* ─── Dark Mode ─── */
+/* â”€â”€â”€ Dark Mode â”€â”€â”€ */
 @media (prefers-color-scheme: dark) {
   :root {
     --md-sys-color-primary: #BEBDFF;
@@ -125,7 +125,7 @@ button,
   touch-action: manipulation;
 }
 
-/* ─── Icon Font Constraints ─── */
+/* â”€â”€â”€ Icon Font Constraints â”€â”€â”€ */
 .material-symbols-outlined {
   font-family: 'Material Symbols Outlined';
   font-style: normal;
@@ -165,7 +165,7 @@ body {
   display: none !important;
 }
 
-/* ─── Banners ─── */
+/* â”€â”€â”€ Banners â”€â”€â”€ */
 .offline-banner {
   background: var(--md-sys-color-tertiary-container);
   color: var(--md-sys-color-on-tertiary-container);
@@ -197,10 +197,10 @@ body {
   gap: 6px;
 }
 
-/* ─── Header ─── */
+/* â”€â”€â”€ Header â”€â”€â”€ */
 .app-header {
   padding: 24px 24px 20px;
-  background: color-mix(in srgb, var(--md-sys-color-primary-container) 84%, #ffffff 16%);
+  background: color-mix(in srgb, var(--md-sys-color-primary-container) 70%, transparent 30%);
   color: var(--md-sys-color-on-primary-container);
   display: flex;
   justify-content: space-between;
@@ -209,8 +209,12 @@ body {
   border-bottom-right-radius: var(--md-sys-shape-corner-extra-large);
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  max-width: 600px;
+  margin: 0 auto;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 /* Milpa geometric decoration - Adjusted for M3 */
@@ -269,14 +273,14 @@ body {
   letter-spacing: 0.1px;
 }
 
-/* ─── Layout ─── */
+/* â”€â”€â”€ Layout â”€â”€â”€ */
 .layout {
   padding: 12px 16px;
   max-width: 600px; /* Crucial: restricts width for "mobile-first" feel */
   margin: 0 auto;
 }
 
-/* ─── Wizard Stepper (Strict Steps) ─── */
+/* â”€â”€â”€ Wizard Stepper (Strict Steps) â”€â”€â”€ */
 .flow-stepper {
   display: flex;
   justify-content: space-between;
@@ -352,7 +356,7 @@ body {
   color: var(--md-sys-color-primary);
 }
 
-/* ─── Wizard Transitions ─── */
+/* â”€â”€â”€ Wizard Transitions â”€â”€â”€ */
 .wizard-panel {
   display: none;
   opacity: 0;
@@ -375,7 +379,7 @@ body {
   }
 }
 
-/* ─── Wizard Footer Actions ─── */
+/* â”€â”€â”€ Wizard Footer Actions â”€â”€â”€ */
 .wizard-footer {
   display: flex;
   justify-content: space-between;
@@ -389,16 +393,21 @@ body {
   flex: 1;
 }
 
-/* ─── Panels (Adjusted for Wizard) ─── */
+/* â”€â”€â”€ Panels (Adjusted for Wizard) â”€â”€â”€ */
 .panel {
-  background: color-mix(in srgb, var(--md-sys-color-surface) 84%, #ffffff 16%);
+  background: color-mix(in srgb, var(--md-sys-color-surface) 90%, transparent 10%);
   border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: 26px;
   padding: 16px 18px; /* Tighter padding */
-  box-shadow: 0 4px 12px rgba(35, 25, 14, 0.05);
+  box-shadow: var(--md-sys-elevation-1);
   margin-bottom: 8px;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: box-shadow 0.3s ease;
+}
+
+.panel:focus-within {
+  box-shadow: var(--md-sys-elevation-2);
 }
 
 .panel-header {
@@ -434,7 +443,7 @@ body {
   line-height: 1.55;
 }
 
-/* ─── Empty State ─── */
+/* â”€â”€â”€ Empty State â”€â”€â”€ */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -467,7 +476,7 @@ body {
   opacity: 0.55;
 }
 
-/* ─── Inventory ─── */
+/* â”€â”€â”€ Inventory â”€â”€â”€ */
 .inventory-grid {
   display: grid;
   gap: 8px;
@@ -475,24 +484,31 @@ body {
 }
 
 .inventory-item {
-  background: var(--md-sys-color-surface-variant);
-  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface);
+  border-radius: var(--md-sys-shape-corner-large);
   padding: 12px 14px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  border: 1.5px solid transparent;
-  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+  cursor: pointer;
 }
 
 .inventory-item:hover {
+  transform: translateY(-2px) scale(1.02);
   border-color: var(--md-sys-color-secondary);
-  box-shadow: var(--md-sys-elevation-1);
+  box-shadow: var(--md-sys-elevation-2);
+}
+
+.inventory-item:active {
+  transform: scale(0.98);
 }
 
 .inventory-item.has-item {
   border-color: var(--md-sys-color-primary);
-  background: color-mix(in srgb, var(--md-sys-color-primary-container) 60%, var(--md-sys-color-surface) 40%);
+  background: var(--md-sys-color-primary-container);
+  box-shadow: 0 0 15px color-mix(in srgb, var(--md-sys-color-primary) 20%, transparent);
 }
 
 .inventory-row {
@@ -522,7 +538,7 @@ body {
   gap: 8px;
 }
 
-/* ─── Chips ─── */
+/* â”€â”€â”€ Chips â”€â”€â”€ */
 .chips {
   display: flex;
   flex-wrap: wrap;
@@ -564,7 +580,7 @@ body {
   border-color: var(--md-sys-color-outline);
 }
 
-/* ─── Craving Menu ─── */
+/* â”€â”€â”€ Craving Menu â”€â”€â”€ */
 .craving-chips-scroll {
   display: flex;
   gap: 8px;
@@ -630,7 +646,7 @@ body {
   color: var(--md-sys-color-on-primary-container);
 }
 
-/* ─── Craving Modal ─── */
+/* â”€â”€â”€ Craving Modal â”€â”€â”€ */
 .craving-modal {
   position: fixed;
   inset: 0;
@@ -728,7 +744,7 @@ body {
   }
 }
 
-/* ─── Inventory Menu ─── */
+/* â”€â”€â”€ Inventory Menu â”€â”€â”€ */
 .inventory-menu-wrapper {
   position: relative;
   display: flex;
@@ -771,7 +787,7 @@ body {
   scroll-snap-align: start;
 }
 
-/* ─── Inventory Modal ─── */
+/* â”€â”€â”€ Inventory Modal â”€â”€â”€ */
 .inventory-modal {
   position: fixed;
   inset: 0;
@@ -822,7 +838,7 @@ body {
   border-radius: var(--md-sys-shape-corner-medium);
 }
 
-/* ─── Forms ─── */
+/* â”€â”€â”€ Forms â”€â”€â”€ */
 .field {
   display: flex;
   flex-direction: column;
@@ -867,7 +883,7 @@ select:focus {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--md-sys-color-primary) 20%, transparent 80%);
 }
 
-/* ─── Toggle Switch (custom checkbox) ─── */
+/* â”€â”€â”€ Toggle Switch (custom checkbox) â”€â”€â”€ */
 .checkbox {
   display: flex;
   align-items: center;
@@ -918,7 +934,7 @@ select:focus {
 /* Re-implement as adjacent sibling via label wrapper */
 /* We'll use a .toggle-track span approach instead */
 
-/* ─── Toggle Switch – clean approach ─── */
+/* â”€â”€â”€ Toggle Switch â€“ clean approach â”€â”€â”€ */
 .toggle-wrap {
   display: flex;
   align-items: center;
@@ -975,7 +991,7 @@ select:focus {
   outline-offset: 2px;
 }
 
-/* ─── Buttons ─── */
+/* â”€â”€â”€ Buttons â”€â”€â”€ */
 .actions {
   display: flex;
   gap: 10px;
@@ -1057,7 +1073,7 @@ button.error-btn:hover {
   background: color-mix(in srgb, var(--md-sys-color-error-container) 70%, var(--md-sys-color-error) 30%);
 }
 
-/* ─── Summary Box ─── */
+/* â”€â”€â”€ Summary Box â”€â”€â”€ */
 .summary-box {
   background: var(--md-sys-color-surface-variant);
   border-radius: var(--md-sys-shape-corner-medium);
@@ -1073,22 +1089,22 @@ button.error-btn:hover {
 }
 
 .summary-box::before {
-  content: '🍽️';
+  content: 'ðŸ½ï¸';
   font-size: 1.2rem;
   flex-shrink: 0;
 }
 
-/* ─── Recipe Cards ─── */
+/* â”€â”€â”€ Recipe Cards â”€â”€â”€ */
 .recipe-card {
-  background: var(--md-sys-color-surface-container-low);
-  border: none;
-  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-extra-large);
   padding: 0;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
   overflow: hidden;
   position: relative;
   box-shadow: var(--md-sys-elevation-1);
-  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1);
+  transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
   animation: fadeIn 0.4s ease forwards;
   display: flex;
   flex-direction: column;
@@ -1197,7 +1213,7 @@ button.error-btn:hover {
   margin: 0;
 }
 
-/* ─── Recipe Actions Row ─── */
+/* â”€â”€â”€ Recipe Actions Row â”€â”€â”€ */
 .recipe-actions {
   display: flex;
   gap: 8px;
@@ -1232,7 +1248,7 @@ button.error-btn:hover {
   width: 16px !important;
 }
 
-/* ─── Profiles ─── */
+/* â”€â”€â”€ Profiles â”€â”€â”€ */
 .tag-good {
   color: var(--md-sys-color-success);
   font-weight: 700;
@@ -1248,7 +1264,7 @@ button.error-btn:hover {
   font-weight: 700;
 }
 
-/* ─── Meal Prep Block ─── */
+/* â”€â”€â”€ Meal Prep Block â”€â”€â”€ */
 .mealprep-block {
   background: var(--md-sys-color-secondary-container);
   border-radius: var(--md-sys-shape-corner-medium);
@@ -1262,7 +1278,7 @@ button.error-btn:hover {
   font-size: 0.875rem;
 }
 
-/* ─── Animations ─── */
+/* â”€â”€â”€ Animations â”€â”€â”€ */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -1275,7 +1291,7 @@ button.error-btn:hover {
   }
 }
 
-/* ─── SPA Navigation ─── */
+/* â”€â”€â”€ SPA Navigation â”€â”€â”€ */
 .page-view {
   display: none;
 }
@@ -1306,7 +1322,7 @@ button.error-btn:hover {
   }
 }
 
-/* ─── Bottom Nav ─── */
+/* â”€â”€â”€ Bottom Nav â”€â”€â”€ */
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -1321,6 +1337,8 @@ button.error-btn:hover {
   box-shadow: none;
   z-index: 100;
   padding-bottom: env(safe-area-inset-bottom, 0px);
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .nav-item {
@@ -1370,7 +1388,7 @@ button.error-btn:hover {
   font-weight: 700;
 }
 
-/* ─── Planner ─── */
+/* â”€â”€â”€ Planner â”€â”€â”€ */
 .planner-grid {
   display: grid;
   gap: 12px;
@@ -1404,7 +1422,7 @@ button.error-btn:hover {
 }
 
 .planner-day.is-today h3::after {
-  content: '•';
+  content: 'â€¢';
   color: var(--md-sys-color-secondary);
   font-size: 1.2rem;
   line-height: 1;
@@ -1465,7 +1483,7 @@ button.error-btn:hover {
   background: var(--md-sys-color-error-container);
 }
 
-/* ─── Grocery List ─── */
+/* â”€â”€â”€ Grocery List â”€â”€â”€ */
 .grocery-category-header {
   font-size: 0.72rem;
   font-weight: 700;
@@ -1528,7 +1546,7 @@ button.error-btn:hover {
   text-decoration: line-through;
 }
 
-/* ─── Toast Notifications ─── */
+/* â”€â”€â”€ Toast Notifications â”€â”€â”€ */
 .toast-container {
   position: fixed;
   bottom: calc(var(--nav-height) + 12px + env(safe-area-inset-bottom, 0px));
@@ -1606,7 +1624,7 @@ button.error-btn:hover {
   color: var(--md-sys-color-on-primary);
 }
 
-/* ─── Modals ─── */
+/* â”€â”€â”€ Modals â”€â”€â”€ */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -1663,7 +1681,7 @@ button.error-btn:hover {
   border-color: var(--md-sys-color-primary);
 }
 
-/* ─── Panel Accordion ─── */
+/* â”€â”€â”€ Panel Accordion â”€â”€â”€ */
 .panel-header {
   cursor: pointer;
   user-select: none;
@@ -1743,7 +1761,7 @@ button.error-btn:hover {
   color: var(--md-sys-color-primary);
 }
 
-/* ─── Responsive ─── */
+/* â”€â”€â”€ Responsive â”€â”€â”€ */
 @media (max-width: 600px) {
   .update-banner {
     flex-wrap: wrap;
@@ -1933,7 +1951,7 @@ button.error-btn:hover {
   }
 }
 
-/* ─── iPhone SE / 375px ─── */
+/* â”€â”€â”€ iPhone SE / 375px â”€â”€â”€ */
 @media (max-width: 375px) {
   .app-header {
     padding: 14px 14px 12px;
@@ -1965,7 +1983,7 @@ button.error-btn:hover {
   }
 }
 
-/* ─── Frequency Badges (inventario) ─── */
+/* â”€â”€â”€ Frequency Badges (inventario) â”€â”€â”€ */
 .inventory-meta {
   display: flex;
   align-items: center;
@@ -2019,7 +2037,7 @@ button.error-btn:hover {
   font-weight: 600;
 }
 
-/* ─── Header actions wrapper ─── */
+/* â”€â”€â”€ Header actions wrapper â”€â”€â”€ */
 .header-actions {
   display: flex;
   align-items: center;
@@ -2054,7 +2072,7 @@ button.error-btn:hover {
   font-size: 22px;
 }
 
-/* ─── Search bar (panel inline) ─── */
+/* â”€â”€â”€ Search bar (panel inline) â”€â”€â”€ */
 .search-bar-wrap {
   position: relative;
   display: flex;
@@ -2126,7 +2144,7 @@ button.error-btn:hover {
   font-size: 16px;
 }
 
-/* ─── Results toolbar ─── */
+/* â”€â”€â”€ Results toolbar â”€â”€â”€ */
 .results-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -2181,7 +2199,7 @@ button.error-btn:hover {
   flex: 0 0 100%;
 }
 
-/* ─── Global Search Modal (Ctrl+K) ─── */
+/* â”€â”€â”€ Global Search Modal (Ctrl+K) â”€â”€â”€ */
 .search-modal {
   position: fixed;
   inset: 0;
@@ -2358,7 +2376,7 @@ mark {
   font-style: normal;
 }
 
-/* ─── Flow Stepper ─── */
+/* â”€â”€â”€ Flow Stepper â”€â”€â”€ */
 .flow-stepper {
   display: flex;
   align-items: center;
@@ -2461,7 +2479,7 @@ body {
   padding-top: 0;
 }
 
-/* ─── Option Chips (Time & Mode selectors) ─── */
+/* â”€â”€â”€ Option Chips (Time & Mode selectors) â”€â”€â”€ */
 .option-chips-group {
   display: flex;
   flex-wrap: wrap;
@@ -2509,7 +2527,7 @@ body {
   scale: 0.96;
 }
 
-/* ─── Recipe Card: Collapsible Details ─── */
+/* â”€â”€â”€ Recipe Card: Collapsible Details â”€â”€â”€ */
 .recipe-collapsible {
   overflow: hidden;
   max-height: 0;
@@ -2748,4 +2766,252 @@ body {
   .mini-toggle {
     width: 100%;
   }
+}
+
+/* %%% Recipe Collapsible %%% */
+.recipe-collapsible {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.recipe-collapsible.expanded {
+    grid-template-rows: 1fr;
+}
+
+.recipe-collapsible > * {
+    overflow: hidden;
+}
+
+.recipe-expand-btn {
+    background: transparent;
+    border: none;
+    width: 100%;
+    padding: 8px 0;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: var(--md-sys-color-primary);
+    font-weight: 600;
+    font-size: 0.85rem;
+    box-shadow: none;
+    min-height: 36px;
+}
+
+.recipe-expand-btn:focus-visible {
+    outline: 2px solid var(--md-sys-color-primary);
+    border-radius: 6px;
+}
+
+/* %%% Global Modals (Overlays, Alerts) %%% */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal {
+    background: var(--md-sys-color-surface);
+    border-radius: var(--md-sys-shape-corner-extra-large);
+    padding: 24px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: var(--md-sys-elevation-3);
+    animation: slideUp 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.modal h3 {
+    margin: 0 0 8px;
+    font-size: 1.25rem;
+    color: var(--md-sys-color-on-surface);
+}
+
+.day-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.day-btn {
+    background: var(--md-sys-color-surface-variant);
+    color: var(--md-sys-color-on-surface-variant);
+    box-shadow: none;
+}
+
+.day-btn:hover {
+    background: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+}
+
+/* %%% Global Search Modal (Ctrl+K) %%% */
+.search-modal {
+    position: fixed;
+    inset: 0;
+    background: color-mix(in srgb, var(--md-sys-color-background) 85%, transparent);
+    backdrop-filter: blur(8px);
+    z-index: 3000;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 16px;
+    padding-top: 10vh;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.search-modal.hidden {
+    display: none;
+}
+
+.search-modal-box {
+    background: var(--md-sys-color-surface);
+    width: 100%;
+    max-width: 600px;
+    border-radius: var(--md-sys-shape-corner-extra-large);
+    box-shadow: var(--md-sys-elevation-4);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
+    animation: slideUp 0.3s cubic-bezier(0.2, 0, 0, 1);
+    border: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.search-modal-header {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--md-sys-color-surface-variant);
+    gap: 12px;
+    background: var(--md-sys-color-surface);
+}
+
+.search-modal-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 1.1rem;
+    font-family: inherit;
+    color: var(--md-sys-color-on-surface);
+    outline: none;
+}
+
+.search-modal-input::placeholder {
+    color: var(--md-sys-color-outline);
+}
+
+.search-kbd {
+    font-size: 0.75rem;
+    background: var(--md-sys-color-surface-variant);
+    color: var(--md-sys-color-on-surface-variant);
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.search-results {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0;
+    flex: 1;
+}
+
+.search-placeholder {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--md-sys-color-on-surface-variant);
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.search-result-group {
+    padding: 16px 20px 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--md-sys-color-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--md-sys-color-surface);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.search-result-group .material-symbols-outlined {
+    font-size: 16px !important;
+}
+
+.search-result-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding: 14px 20px;
+    border: none;
+    background: transparent;
+    color: var(--md-sys-color-on-surface);
+    border-radius: 0;
+    text-align: left;
+    gap: 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+    box-shadow: none;
+}
+
+.search-result-item:hover, .search-result-item:focus-visible {
+    background: var(--md-sys-color-surface-variant);
+}
+
+.sri-icon {
+    font-size: 24px !important;
+    color: var(--md-sys-color-on-surface-variant);
+    width: 24px;
+    text-align: center;
+}
+
+.sri-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.sri-name {
+    font-weight: 500;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sri-name mark {
+    background: transparent;
+    color: var(--md-sys-color-primary);
+    font-weight: 700;
+}
+
+.sri-sub {
+    font-size: 0.8rem;
+    color: var(--md-sys-color-on-surface-variant);
+    margin-top: 2px;
+}
+
+.sri-check {
+    font-size: 22px !important;
+    color: var(--md-sys-color-outline);
+}
+
+.sri-check.has {
+    color: var(--md-sys-color-primary);
 }
