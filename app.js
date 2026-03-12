@@ -651,26 +651,27 @@ const SUBSTITUTIONS = {
 
 function rankRecipes(recipes, context) {
     const scored = recipes.map((recipe) => scoreRecipe(recipe, context))
-        .filter((item) => item.score > 10);
+        .filter((item) => item.score > 10)
+        .sort((a, b) => b.score - a.score);
 
-    // Variety penalty: avoid suggesting too many recipes from the same family in the top results
-    scored.sort((a, b) => (b.score - a.score) || (Math.random() - 0.5));
-
-    const finalRanked = [];
+    // Greedy selection with family diversity constraint
+    // Allow max 2 recipes per family in the results to ensure variety
+    const selected = [];
     const familyCounts = {};
+    const MAX_PER_FAMILY = 2;
 
-    scored.forEach((item) => {
+    for (const item of scored) {
         const family = item.recipe.family;
         const count = familyCounts[family] || 0;
-        
-        // If we already have 2 of this family, apply a diversity penalty for ranking
-        const adjustedScore = item.score - (count * 8);
-        item.adjustedScore = adjustedScore;
-        finalRanked.push(item);
-        familyCounts[family] = count + 1;
-    });
 
-    return finalRanked.sort((a, b) => (b.adjustedScore - a.adjustedScore) || (Math.random() - 0.5));
+        // Skip if this family already has max recipes
+        if (count >= MAX_PER_FAMILY) continue;
+
+        selected.push(item);
+        familyCounts[family] = count + 1;
+    }
+
+    return selected;
 }
 
 function scoreRecipe(recipe, context) {
