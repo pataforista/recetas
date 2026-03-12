@@ -41,19 +41,19 @@ const CATEGORY_DESCRIPTIONS = {
     frutas: { name: "Frutas", description: "Frutas frescas" }
 };
 
-// Subcategorías para expandir en el futuro
+// Subcategorías para expandir - mapeo de keywords en ingredient IDs
 const SUBCATEGORIES = {
     proteinas: [
-        { id: "carnes_rojas", name: "Carnes rojas" },
-        { id: "pollo", name: "Pollo" },
-        { id: "pescado", name: "Pescado y mariscos" },
-        { id: "huevos", name: "Huevos" },
-        { id: "vegetariano", name: "Vegetariano" }
+        { id: "carnes_rojas", name: "Carnes rojas", keywords: ["res_", "cerdo_", "chorizo", "cecina", "longaniza", "barbacoa", "carnitas", "cabrito", "brisket"] },
+        { id: "pollo", name: "Pollo", keywords: ["pollo", "pechuga"] },
+        { id: "pescado", name: "Pescado y mariscos", keywords: ["atun", "salmon", "sardina", "pescado_", "camaron", "pulpo", "anchoa"] },
+        { id: "huevos", name: "Huevos", keywords: ["huevo"] },
+        { id: "vegetariano", name: "Vegetariano", keywords: ["tofu", "tempeh", "edamame", "hummus"] }
     ],
     verduras: [
-        { id: "chiles", name: "Chiles" },
-        { id: "jitomates", name: "Tomates" },
-        { id: "leafy_greens", name: "Verduras de hoja" },
+        { id: "chiles", name: "Chiles", keywords: ["chile_", "rajas_"] },
+        { id: "jitomates", name: "Tomates", keywords: ["jitomate", "tomate_"] },
+        { id: "leafy_greens", name: "Verduras de hoja", keywords: ["lechuga", "espinaca", "verdolaga", "quelites"] },
         { id: "otros", name: "Otros" }
     ]
 };
@@ -458,6 +458,7 @@ function renderInventoryFilters() {
         categories.forEach((category) => {
             const categoryCard = document.createElement("div");
             categoryCard.className = "category-card";
+            const hasSubcategories = SUBCATEGORIES[category] && SUBCATEGORIES[category].length > 0;
 
             const iconName = getCategoryIcon(category);
             const desc = CATEGORY_DESCRIPTIONS[category] || { name: capitalize(category), description: "" };
@@ -473,14 +474,52 @@ function renderInventoryFilters() {
                         <div class="category-count">${count} ingredientes</div>
                         <div class="category-description">${desc.description}</div>
                     </div>
+                    ${hasSubcategories ? `<div class="category-expand-icon">
+                        <span class="material-symbols-outlined" aria-hidden="true">expand_more</span>
+                    </div>` : ''}
                 </div>
+                ${hasSubcategories ? `<div class="category-subcategories hidden">
+                    ${SUBCATEGORIES[category].map(sub => `
+                        <button type="button" class="subcategory-btn" data-category="${category}" data-subcategory="${sub.id}">
+                            <span class="material-symbols-outlined" aria-hidden="true">subdirectory_arrow_right</span>
+                            ${sub.name}
+                        </button>
+                    `).join('')}
+                </div>` : ''}
             `;
 
-            categoryCard.addEventListener("click", () => {
-                activeCategoryFilter = category;
-                closeInventoryModal();
-                renderInventoryFilters();
-                renderInventory();
+            // Evento para categoría principal
+            const cardInner = categoryCard.querySelector(".category-card-inner");
+            if (cardInner) {
+                cardInner.addEventListener("click", (e) => {
+                    if (e.target.closest(".category-expand-icon")) {
+                        // Expandir/contraer subcategorías
+                        const subcats = categoryCard.querySelector(".category-subcategories");
+                        if (subcats) {
+                            subcats.classList.toggle("hidden");
+                            categoryCard.querySelector(".category-expand-icon span").textContent =
+                                subcats.classList.contains("hidden") ? "expand_more" : "expand_less";
+                        }
+                    } else {
+                        // Click en categoría principal
+                        activeCategoryFilter = category;
+                        closeInventoryModal();
+                        renderInventoryFilters();
+                        renderInventory();
+                    }
+                });
+            }
+
+            // Eventos para subcategorías
+            categoryCard.querySelectorAll(".subcategory-btn").forEach(btn => {
+                btn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    activeCategoryFilter = category;
+                    // TODO: En futuras versiones, permitir filtrar por subcategoría
+                    closeInventoryModal();
+                    renderInventoryFilters();
+                    renderInventory();
+                });
             });
 
             inventoryFilterGrid.appendChild(categoryCard);
