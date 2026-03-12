@@ -56,6 +56,7 @@
 
   /* Nav */
   --nav-height: 80px;
+  --mobile-fab-offset: calc(var(--nav-height) + 14px + env(safe-area-inset-bottom, 0px));
 
   /* Toggle switch */
   --toggle-width: 52px;
@@ -1178,6 +1179,7 @@ button.error-btn:hover {
   border-radius: 0;
   flex: 1;
   transition: color 0.2s ease;
+  min-height: 48px;
 }
 
 .nav-item .material-symbols-outlined {
@@ -1584,6 +1586,10 @@ button.error-btn:hover {
 
 /* ─── Responsive ─── */
 @media (max-width: 600px) {
+  body {
+    padding-bottom: calc(var(--nav-height) + 28px + env(safe-area-inset-bottom, 0px));
+  }
+
   .layout {
     padding: 14px 12px;
   }
@@ -1594,6 +1600,22 @@ button.error-btn:hover {
 
   .app-header {
     padding: 18px 18px 16px;
+    border-bottom-left-radius: 22px;
+    border-bottom-right-radius: 22px;
+  }
+
+  .header-actions {
+    gap: 6px;
+  }
+
+  .icon-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  #installBtn {
+    min-height: 44px;
+    padding-inline: 16px;
   }
 
   .app-header h1 {
@@ -1712,6 +1734,28 @@ button.error-btn:hover {
     min-height: 44px;
   }
 
+  .context-actions {
+    position: sticky;
+    bottom: var(--mobile-fab-offset);
+    z-index: 35;
+    background: color-mix(in srgb, var(--md-sys-color-surface) 84%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: 18px;
+    padding: 8px;
+    margin-top: 16px;
+    box-shadow: var(--md-sys-elevation-1);
+  }
+
+  .context-actions #suggestBtn {
+    flex: 1.6;
+  }
+
+  .context-actions #resetBtn {
+    flex: 1;
+  }
+
   .recipe-card:hover {
     transform: none;
     box-shadow: var(--md-sys-elevation-2);
@@ -1745,6 +1789,12 @@ button.error-btn:hover {
 
   .panel h2 {
     font-size: 1rem;
+  }
+
+  .context-actions {
+    border-radius: 16px;
+    padding: 7px;
+    gap: 8px;
   }
 }
 
@@ -2155,6 +2205,7 @@ mark {
   z-index: 50;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  scroll-padding-inline: 16px;
 }
 
 .flow-step {
@@ -2173,6 +2224,7 @@ mark {
   font-size: 0.82rem;
   font-weight: 500;
   white-space: nowrap;
+  scroll-snap-align: start;
 }
 
 .flow-step-num {
@@ -2342,8 +2394,16 @@ body {
 
 @media (max-width: 600px) {
   .flow-stepper {
-    padding: 8px 10px;
+    justify-content: flex-start;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    padding: 8px 12px;
     gap: 0;
+  }
+
+  .flow-stepper::-webkit-scrollbar {
+    display: none;
   }
 
   .flow-step {
@@ -2356,7 +2416,24 @@ body {
   }
 
   .flow-step-divider {
-    width: 16px;
+    width: 12px;
+  }
+
+  .bottom-nav {
+    left: 10px;
+    right: 10px;
+    bottom: 8px;
+    border-radius: 22px;
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 84%, transparent);
+    background: color-mix(in srgb, var(--md-sys-color-surface-container) 90%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: var(--md-sys-elevation-2);
+    height: calc(var(--nav-height) - 6px);
+  }
+
+  .nav-item .material-symbols-outlined {
+    padding: 6px 18px;
   }
 
   .option-chips-group {
