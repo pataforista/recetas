@@ -1618,6 +1618,11 @@ button.error-btn:hover {
 
 /* ─── Responsive ─── */
 @media (max-width: 600px) {
+  .update-banner {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
   body {
     padding-bottom: calc(var(--nav-height) + 28px + env(safe-area-inset-bottom, 0px));
   }
@@ -1634,10 +1639,18 @@ button.error-btn:hover {
     padding: 18px 18px 16px;
     border-bottom-left-radius: 22px;
     border-bottom-right-radius: 22px;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .app-header-text {
+    min-width: 0;
+    flex: 1;
   }
 
   .header-actions {
     gap: 6px;
+    align-self: flex-start;
   }
 
   .icon-btn {
@@ -2470,12 +2483,22 @@ body {
 
   .option-chips-group {
     gap: 5px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+
+  .option-chips-group::-webkit-scrollbar {
+    display: none;
   }
 
   .option-chip {
     padding: 6px 12px;
     font-size: 0.8rem;
     min-height: 34px;
+    flex: 0 0 auto;
   }
 }
 
