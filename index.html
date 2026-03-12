@@ -82,15 +82,14 @@
   </div>
 
   <main class="layout">
-    <!-- View: Today -->
     <div id="view-today" class="page-view active">
-      <section class="panel collapsed" id="panel-inventory">
-        <h2 class="panel-header" role="button" tabindex="0" aria-expanded="false">
+      <!-- Wizard Step 1: Inventory -->
+      <section class="panel wizard-panel active" id="panel-inventory">
+        <header class="panel-header">
           <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
-          1. Inventario
+          <h2>1. Inventario</h2>
           <span id="inventoryCount" class="panel-badge"></span>
-          <span class="panel-chevron material-symbols-outlined" aria-hidden="true">expand_more</span>
-        </h2>
+        </header>
         <div class="panel-body">
           <p class="hint">Marca lo que tienes. Usa "urgente" si conviene gastarlo pronto.</p>
           <div class="search-bar-wrap">
@@ -126,15 +125,22 @@
               <p class="empty-sub">Selecciona una categoría para ver tus ingredientes</p>
             </div>
           </div>
+
+          <div class="wizard-footer">
+            <div style="flex: 1"></div>
+            <button id="nextToContext" type="button">
+              Continuar <span class="material-symbols-outlined">arrow_forward</span>
+            </button>
+          </div>
         </div>
       </section>
 
-      <section class="panel" id="panel-context">
-        <h2 class="panel-header" role="button" tabindex="0" aria-expanded="true">
+      <!-- Wizard Step 2: Context -->
+      <section class="panel wizard-panel" id="panel-context">
+        <header class="panel-header">
           <span class="material-symbols-outlined" aria-hidden="true">psychology</span>
-          2. Antojo y contexto
-          <span class="panel-chevron material-symbols-outlined" aria-hidden="true">expand_more</span>
-        </h2>
+          <h2>2. Antojo y contexto</h2>
+        </header>
         <div class="panel-body">
           <label class="field">
             <span>Antojo</span>
@@ -197,23 +203,23 @@
             <span class="toggle-label">Favorecer temporada en México</span>
           </label>
 
-          <div class="actions context-actions" id="contextActions">
+          <div class="wizard-footer">
+            <button id="backToInventory" type="button" class="secondary">
+              <span class="material-symbols-outlined">arrow_back</span> Volver
+            </button>
             <button id="suggestBtn" type="button">
               <span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span> Sugerir
-            </button>
-            <button id="resetBtn" class="secondary" type="button">
-              <span class="material-symbols-outlined" aria-hidden="true">restart_alt</span> Limpiar
             </button>
           </div>
         </div>
       </section>
 
-      <section class="panel collapsed" id="resultsPanel">
-        <h2 class="panel-header" role="button" tabindex="0" aria-expanded="false">
+      <!-- Wizard Step 3: Results -->
+      <section class="panel wizard-panel" id="resultsPanel">
+        <header class="panel-header">
           <span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span>
-          3. Resultados
-          <span class="panel-chevron material-symbols-outlined" aria-hidden="true">expand_more</span>
-        </h2>
+          <h2>3. Resultados</h2>
+        </header>
         <div class="panel-body">
           <div id="summaryBox" class="summary-box"></div>
           <div id="resultsToolbar" class="results-toolbar hidden">
@@ -238,6 +244,12 @@
               <p class="empty-title">Aún sin sugerencias</p>
               <p class="empty-sub">Presiona "Sugerir" para ver recetas personalizadas</p>
             </div>
+          </div>
+
+          <div class="wizard-footer">
+            <button id="backToContext" type="button" class="secondary">
+              <span class="material-symbols-outlined">arrow_back</span> Ajustar filtros
+            </button>
           </div>
         </div>
       </section>

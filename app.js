@@ -157,25 +157,15 @@ function bindEvents() {
         });
     });
 
-    // Stepper navigation
+    // Wizard button navigation
+    document.getElementById("nextToContext")?.addEventListener("click", () => switchToStep("panel-context"));
+    document.getElementById("backToInventory")?.addEventListener("click", () => switchToStep("panel-inventory"));
+    document.getElementById("backToContext")?.addEventListener("click", () => switchToStep("panel-context"));
+
+    // Stepper navigation (Global skip)
     document.querySelectorAll('.flow-step[data-panel]').forEach(stepBtn => {
         stepBtn.addEventListener('click', () => {
-            const panelId = stepBtn.dataset.panel;
-            const panel = document.getElementById(panelId);
-            if (!panel) return;
-            // Expand the targeted panel
-            panel.classList.remove('collapsed');
-            panel.querySelector('.panel-header')?.setAttribute('aria-expanded', 'true');
-            // Collapse the others
-            document.querySelectorAll('#view-today .panel').forEach(p => {
-                if (p.id !== panelId) {
-                    p.classList.add('collapsed');
-                    p.querySelector('.panel-header')?.setAttribute('aria-expanded', 'false');
-                }
-            });
-            // Scroll to panel
-            setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
-            updateStepperState(panelId);
+            switchToStep(stepBtn.dataset.panel);
         });
     });
 
@@ -183,6 +173,28 @@ function bindEvents() {
     buildDayPickerButtons();
 
     setupGroceryEvents();
+}
+
+/**
+ * Strict Step Navigation for the today view
+ */
+function switchToStep(panelId) {
+    const panels = document.querySelectorAll('#view-today .wizard-panel');
+    const targetPanel = document.getElementById(panelId);
+    if (!targetPanel) return;
+
+    panels.forEach(p => p.classList.remove('active'));
+    targetPanel.classList.add('active');
+
+    updateStepperState(panelId);
+
+    // Context specific behavior
+    if (panelId === 'panel-context') {
+        renderCravings(); // Ensure cravings are fresh
+    }
+
+    // Scroll to top of the panel for better visibility on mobile
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function updateStepperState(activePanelId) {
@@ -196,21 +208,8 @@ function updateStepperState(activePanelId) {
     });
 }
 
-// ─── Accordion Panels ───
+// ─── Inventory Badge ───
 function initAccordions() {
-    document.querySelectorAll("#view-today .panel-header").forEach((header) => {
-        header.addEventListener("click", () => {
-            const panel = header.closest(".panel");
-            const isCollapsed = panel.classList.toggle("collapsed");
-            header.setAttribute("aria-expanded", String(!isCollapsed));
-        });
-        header.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                header.click();
-            }
-        });
-    });
     updateInventoryBadge();
 }
 
@@ -624,18 +623,8 @@ function handleSuggest() {
         mealPrepBoxEl.innerHTML = renderMealPrepSuggestions(ranked);
         suggestBtn.disabled = false;
 
-        // Auto-expand results panel and scroll to it
-        const resultsPanel = document.getElementById("resultsPanel");
-        if (resultsPanel) {
-            resultsPanel.classList.remove("collapsed");
-            resultsPanel.querySelector(".panel-header")?.setAttribute("aria-expanded", "true");
-            updateStepperState('resultsPanel');
-
-            // Wait a bit for layout
-            setTimeout(() => {
-                resultsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
-            }, 100);
-        }
+        // Jump to results step
+        switchToStep('resultsPanel');
     });
 }
 
