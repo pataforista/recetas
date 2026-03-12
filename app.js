@@ -395,21 +395,16 @@ function renderInventoryFilters() {
         return btn;
     };
 
-    // Render filters in scrollable container - show first 4 items
-    const visibleCount = 4;
-    categories.slice(0, visibleCount).forEach((category) => {
+    // Render all filters in scrollable container
+    categories.forEach((category) => {
         inventoryFiltersEl.appendChild(createCategoryChip(category));
     });
 
-    // Show menu toggle button if there are more items
+    // Hide the modal toggle button — all categories are now inline
     const menuBtn = document.getElementById("inventoryMenuBtn");
-    if (categories.length > visibleCount) {
-        menuBtn.style.display = "flex";
-    } else {
-        menuBtn.style.display = "none";
-    }
+    if (menuBtn) menuBtn.style.display = "none";
 
-    // Render all filters in modal
+    // Also populate modal grid in case it's ever opened programmatically
     if (inventoryFilterGrid) {
         categories.forEach((category) => {
             inventoryFilterGrid.appendChild(createCategoryChip(category));
@@ -649,12 +644,23 @@ const SUBSTITUTIONS = {
     pimiento_rojo: ["jitomate", "chile_ancho"],
 };
 
+function shuffleArray(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
 function rankRecipes(recipes, context) {
     const scored = recipes.map((recipe) => scoreRecipe(recipe, context))
         .filter((item) => item.score > 10);
 
+    // Shuffle first so that ties are broken randomly (Math.random inside sort is unreliable)
+    shuffleArray(scored);
+
     // Variety penalty: avoid suggesting too many recipes from the same family in the top results
-    scored.sort((a, b) => (b.score - a.score) || (Math.random() - 0.5));
+    scored.sort((a, b) => b.score - a.score);
 
     const finalRanked = [];
     const familyCounts = {};
@@ -662,7 +668,7 @@ function rankRecipes(recipes, context) {
     scored.forEach((item) => {
         const family = item.recipe.family;
         const count = familyCounts[family] || 0;
-        
+
         // If we already have 2 of this family, apply a diversity penalty for ranking
         const adjustedScore = item.score - (count * 8);
         item.adjustedScore = adjustedScore;
@@ -670,7 +676,7 @@ function rankRecipes(recipes, context) {
         familyCounts[family] = count + 1;
     });
 
-    return finalRanked.sort((a, b) => (b.adjustedScore - a.adjustedScore) || (Math.random() - 0.5));
+    return finalRanked.sort((a, b) => b.adjustedScore - a.adjustedScore);
 }
 
 function scoreRecipe(recipe, context) {
