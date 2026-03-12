@@ -27,6 +27,37 @@ const CRAVINGS = [
 
 const CATEGORY_ORDER = ["milpa", "leguminosas", "verduras", "proteinas", "lacteos", "cereales", "basicos", "grasas", "hierbas", "frutas"];
 
+const CATEGORY_DESCRIPTIONS = {
+    all: { name: "Todos", description: "Ver todos los ingredientes" },
+    milpa: { name: "Milpa", description: "Base de la cocina mexicana 🌽" },
+    verduras: { name: "Verduras y chiles", description: "Hortalizas frescas" },
+    proteinas: { name: "Proteínas", description: "Carnes, huevos, pescado" },
+    leguminosas: { name: "Leguminosas", description: "Frijoles y lentejas" },
+    cereales: { name: "Cereales", description: "Granos y harinas" },
+    lacteos: { name: "Lácteos", description: "Quesos y leche" },
+    basicos: { name: "Básicos", description: "Aceite, sal, especias" },
+    grasas: { name: "Grasas y aceites", description: "Ingredientes para cocinar" },
+    hierbas: { name: "Hierbas y especias", description: "Para sazonar" },
+    frutas: { name: "Frutas", description: "Frutas frescas" }
+};
+
+// Subcategorías para expandir en el futuro
+const SUBCATEGORIES = {
+    proteinas: [
+        { id: "carnes_rojas", name: "Carnes rojas" },
+        { id: "pollo", name: "Pollo" },
+        { id: "pescado", name: "Pescado y mariscos" },
+        { id: "huevos", name: "Huevos" },
+        { id: "vegetariano", name: "Vegetariano" }
+    ],
+    verduras: [
+        { id: "chiles", name: "Chiles" },
+        { id: "jitomates", name: "Tomates" },
+        { id: "leafy_greens", name: "Verduras de hoja" },
+        { id: "otros", name: "Otros" }
+    ]
+};
+
 const DAYS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
 
 const state = {
@@ -381,33 +412,78 @@ function renderInventoryFilters() {
     const inventoryFilterGrid = document.getElementById("inventoryFilterGrid");
     if (inventoryFilterGrid) inventoryFilterGrid.innerHTML = "";
 
-    const createCategoryChip = (category) => {
+    // Mostrar solo 3 categorías principales en scroll, el resto en modal
+    const visibleCount = 3;
+    const visibleCategories = categories.slice(0, visibleCount);
+    const hiddenCategories = categories.slice(visibleCount);
+
+    const createCategoryChip = (category, showCounter = false) => {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = `chip ${activeCategoryFilter === category ? "active" : ""}`;
         const iconName = getCategoryIcon(category);
-        btn.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">${iconName}</span> ${category === "all" ? "Todos" : capitalize(category)}`;
+        const categoryName = CATEGORY_DESCRIPTIONS[category]?.name || capitalize(category);
+
+        if (showCounter && category !== "all") {
+            const count = countIngredientsByCategory(category);
+            btn.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">${iconName}</span> <span>${categoryName}</span> <span class="chip-counter">${count}</span>`;
+        } else {
+            btn.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">${iconName}</span> ${categoryName}`;
+        }
+
         btn.addEventListener("click", () => {
             activeCategoryFilter = category;
+            closeInventoryModal();
             renderInventoryFilters();
             renderInventory();
         });
         return btn;
     };
 
-    // Render all filters in scrollable container
-    categories.forEach((category) => {
+    // Render visible filters in scrollable container
+    visibleCategories.forEach((category) => {
         inventoryFiltersEl.appendChild(createCategoryChip(category));
     });
 
-    // Hide the modal toggle button — all categories are now inline
+    // Show/hide menu button based on hidden categories
     const menuBtn = document.getElementById("inventoryMenuBtn");
-    if (menuBtn) menuBtn.style.display = "none";
+    if (hiddenCategories.length > 0) {
+        menuBtn.style.display = "flex";
+    } else {
+        menuBtn.style.display = "none";
+    }
 
-    // Also populate modal grid in case it's ever opened programmatically
+    // Populate modal grid with enhanced category cards
     if (inventoryFilterGrid) {
         categories.forEach((category) => {
-            inventoryFilterGrid.appendChild(createCategoryChip(category));
+            const categoryCard = document.createElement("div");
+            categoryCard.className = "category-card";
+
+            const iconName = getCategoryIcon(category);
+            const desc = CATEGORY_DESCRIPTIONS[category] || { name: capitalize(category), description: "" };
+            const count = countIngredientsByCategory(category);
+
+            categoryCard.innerHTML = `
+                <div class="category-card-inner ${activeCategoryFilter === category ? "active" : ""}">
+                    <div class="category-icon">
+                        <span class="material-symbols-outlined" aria-hidden="true">${iconName}</span>
+                    </div>
+                    <div class="category-info">
+                        <div class="category-name">${desc.name}</div>
+                        <div class="category-count">${count} ingredientes</div>
+                        <div class="category-description">${desc.description}</div>
+                    </div>
+                </div>
+            `;
+
+            categoryCard.addEventListener("click", () => {
+                activeCategoryFilter = category;
+                closeInventoryModal();
+                renderInventoryFilters();
+                renderInventory();
+            });
+
+            inventoryFilterGrid.appendChild(categoryCard);
         });
     }
 }
@@ -427,6 +503,14 @@ function getCategoryIcon(category) {
         frutas: "nutrition"
     };
     return icons[category] || "inventory_2";
+}
+
+// Contar ingredientes por categoría
+function countIngredientsByCategory(category) {
+    if (category === "all") {
+        return INGREDIENTS.length;
+    }
+    return INGREDIENTS.filter(i => i.category === category).length;
 }
 
 function renderInventory() {
