@@ -27,6 +27,37 @@ const CRAVINGS = [
 
 const CATEGORY_ORDER = ["milpa", "leguminosas", "verduras", "proteinas", "lacteos", "cereales", "basicos", "grasas", "hierbas", "frutas"];
 
+const CATEGORY_DESCRIPTIONS = {
+    all: { name: "Todos", description: "Ver todos los ingredientes" },
+    milpa: { name: "Milpa", description: "Base de la cocina mexicana 🌽" },
+    verduras: { name: "Verduras y chiles", description: "Hortalizas frescas" },
+    proteinas: { name: "Proteínas", description: "Carnes, huevos, pescado" },
+    leguminosas: { name: "Leguminosas", description: "Frijoles y lentejas" },
+    cereales: { name: "Cereales", description: "Granos y harinas" },
+    lacteos: { name: "Lácteos", description: "Quesos y leche" },
+    basicos: { name: "Básicos", description: "Aceite, sal, especias" },
+    grasas: { name: "Grasas y aceites", description: "Ingredientes para cocinar" },
+    hierbas: { name: "Hierbas y especias", description: "Para sazonar" },
+    frutas: { name: "Frutas", description: "Frutas frescas" }
+};
+
+// Subcategorías para expandir - mapeo de keywords en ingredient IDs
+const SUBCATEGORIES = {
+    proteinas: [
+        { id: "carnes_rojas", name: "Carnes rojas", keywords: ["res_", "cerdo_", "chorizo", "cecina", "longaniza", "barbacoa", "carnitas", "cabrito", "brisket"] },
+        { id: "pollo", name: "Pollo", keywords: ["pollo", "pechuga"] },
+        { id: "pescado", name: "Pescado y mariscos", keywords: ["atun", "salmon", "sardina", "pescado_", "camaron", "pulpo", "anchoa"] },
+        { id: "huevos", name: "Huevos", keywords: ["huevo"] },
+        { id: "vegetariano", name: "Vegetariano", keywords: ["tofu", "tempeh", "edamame", "hummus"] }
+    ],
+    verduras: [
+        { id: "chiles", name: "Chiles", keywords: ["chile_", "rajas_"] },
+        { id: "jitomates", name: "Tomates", keywords: ["jitomate", "tomate_"] },
+        { id: "leafy_greens", name: "Verduras de hoja", keywords: ["lechuga", "espinaca", "verdolaga", "quelites"] },
+        { id: "otros", name: "Otros" }
+    ]
+};
+
 const DAYS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
 
 const state = {
@@ -381,33 +412,117 @@ function renderInventoryFilters() {
     const inventoryFilterGrid = document.getElementById("inventoryFilterGrid");
     if (inventoryFilterGrid) inventoryFilterGrid.innerHTML = "";
 
-    const createCategoryChip = (category) => {
+    // Mostrar solo 3 categorías principales en scroll, el resto en modal
+    const visibleCount = 3;
+    const visibleCategories = categories.slice(0, visibleCount);
+    const hiddenCategories = categories.slice(visibleCount);
+
+    const createCategoryChip = (category, showCounter = false) => {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = `chip ${activeCategoryFilter === category ? "active" : ""}`;
         const iconName = getCategoryIcon(category);
-        btn.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">${iconName}</span> ${category === "all" ? "Todos" : capitalize(category)}`;
+        const categoryName = CATEGORY_DESCRIPTIONS[category]?.name || capitalize(category);
+
+        if (showCounter && category !== "all") {
+            const count = countIngredientsByCategory(category);
+            btn.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">${iconName}</span> <span>${categoryName}</span> <span class="chip-counter">${count}</span>`;
+        } else {
+            btn.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">${iconName}</span> ${categoryName}`;
+        }
+
         btn.addEventListener("click", () => {
             activeCategoryFilter = category;
+            closeInventoryModal();
             renderInventoryFilters();
             renderInventory();
         });
         return btn;
     };
 
-    // Render all filters in scrollable container
-    categories.forEach((category) => {
+    // Render visible filters in scrollable container
+    visibleCategories.forEach((category) => {
         inventoryFiltersEl.appendChild(createCategoryChip(category));
     });
 
-    // Hide the modal toggle button — all categories are now inline
+    // Show/hide menu button based on hidden categories
     const menuBtn = document.getElementById("inventoryMenuBtn");
-    if (menuBtn) menuBtn.style.display = "none";
+    if (hiddenCategories.length > 0) {
+        menuBtn.style.display = "flex";
+    } else {
+        menuBtn.style.display = "none";
+    }
 
-    // Also populate modal grid in case it's ever opened programmatically
+    // Populate modal grid with enhanced category cards
     if (inventoryFilterGrid) {
         categories.forEach((category) => {
-            inventoryFilterGrid.appendChild(createCategoryChip(category));
+            const categoryCard = document.createElement("div");
+            categoryCard.className = "category-card";
+            const hasSubcategories = SUBCATEGORIES[category] && SUBCATEGORIES[category].length > 0;
+
+            const iconName = getCategoryIcon(category);
+            const desc = CATEGORY_DESCRIPTIONS[category] || { name: capitalize(category), description: "" };
+            const count = countIngredientsByCategory(category);
+
+            categoryCard.innerHTML = `
+                <div class="category-card-inner ${activeCategoryFilter === category ? "active" : ""}">
+                    <div class="category-icon">
+                        <span class="material-symbols-outlined" aria-hidden="true">${iconName}</span>
+                    </div>
+                    <div class="category-info">
+                        <div class="category-name">${desc.name}</div>
+                        <div class="category-count">${count} ingredientes</div>
+                        <div class="category-description">${desc.description}</div>
+                    </div>
+                    ${hasSubcategories ? `<div class="category-expand-icon">
+                        <span class="material-symbols-outlined" aria-hidden="true">expand_more</span>
+                    </div>` : ''}
+                </div>
+                ${hasSubcategories ? `<div class="category-subcategories hidden">
+                    ${SUBCATEGORIES[category].map(sub => `
+                        <button type="button" class="subcategory-btn" data-category="${category}" data-subcategory="${sub.id}">
+                            <span class="material-symbols-outlined" aria-hidden="true">subdirectory_arrow_right</span>
+                            ${sub.name}
+                        </button>
+                    `).join('')}
+                </div>` : ''}
+            `;
+
+            // Evento para categoría principal
+            const cardInner = categoryCard.querySelector(".category-card-inner");
+            if (cardInner) {
+                cardInner.addEventListener("click", (e) => {
+                    if (e.target.closest(".category-expand-icon")) {
+                        // Expandir/contraer subcategorías
+                        const subcats = categoryCard.querySelector(".category-subcategories");
+                        if (subcats) {
+                            subcats.classList.toggle("hidden");
+                            categoryCard.querySelector(".category-expand-icon span").textContent =
+                                subcats.classList.contains("hidden") ? "expand_more" : "expand_less";
+                        }
+                    } else {
+                        // Click en categoría principal
+                        activeCategoryFilter = category;
+                        closeInventoryModal();
+                        renderInventoryFilters();
+                        renderInventory();
+                    }
+                });
+            }
+
+            // Eventos para subcategorías
+            categoryCard.querySelectorAll(".subcategory-btn").forEach(btn => {
+                btn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    activeCategoryFilter = category;
+                    // TODO: En futuras versiones, permitir filtrar por subcategoría
+                    closeInventoryModal();
+                    renderInventoryFilters();
+                    renderInventory();
+                });
+            });
+
+            inventoryFilterGrid.appendChild(categoryCard);
         });
     }
 }
@@ -427,6 +542,14 @@ function getCategoryIcon(category) {
         frutas: "nutrition"
     };
     return icons[category] || "inventory_2";
+}
+
+// Contar ingredientes por categoría
+function countIngredientsByCategory(category) {
+    if (category === "all") {
+        return INGREDIENTS.length;
+    }
+    return INGREDIENTS.filter(i => i.category === category).length;
 }
 
 function renderInventory() {
