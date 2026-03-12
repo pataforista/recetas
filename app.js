@@ -91,6 +91,7 @@ function getSelectedChipValue(groupId) {
 }
 
 let activeCategoryFilter = "all";
+let activeSubcategoryFilter = null; // null = mostrar toda la categoría
 // Pending day assignment state for day picker modal
 let _pendingRecipeId = null;
 
@@ -433,6 +434,7 @@ function renderInventoryFilters() {
 
         btn.addEventListener("click", () => {
             activeCategoryFilter = category;
+            activeSubcategoryFilter = null; // Limpiar filtro de subcategoría
             closeInventoryModal();
             renderInventoryFilters();
             renderInventory();
@@ -444,6 +446,30 @@ function renderInventoryFilters() {
     visibleCategories.forEach((category) => {
         inventoryFiltersEl.appendChild(createCategoryChip(category));
     });
+
+    // Mostrar chip de subcategoría activa si existe
+    if (activeSubcategoryFilter && activeCategoryFilter !== "all") {
+        const subcats = SUBCATEGORIES[activeCategoryFilter];
+        if (subcats) {
+            const activeSubcat = subcats.find(s => s.id === activeSubcategoryFilter);
+            if (activeSubcat) {
+                const subcatChip = document.createElement("button");
+                subcatChip.type = "button";
+                subcatChip.className = "chip active subcategory-chip";
+                subcatChip.innerHTML = `
+                    <span class="material-symbols-outlined" aria-hidden="true">subdirectory_arrow_right</span>
+                    ${activeSubcat.name}
+                    <span class="material-symbols-outlined chip-clear" aria-hidden="true">close</span>
+                `;
+                subcatChip.addEventListener("click", () => {
+                    activeSubcategoryFilter = null;
+                    renderInventoryFilters();
+                    renderInventory();
+                });
+                inventoryFiltersEl.appendChild(subcatChip);
+            }
+        }
+    }
 
     // Show/hide menu button based on hidden categories
     const menuBtn = document.getElementById("inventoryMenuBtn");
@@ -479,12 +505,17 @@ function renderInventoryFilters() {
                     </div>` : ''}
                 </div>
                 ${hasSubcategories ? `<div class="category-subcategories hidden">
-                    ${SUBCATEGORIES[category].map(sub => `
-                        <button type="button" class="subcategory-btn" data-category="${category}" data-subcategory="${sub.id}">
-                            <span class="material-symbols-outlined" aria-hidden="true">subdirectory_arrow_right</span>
-                            ${sub.name}
-                        </button>
-                    `).join('')}
+                    ${SUBCATEGORIES[category].map(sub => {
+                        const subCount = countIngredientsBySubcategory(category, sub.id);
+                        const isActive = activeSubcategoryFilter === sub.id;
+                        return `
+                            <button type="button" class="subcategory-btn ${isActive ? 'active' : ''}" data-category="${category}" data-subcategory="${sub.id}">
+                                <span class="material-symbols-outlined" aria-hidden="true">subdirectory_arrow_right</span>
+                                <span class="subcategory-name">${sub.name}</span>
+                                <span class="subcategory-count">${subCount}</span>
+                            </button>
+                        `;
+                    }).join('')}
                 </div>` : ''}
             `;
 
@@ -514,8 +545,16 @@ function renderInventoryFilters() {
             categoryCard.querySelectorAll(".subcategory-btn").forEach(btn => {
                 btn.addEventListener("click", (e) => {
                     e.stopPropagation();
+                    const subcategoryId = btn.dataset.subcategory;
                     activeCategoryFilter = category;
-                    // TODO: En futuras versiones, permitir filtrar por subcategoría
+
+                    // Toggle: si ya está activo, desactivarlo; si no, activarlo
+                    if (activeSubcategoryFilter === subcategoryId) {
+                        activeSubcategoryFilter = null;
+                    } else {
+                        activeSubcategoryFilter = subcategoryId;
+                    }
+
                     closeInventoryModal();
                     renderInventoryFilters();
                     renderInventory();
@@ -552,12 +591,53 @@ function countIngredientsByCategory(category) {
     return INGREDIENTS.filter(i => i.category === category).length;
 }
 
+// Obtener subcategoría de un ingrediente
+function getIngredientSubcategory(ingredient) {
+    const subcats = SUBCATEGORIES[ingredient.category];
+    if (!subcats) return null;
+
+    for (const subcat of subcats) {
+        if (subcat.keywords) {
+            // Buscar en keywords si alguna coincide con el ingredient ID
+            if (subcat.keywords.some(kw => ingredient.id.includes(kw) || ingredient.id.startsWith(kw))) {
+                return subcat.id;
+            }
+        }
+    }
+
+    // Si no tiene keywords específicas o no coincide, asignarlo a "otros"
+    const otrosSubcat = subcats.find(s => s.id === "otros");
+    return otrosSubcat ? otrosSubcat.id : null;
+}
+
+// Contar ingredientes por subcategoría
+function countIngredientsBySubcategory(category, subcategoryId) {
+    return INGREDIENTS.filter(i => {
+        if (i.category !== category) return false;
+        if (!subcategoryId) return true; // Si no hay filtro, contar todos
+        return getIngredientSubcategory(i) === subcategoryId;
+    }).length;
+}
+
 function renderInventory() {
     inventoryListEl.innerHTML = "";
 
-    const filtered = INGREDIENTS.filter((item) =>
-        activeCategoryFilter === "all" ? true : item.category === activeCategoryFilter
-    );
+    const filtered = INGREDIENTS.filter((item) => {
+        // Filtrar por categoría principal
+        if (activeCategoryFilter !== "all" && item.category !== activeCategoryFilter) {
+            return false;
+        }
+
+        // Filtrar por subcategoría si está seleccionada
+        if (activeSubcategoryFilter && activeCategoryFilter !== "all") {
+            const subcategory = getIngredientSubcategory(item);
+            if (subcategory !== activeSubcategoryFilter) {
+                return false;
+            }
+        }
+
+        return true;
+    });
 
     filtered.forEach((ingredient) => {
         const wrapper = document.createElement("div");
