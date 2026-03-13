@@ -11,6 +11,7 @@ const STORAGE_KEYS = {
     shoppingList: "milpa_nime_shopping_list_v1",
     customLists: "milpa_nime_custom_lists_v1",
     wasteLog: "milpa_nime_waste_log_v1"
+    recentSuggestedRecipes: "milpa_nime_recent_recipes_v1"
 };
 
 const CRAVINGS = [
@@ -216,7 +217,8 @@ const state = {
     wasteLog: loadWasteLog(),
     activeCustomListId: null,
     groceryView: "auto",
-    currentMonth: new Date().getMonth() + 1
+    currentMonth: new Date().getMonth() + 1,
+    recentSuggestedRecipes: loadRecentSuggestedRecipes()
 };
 
 // ─── DOM refs ───
@@ -263,20 +265,25 @@ function setupDefaultPurchaseDate() {
 
 // ─── Init ───
 function init() {
+    // Critical path - render UI immediately
     renderInventoryFilters();
     renderInventory();
     renderCravings();
-    initializeCustomListState();
     bindEvents();
     renderInitialMessage();
-    setupPWAInstall();
-    registerSW();
     initNavigation();
     initAccordions();
-    setupOfflineDetection();
-    handleShortcutParam();
-    maybeImportFromUrl();
-    initSearch();
+
+    // Defer non-critical initialization to avoid blocking
+    requestIdleCallback(() => {
+        initializeCustomListState();
+        setupPWAInstall();
+        registerSW();
+        setupOfflineDetection();
+        handleShortcutParam();
+        maybeImportFromUrl();
+        initSearch();
+    }, { timeout: 2000 });
 }
 
 // Handle ?view= query param from manifest shortcuts
@@ -689,6 +696,7 @@ function renderInventoryFilters() {
         btn.className = `chip ${activeCategoryFilter === category ? "active" : ""}`;
         const iconName = getCategoryIcon(category);
         const categoryName = CATEGORY_DESCRIPTIONS[category]?.name || capitalize(category);
+        btn.setAttribute("aria-label", `Filtrar por ${categoryName}`);
 
         if (showCounter && category !== "all") {
             const count = countIngredientsByCategory(category);
@@ -707,9 +715,11 @@ function renderInventoryFilters() {
     };
 
     // Render visible filters in scrollable container
+    const filtersFragment = document.createDocumentFragment();
     visibleCategories.forEach((category) => {
-        inventoryFiltersEl.appendChild(createCategoryChip(category));
+        filtersFragment.appendChild(createCategoryChip(category));
     });
+    inventoryFiltersEl.appendChild(filtersFragment);
 
     // Show/hide menu button based on hidden categories
     const menuBtn = document.getElementById("inventoryMenuBtn");
@@ -721,6 +731,7 @@ function renderInventoryFilters() {
 
     // Populate modal grid with enhanced category cards
     if (inventoryFilterGrid) {
+        const gridFragment = document.createDocumentFragment();
         categories.forEach((category) => {
             const categoryCard = document.createElement("div");
             categoryCard.className = "category-card";
@@ -788,8 +799,9 @@ function renderInventoryFilters() {
                 });
             });
 
-            inventoryFilterGrid.appendChild(categoryCard);
+            gridFragment.appendChild(categoryCard);
         });
+        inventoryFilterGrid.appendChild(gridFragment);
     }
 }
 
@@ -826,6 +838,8 @@ function renderInventory() {
     const filtered = INGREDIENTS.filter((item) =>
         activeCategoryFilter === "all" ? true : item.category === activeCategoryFilter
     );
+
+    const fragment = document.createDocumentFragment();
 
     filtered.forEach((ingredient) => {
         const wrapper = document.createElement("div");
@@ -899,6 +913,8 @@ function renderInventory() {
             urgencySelect.disabled = !nowChecked;
             locationSelect.disabled = !nowChecked;
             wrapper.classList.toggle("has-item", nowChecked);
+            }
+            updateInventoryItemUrgency(ingredient.id, wrapper);
             persistInventory();
             updateInventoryBadge();
             renderExpiringBanner();
@@ -952,9 +968,11 @@ function renderInventory() {
 
         wrapper.appendChild(row1);
         wrapper.appendChild(row2);
-        inventoryListEl.appendChild(wrapper);
+        wrapper.dataset.urgencySelect = urgencySelect;
+        fragment.appendChild(wrapper);
     });
 
+    inventoryListEl.appendChild(fragment);
     updateInventoryBadge();
 }
 
@@ -978,6 +996,14 @@ function renderExpiringBanner() {
     const namesEl = document.getElementById("expiringNames");
     if (countEl) countEl.textContent = `${urgentItems.length} ingrediente${urgentItems.length !== 1 ? "s" : ""} para usar pronto`;
     if (namesEl) namesEl.textContent = urgentItems.slice(0, 3).join(", ") + (urgentItems.length > 3 ? "…" : "");
+function updateInventoryItemUrgency(ingredientId, wrapper) {
+    const urgencySelect = wrapper.dataset.urgencySelect || wrapper.querySelector("select");
+    const hasItem = !!state.inventory[ingredientId]?.has;
+    if (urgencySelect) {
+        urgencySelect.disabled = !hasItem;
+        urgencySelect.value = state.inventory[ingredientId]?.urgency || "normal";
+    }
+    wrapper.classList.toggle("has-item", hasItem);
 }
 
 // ─── Cravings ───
@@ -990,6 +1016,7 @@ function renderCravings() {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = `chip ${state.selectedCravings.includes(craving) ? "active" : ""}`;
+        btn.setAttribute("aria-label", `Seleccionar antojo: ${humanizeCraving(craving)}`);
         const iconName = getCravingIcon(craving);
         btn.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">${iconName}</span> ${humanizeCraving(craving)}`;
         btn.addEventListener("click", () => {
@@ -1006,9 +1033,11 @@ function renderCravings() {
 
     // Render chips in scrollable container - show first 6 items
     const visibleCount = 6;
+    const cravingsFragment = document.createDocumentFragment();
     CRAVINGS.slice(0, visibleCount).forEach((craving) => {
-        cravingChipsEl.appendChild(createCravingChip(craving));
+        cravingsFragment.appendChild(createCravingChip(craving));
     });
+    cravingChipsEl.appendChild(cravingsFragment);
 
     // Show menu toggle button if there are more items
     const menuBtn = document.getElementById("cravingMenuBtn");
@@ -1020,9 +1049,11 @@ function renderCravings() {
 
     // Render all chips in modal
     if (cravingModalGrid) {
+        const modalFragment = document.createDocumentFragment();
         CRAVINGS.forEach((craving) => {
-            cravingModalGrid.appendChild(createCravingChip(craving));
+            modalFragment.appendChild(createCravingChip(craving));
         });
+        cravingModalGrid.appendChild(modalFragment);
     }
 }
 
@@ -1071,6 +1102,10 @@ function handleSuggest() {
         }
 
         _lastRanked = ranked;
+
+        // Save suggested recipes to history for diversity tracking
+        addToRecentRecipes(ranked.map(item => item.recipe.id));
+
         _sortCriterion = "score";
         document.querySelectorAll(".sort-chip").forEach(c => c.classList.toggle("active", c.dataset.sort === "score"));
         document.getElementById("resultsToolbar")?.classList.remove("hidden");
@@ -1121,30 +1156,63 @@ function shuffleArray(arr) {
 }
 
 function rankRecipes(recipes, context) {
-    const scored = recipes.map((recipe) => scoreRecipe(recipe, context))
+    // Calculate frequency of each recipe in recent history
+    const recipeFrequency = {};
+    state.recentSuggestedRecipes.forEach(item => {
+        recipeFrequency[item.id] = (recipeFrequency[item.id] || 0) + 1;
+    });
+
+    const scored = recipes.map((recipe) => {
+        const baseScore = scoreRecipe(recipe, context);
+
+        // Apply penalties based on frequency in history
+        const frequency = recipeFrequency[recipe.id] || 0;
+        const lastEntry = state.recentSuggestedRecipes.slice().reverse().find(item => item.id === recipe.id);
+
+        if (frequency > 0 && lastEntry) {
+            const daysSince = (Date.now() - lastEntry.timestamp) / (24 * 60 * 60 * 1000);
+
+            // Frequency-based penalty: every appearance adds 150 points of penalty
+            const frequencyPenalty = frequency * 150;
+
+            // Recency penalty: much longer cooldown (30 days instead of 7)
+            // 300 points immediately, decays at 10 points/day
+            const recencyPenalty = Math.max(0, 300 - (daysSince * 10));
+
+            const totalPenalty = frequencyPenalty + recencyPenalty;
+            baseScore.score -= totalPenalty;
+
+            if (totalPenalty > 0) {
+                baseScore.reasons.push(`Sugerida ${frequency}x recientemente (${Math.ceil(totalPenalty)} pts penalidad)`);
+            }
+        }
+
+        return baseScore;
+    })
         .filter((item) => item.score > 10);
 
-    // Shuffle first so that ties are broken randomly (Math.random inside sort is unreliable)
-    shuffleArray(scored);
-
-    // Variety penalty: avoid suggesting too many recipes from the same family in the top results
+    // Sort by score first
     scored.sort((a, b) => b.score - a.score);
 
+    // STRICT DIVERSITY: max 1 recipe per family in final results
+    // This ensures we never see 2+ recipes from the same family
     const finalRanked = [];
-    const familyCounts = {};
+    const familyUsed = new Set();
 
     scored.forEach((item) => {
         const family = item.recipe.family;
-        const count = familyCounts[family] || 0;
 
-        // If we already have 2 of this family, apply a diversity penalty for ranking
-        const adjustedScore = item.score - (count * 8);
-        item.adjustedScore = adjustedScore;
+        // Skip this recipe if we already have one from this family
+        if (familyUsed.has(family)) {
+            return;
+        }
+
+        item.adjustedScore = item.score;
         finalRanked.push(item);
-        familyCounts[family] = count + 1;
+        familyUsed.add(family);
     });
 
-    return finalRanked.sort((a, b) => b.adjustedScore - a.adjustedScore);
+    return finalRanked;
 }
 
 function scoreRecipe(recipe, context) {
@@ -1373,9 +1441,11 @@ function createRecipeCard(item) {
     const expandBtn = node.querySelector('.recipe-expand-btn');
     const collapsible = node.querySelector('.recipe-collapsible');
     if (expandBtn && collapsible) {
+        expandBtn.setAttribute('aria-label', `Ver detalles de ${recipe.name}`);
         expandBtn.addEventListener('click', () => {
             const isExpanded = expandBtn.getAttribute('aria-expanded') === 'true';
             expandBtn.setAttribute('aria-expanded', String(!isExpanded));
+            expandBtn.setAttribute('aria-label', !isExpanded ? `Ocultar detalles de ${recipe.name}` : `Ver detalles de ${recipe.name}`);
             expandBtn.querySelector('.expand-label').textContent = isExpanded ? 'Ver detalles' : 'Ocultar detalles';
             expandBtn.querySelector('.material-symbols-outlined').textContent = isExpanded ? 'expand_more' : 'expand_less';
             collapsible.classList.toggle('expanded', !isExpanded);
@@ -1479,6 +1549,7 @@ function renderPlanner() {
             const removeBtn = document.createElement("button");
             removeBtn.className = "remove-btn";
             removeBtn.title = "Quitar receta";
+            removeBtn.setAttribute("aria-label", `Quitar ${recipe.name} del ${day}`);
             removeBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px" aria-hidden="true">delete</span>`;
             removeBtn.addEventListener("click", (e) => {
                 e.stopPropagation();
@@ -2154,6 +2225,32 @@ function renderListTemplates() {
     });
 }
 
+function loadRecentSuggestedRecipes() {
+    try {
+        const data = JSON.parse(localStorage.getItem(STORAGE_KEYS.recentSuggestedRecipes)) || [];
+        // Keep only recipes from the last 7 days and max 30 recipes
+        const oneWeekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+        return data.filter(item => item.timestamp > oneWeekAgo).slice(-30);
+    } catch {
+        return [];
+    }
+}
+
+function persistRecentSuggestedRecipes() {
+    localStorage.setItem(STORAGE_KEYS.recentSuggestedRecipes, JSON.stringify(state.recentSuggestedRecipes));
+}
+
+function addToRecentRecipes(recipeIds) {
+    const now = Date.now();
+    recipeIds.forEach(id => {
+        state.recentSuggestedRecipes = state.recentSuggestedRecipes.filter(item => item.id !== id);
+        state.recentSuggestedRecipes.push({ id, timestamp: now });
+    });
+    // Keep only last 30 entries
+    state.recentSuggestedRecipes = state.recentSuggestedRecipes.slice(-30);
+    persistRecentSuggestedRecipes();
+}
+
 // ─── PWA Install ───
 function setupPWAInstall() {
     let deferredPrompt;
@@ -2369,6 +2466,277 @@ function sortResults(criterion) {
     applySortAndFilter();
 }
 
+// ── Recipe Browser Modal ──────────────────────────────────────────────────────
+
+const _browserState = { search: "", family: "", maxTime: 0 };
+
+const FAMILY_LABELS = {
+    pollo: "Pollo", frijol: "Frijol", nopal: "Nopal", huevo: "Huevo",
+    verduras: "Verduras", pescado: "Pescado", res: "Res", cerdo: "Cerdo",
+    tofu: "Tofu", elote: "Elote", pasta: "Pasta", postres: "Postres",
+    leguminosas: "Leguminosas", cereales: "Cereales", milpa: "Milpa",
+    atun: "Atún", atun_fresco: "Atún fresco", pescado_blanco: "Pez blanco",
+    pescados: "Pescados", queso: "Queso", maiz: "Maíz", miso: "Miso"
+};
+
+function openRecipesBrowserModal() {
+    const modal = document.getElementById("recipesBrowserModal");
+    modal.classList.remove("hidden");
+    _buildFamilyFilterChips();
+    _renderRecipesBrowser();
+    requestAnimationFrame(() => {
+        document.getElementById("recipesBrowserSearch")?.focus();
+    });
+    document.body.style.overflow = "hidden";
+}
+
+function closeRecipesBrowserModal() {
+    document.getElementById("recipesBrowserModal").classList.add("hidden");
+    document.getElementById("recipeDetailPanel").classList.add("hidden");
+    _browserState.search = "";
+    _browserState.family = "";
+    _browserState.maxTime = 0;
+    const input = document.getElementById("recipesBrowserSearch");
+    if (input) input.value = "";
+    document.body.style.overflow = "";
+}
+
+function _buildFamilyFilterChips() {
+    const container = document.getElementById("recipesFamilyFilter");
+    if (!container || container.children.length > 0) return;
+
+    const families = [...new Set(RECIPES.map(r => r.family))].sort();
+    const allBtn = document.createElement("button");
+    allBtn.type = "button";
+    allBtn.className = "option-chip active";
+    allBtn.dataset.family = "";
+    allBtn.textContent = "Todas";
+    allBtn.addEventListener("click", () => _setBrowserFamily("", allBtn));
+    container.appendChild(allBtn);
+
+    families.forEach(fam => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "option-chip";
+        btn.dataset.family = fam;
+        btn.textContent = FAMILY_LABELS[fam] || capitalize(fam);
+        btn.addEventListener("click", () => _setBrowserFamily(fam, btn));
+        container.appendChild(btn);
+    });
+}
+
+function _setBrowserFamily(family, clickedBtn) {
+    _browserState.family = family;
+    document.querySelectorAll("#recipesFamilyFilter .option-chip").forEach(b => b.classList.remove("active"));
+    clickedBtn.classList.add("active");
+    _renderRecipesBrowser();
+}
+
+function _setBrowserTime(maxTime, clickedBtn) {
+    _browserState.maxTime = maxTime;
+    document.querySelectorAll("#recipesTimeFilter .option-chip").forEach(b => b.classList.remove("active"));
+    clickedBtn.classList.add("active");
+    _renderRecipesBrowser();
+}
+
+function _renderRecipesBrowser() {
+    const box = document.getElementById("recipesBrowserResults");
+    const countEl = document.getElementById("recipesBrowserCount");
+    if (!box) return;
+
+    const q = _browserState.search.toLowerCase().trim();
+    const fam = _browserState.family;
+    const maxT = _browserState.maxTime;
+
+    const filtered = RECIPES.filter(r => {
+        if (fam && r.family !== fam) return false;
+        if (maxT && r.timeMin > maxT) return false;
+        if (q) {
+            return r.name.toLowerCase().includes(q) ||
+                   r.description?.toLowerCase().includes(q) ||
+                   r.family?.toLowerCase().includes(q);
+        }
+        return true;
+    });
+
+    if (countEl) countEl.textContent = filtered.length;
+
+    if (!filtered.length) {
+        box.innerHTML = `<div class="recipes-browser-empty">
+            <span class="material-symbols-outlined">search_off</span>
+            <p>Sin resultados para los filtros seleccionados</p>
+        </div>`;
+        return;
+    }
+
+    box.innerHTML = "";
+    filtered.forEach(recipe => {
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "recipe-browser-card";
+        card.setAttribute("aria-label", `Ver detalle de ${recipe.name}`);
+        card.innerHTML = `
+            <div class="rbc-top">
+                <span class="rbc-name">${escapeHtml(recipe.name)}</span>
+                <span class="rbc-arrow material-symbols-outlined" aria-hidden="true">chevron_right</span>
+            </div>
+            <div class="rbc-meta">
+                <span class="rbc-badge">
+                    <span class="material-symbols-outlined" aria-hidden="true">restaurant</span>
+                    ${escapeHtml(FAMILY_LABELS[recipe.family] || capitalize(recipe.family || ""))}
+                </span>
+                <span class="rbc-badge">
+                    <span class="material-symbols-outlined" aria-hidden="true">schedule</span>
+                    ${recipe.timeMin} min
+                </span>
+                <span class="rbc-badge">
+                    <span class="material-symbols-outlined" aria-hidden="true">flatware</span>
+                    ${escapeHtml(recipe.format || "")}
+                </span>
+                ${recipe.lowFriction ? `<span class="rbc-badge"><span class="material-symbols-outlined" aria-hidden="true">bolt</span>Fácil</span>` : ""}
+            </div>
+            <p class="rbc-desc">${escapeHtml(recipe.description || "")}</p>
+        `;
+        card.addEventListener("click", () => openRecipeDetail(recipe.id));
+        box.appendChild(card);
+    });
+}
+
+function openRecipeDetail(recipeId) {
+    const recipe = RECIPES.find(r => r.id === recipeId);
+    if (!recipe) return;
+
+    const panel = document.getElementById("recipeDetailPanel");
+    const titleEl = document.getElementById("recipeDetailTitle");
+    const contentEl = document.getElementById("recipeDetailContent");
+
+    titleEl.textContent = recipe.name;
+
+    // Build ingredients HTML
+    const detailedIds = new Set((recipe.ingredientsDetailed || []).map(i => i.id || i));
+    const allRequired = recipe.ingredientsDetailed?.length
+        ? recipe.ingredientsDetailed
+        : recipe.ingredientsRequired.map(id => ({ id }));
+
+    const requiredHtml = allRequired.map(item => {
+        const id = typeof item === "string" ? item : item.id;
+        const ing = INGREDIENTS.find(i => i.id === id);
+        const name = ing ? ing.name : id;
+        const amountStr = item.amount && item.unit ? `${item.amount} ${item.unit}` : "";
+        const notes = item.notes ? ` — ${item.notes}` : "";
+        return `<li class="rd-ingredient-item">
+            <span class="rd-ingredient-name">${escapeHtml(name)}${escapeHtml(notes)}</span>
+            ${amountStr ? `<span class="rd-ingredient-amount">${escapeHtml(amountStr)}</span>` : ""}
+        </li>`;
+    }).join("");
+
+    const optionalIngredients = recipe.ingredientsOptional?.filter(id => !detailedIds.has(id)) || [];
+    const optionalHtml = optionalIngredients.map(id => {
+        const ing = INGREDIENTS.find(i => i.id === id);
+        const name = ing ? ing.name : id;
+        return `<li class="rd-ingredient-item optional"><span class="rd-ingredient-name">${escapeHtml(name)}</span></li>`;
+    }).join("");
+
+    // Profile colors
+    function profileColor(field, value) {
+        const goodHigh = ["fiber", "protein", "vegetableVolume"];
+        const goodLow = ["satFat", "glyLoad", "energyDensity"];
+        if (goodHigh.includes(field)) {
+            return value === "alta" || value === "alto" || value === "muy alta" ? "good" : value === "baja" || value === "bajo" ? "bad" : "warn";
+        }
+        if (goodLow.includes(field)) {
+            return value === "baja" || value === "bajo" ? "good" : value === "alta" || value === "alto" ? "bad" : "warn";
+        }
+        return "";
+    }
+
+    const profileLabels = {
+        fiber: "Fibra", protein: "Proteína", satFat: "Grasa sat.",
+        glyLoad: "Carga gluc.", vegetableVolume: "Vol. vegetal", energyDensity: "Dens. energética"
+    };
+    const profileHtml = Object.entries(recipe.profile || {}).map(([key, val]) => `
+        <div class="rd-profile-item">
+            <span class="rd-profile-label">${profileLabels[key] || key}</span>
+            <span class="rd-profile-value ${profileColor(key, val)}">${val}</span>
+        </div>
+    `).join("");
+
+    // Cravings
+    const cravingsHtml = (recipe.cravings || []).map(c =>
+        `<span class="rd-craving-chip">${humanizeCraving(c)}</span>`
+    ).join("");
+
+    // Meal prep
+    const mp = recipe.mealPrep || {};
+    const mpParts = [];
+    if (mp.usesBases?.length) mpParts.push(`<strong>Usa bases:</strong> ${mp.usesBases.join(", ")}`);
+    if (mp.leavesBases?.length) mpParts.push(`<strong>Deja bases:</strong> ${mp.leavesBases.join(", ")}`);
+    if (mp.derivatives?.length) mpParts.push(`<strong>Deriva en:</strong> ${mp.derivatives.join(", ")}`);
+    const mpHtml = mpParts.length ? mpParts.join("<br>") : "Sin relaciones de meal prep";
+
+    const effortLabel = { bajo: "Esfuerzo bajo", medio: "Esfuerzo medio", alto: "Esfuerzo alto" };
+    const mealTypeLabel = { comida: "Comida", desayuno: "Desayuno", cena: "Cena", colacion: "Colación" };
+
+    contentEl.innerHTML = `
+        <div class="rd-hero">
+            <h3 class="rd-title">${escapeHtml(recipe.name)}</h3>
+            <div class="rd-badges">
+                <span class="rd-badge"><span class="material-symbols-outlined" aria-hidden="true">restaurant</span>${escapeHtml(FAMILY_LABELS[recipe.family] || capitalize(recipe.family || ""))}</span>
+                <span class="rd-badge"><span class="material-symbols-outlined" aria-hidden="true">schedule</span>${recipe.timeMin} min</span>
+                <span class="rd-badge"><span class="material-symbols-outlined" aria-hidden="true">flatware</span>${escapeHtml(recipe.format || "")}</span>
+                ${recipe.effort ? `<span class="rd-badge"><span class="material-symbols-outlined" aria-hidden="true">fitness_center</span>${effortLabel[recipe.effort] || recipe.effort}</span>` : ""}
+                ${recipe.mealType ? `<span class="rd-badge"><span class="material-symbols-outlined" aria-hidden="true">sunny</span>${mealTypeLabel[recipe.mealType] || recipe.mealType}</span>` : ""}
+            </div>
+            <p class="rd-desc">${escapeHtml(recipe.description || "")}</p>
+        </div>
+
+        ${cravingsHtml ? `
+        <div class="rd-section">
+            <p class="rd-section-title"><span class="material-symbols-outlined" aria-hidden="true">mood</span>Antojos que satisface</p>
+            <div class="rd-craving-chips">${cravingsHtml}</div>
+        </div>` : ""}
+
+        <div class="rd-section">
+            <p class="rd-section-title"><span class="material-symbols-outlined" aria-hidden="true">grocery</span>Ingredientes necesarios</p>
+            <ul class="rd-ingredients-list">${requiredHtml}</ul>
+        </div>
+
+        ${optionalHtml ? `
+        <div class="rd-section">
+            <p class="rd-section-title"><span class="material-symbols-outlined" aria-hidden="true">add_circle</span>Ingredientes opcionales</p>
+            <ul class="rd-ingredients-list">${optionalHtml}</ul>
+        </div>` : ""}
+
+        ${profileHtml ? `
+        <div class="rd-section">
+            <p class="rd-section-title"><span class="material-symbols-outlined" aria-hidden="true">nutrition</span>Perfil nutricional</p>
+            <div class="rd-profile-grid">${profileHtml}</div>
+        </div>` : ""}
+
+        <div class="rd-section">
+            <p class="rd-section-title"><span class="material-symbols-outlined" aria-hidden="true">inventory</span>Meal prep</p>
+            <p class="rd-mealprep-text">${mpHtml}</p>
+        </div>
+
+        <div class="rd-actions">
+            <button type="button" class="action-btn" id="rdAddToPlanBtn">
+                <span class="material-symbols-outlined" aria-hidden="true">calendar_add_on</span>
+                Añadir al plan
+            </button>
+        </div>
+    `;
+
+    document.getElementById("rdAddToPlanBtn")?.addEventListener("click", () => {
+        openDayPicker(recipe.id);
+    });
+
+    panel.classList.remove("hidden");
+}
+
+function closeRecipeDetail() {
+    document.getElementById("recipeDetailPanel").classList.add("hidden");
+}
+
 // ── Global Search Modal ───────────────────────────────────────────────────────
 
 function openSearchModal() {
@@ -2565,6 +2933,57 @@ function initSearch() {
             resSearch.focus();
         });
     }
+
+    // ── Recipe Browser Modal ────────────────────────────────────
+    document.getElementById("browseAllRecipesBtn")?.addEventListener("click", openRecipesBrowserModal);
+
+    document.getElementById("closeRecipesBrowser")?.addEventListener("click", closeRecipesBrowserModal);
+
+    document.getElementById("recipesBrowserModal")?.addEventListener("click", (e) => {
+        if (e.target === e.currentTarget) closeRecipesBrowserModal();
+    });
+
+    document.getElementById("backToRecipesList")?.addEventListener("click", closeRecipeDetail);
+
+    document.getElementById("closeRecipeDetail")?.addEventListener("click", closeRecipesBrowserModal);
+
+    const rbSearch = document.getElementById("recipesBrowserSearch");
+    const rbClear = document.getElementById("recipesBrowserSearchClear");
+    if (rbSearch) {
+        rbSearch.addEventListener("input", () => {
+            rbClear?.classList.toggle("hidden", !rbSearch.value);
+            _browserState.search = rbSearch.value;
+            clearTimeout(_inventoryDebounceTimer);
+            _inventoryDebounceTimer = setTimeout(() => _renderRecipesBrowser(), 150);
+        });
+    }
+    if (rbClear) {
+        rbClear.addEventListener("click", () => {
+            rbSearch.value = "";
+            rbClear.classList.add("hidden");
+            _browserState.search = "";
+            _renderRecipesBrowser();
+            rbSearch.focus();
+        });
+    }
+
+    document.querySelectorAll("#recipesTimeFilter .option-chip").forEach(btn => {
+        btn.addEventListener("click", () => _setBrowserTime(Number(btn.dataset.time), btn));
+    });
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            const browser = document.getElementById("recipesBrowserModal");
+            if (browser && !browser.classList.contains("hidden")) {
+                const detail = document.getElementById("recipeDetailPanel");
+                if (detail && !detail.classList.contains("hidden")) {
+                    closeRecipeDetail();
+                } else {
+                    closeRecipesBrowserModal();
+                }
+            }
+        }
+    });
 }
 
 init();
