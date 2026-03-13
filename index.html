@@ -55,6 +55,9 @@
       <p class="subtitle">Qué cocinar hoy con lo que hay</p>
     </div>
     <div class="header-actions">
+      <button id="catalogBtn" class="icon-btn" type="button" aria-label="Ver catálogo de recetas" title="Catálogo">
+        <span class="material-symbols-outlined" aria-hidden="true">library_books</span>
+      </button>
       <button id="searchBtn" class="icon-btn" type="button" aria-label="Buscar (Ctrl+K)" title="Buscar (Ctrl+K)">
         <span class="material-symbols-outlined" aria-hidden="true">search</span>
       </button>
@@ -397,6 +400,23 @@
       <div id="searchResults" class="search-results" role="listbox" aria-label="Resultados">
         <p class="search-placeholder">Escribe para buscar entre 239 ingredientes y recetas</p>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal: Recipe Catalog -->
+  <div id="catalogModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="catalogTitle">
+    <div class="modal" style="max-width: 90%; max-height: 90vh; overflow-y: auto;">
+      <div style="position: sticky; top: 0; background: white; padding: 16px; border-bottom: 1px solid #e0e0e0; z-index: 10;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h2 id="catalogTitle">Catálogo de Recetas</h2>
+          <button id="closeCatalog" class="icon-btn" type="button" aria-label="Cerrar catálogo">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+          </button>
+        </div>
+        <input id="catalogSearch" class="search-bar" type="search" placeholder="Filtrar recetas…"
+          autocomplete="off" spellcheck="false" />
+      </div>
+      <div id="catalogContent" style="padding: 16px;"></div>
     </div>
   </div>
 

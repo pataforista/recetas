@@ -291,6 +291,21 @@ function bindEvents() {
     // Build day picker buttons once
     buildDayPickerButtons();
 
+    // Catalog Modal
+    const catalogBtn = document.getElementById("catalogBtn");
+    const closeCatalogBtn = document.getElementById("closeCatalog");
+    const catalogModal = document.getElementById("catalogModal");
+    const catalogSearch = document.getElementById("catalogSearch");
+
+    if (catalogBtn && catalogModal) {
+        catalogBtn.addEventListener("click", openCatalog);
+        closeCatalogBtn.addEventListener("click", closeCatalog);
+        catalogModal.addEventListener("click", (e) => {
+            if (e.target === e.currentTarget) closeCatalog();
+        });
+        catalogSearch.addEventListener("input", filterCatalog);
+    }
+
     setupGroceryEvents();
 }
 
@@ -492,6 +507,150 @@ function closeInventoryModal() {
     if (modal) {
         modal.classList.add("hidden");
     }
+}
+
+// ─── Catalog Modal ───
+function openCatalog() {
+    const modal = document.getElementById("catalogModal");
+    if (modal) {
+        modal.classList.remove("hidden");
+        renderCatalog();
+    }
+}
+
+function closeCatalog() {
+    const modal = document.getElementById("catalogModal");
+    if (modal) {
+        modal.classList.add("hidden");
+    }
+}
+
+function renderCatalog() {
+    const catalogContent = document.getElementById("catalogContent");
+    const catalogSearch = document.getElementById("catalogSearch");
+    catalogSearch.value = "";
+
+    // Group recipes by family
+    const recipesByFamily = {};
+    RECIPES.forEach(recipe => {
+        if (!recipesByFamily[recipe.family]) {
+            recipesByFamily[recipe.family] = [];
+        }
+        recipesByFamily[recipe.family].push(recipe);
+    });
+
+    // Render sorted by family
+    let html = "";
+    const sortedFamilies = Object.keys(recipesByFamily).sort();
+
+    sortedFamilies.forEach(family => {
+        const recipes = recipesByFamily[family];
+        html += `<div style="margin-bottom: 24px;">
+            <h3 style="color: #120A8F; margin-bottom: 12px; font-size: 16px; font-weight: 600;">${capitalize(family)}</h3>
+            <div style="display: grid; gap: 12px;">`;
+
+        recipes.forEach(recipe => {
+            html += `<div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px; background: #f9f9f9;">
+                <div style="display: flex; justify-content: space-between; align-items: start; gap: 12px;">
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0 0 4px 0; font-weight: 600; color: #120A8F;">${recipe.name}</h4>
+                        <p style="margin: 4px 0; font-size: 13px; color: #666;">${recipe.description}</p>
+                        <div style="margin-top: 8px; display: flex; gap: 12px; font-size: 12px; color: #666;">
+                            <span>⏱️ ${recipe.timeMin} min</span>
+                            <span>💪 ${recipe.effort}</span>
+                            <span>${recipe.lowFriction ? "✨ Baja fricción" : ""}</span>
+                        </div>
+                    </div>
+                    <button class="catalog-add-btn" data-recipe-id="${recipe.id}" style="padding: 8px 12px; font-size: 12px; white-space: nowrap;">
+                        <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle;">add_circle</span>
+                    </button>
+                </div>
+            </div>`;
+        });
+
+        html += `</div></div>`;
+    });
+
+    catalogContent.innerHTML = html;
+
+    // Add event listeners to add buttons
+    document.querySelectorAll(".catalog-add-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            const recipeId = btn.dataset.recipeId;
+            openDayPicker(recipeId);
+        });
+    });
+}
+
+function filterCatalog() {
+    const searchInput = document.getElementById("catalogSearch").value.toLowerCase();
+    const catalogContent = document.getElementById("catalogContent");
+
+    if (!searchInput) {
+        renderCatalog();
+        return;
+    }
+
+    // Group recipes by family
+    const recipesByFamily = {};
+    RECIPES.forEach(recipe => {
+        const matches = recipe.name.toLowerCase().includes(searchInput) ||
+                       recipe.description.toLowerCase().includes(searchInput) ||
+                       recipe.family.toLowerCase().includes(searchInput);
+
+        if (matches) {
+            if (!recipesByFamily[recipe.family]) {
+                recipesByFamily[recipe.family] = [];
+            }
+            recipesByFamily[recipe.family].push(recipe);
+        }
+    });
+
+    // Render filtered results
+    let html = "";
+    const sortedFamilies = Object.keys(recipesByFamily).sort();
+
+    if (sortedFamilies.length === 0) {
+        html = `<p class="hint">No se encontraron recetas con "${searchInput}"</p>`;
+    } else {
+        sortedFamilies.forEach(family => {
+            const recipes = recipesByFamily[family];
+            html += `<div style="margin-bottom: 24px;">
+                <h3 style="color: #120A8F; margin-bottom: 12px; font-size: 16px; font-weight: 600;">${capitalize(family)}</h3>
+                <div style="display: grid; gap: 12px;">`;
+
+            recipes.forEach(recipe => {
+                html += `<div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px; background: #f9f9f9;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; gap: 12px;">
+                        <div style="flex: 1;">
+                            <h4 style="margin: 0 0 4px 0; font-weight: 600; color: #120A8F;">${recipe.name}</h4>
+                            <p style="margin: 4px 0; font-size: 13px; color: #666;">${recipe.description}</p>
+                            <div style="margin-top: 8px; display: flex; gap: 12px; font-size: 12px; color: #666;">
+                                <span>⏱️ ${recipe.timeMin} min</span>
+                                <span>💪 ${recipe.effort}</span>
+                                <span>${recipe.lowFriction ? "✨ Baja fricción" : ""}</span>
+                            </div>
+                        </div>
+                        <button class="catalog-add-btn" data-recipe-id="${recipe.id}" style="padding: 8px 12px; font-size: 12px; white-space: nowrap;">
+                            <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle;">add_circle</span>
+                        </button>
+                    </div>
+                </div>`;
+            });
+
+            html += `</div></div>`;
+        });
+    }
+
+    catalogContent.innerHTML = html;
+
+    // Add event listeners to add buttons
+    document.querySelectorAll(".catalog-add-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            const recipeId = btn.dataset.recipeId;
+            openDayPicker(recipeId);
+        });
+    });
 }
 
 // ─── Inventory ───
