@@ -19,10 +19,14 @@ const CRAVINGS = [
     "reconfortante",
     "ligero",
     "fresco",
+    "fria",
     "llenador",
     "antojo_mexicano",
     "mealprep",
-    "saludable"
+    "saludable",
+    "picante",
+    "caldosa",
+    "cozy"
 ];
 
 const CATEGORY_ORDER = ["milpa", "leguminosas", "verduras", "proteinas", "lacteos", "cereales", "basicos", "grasas", "hierbas", "frutas"];
@@ -1734,10 +1738,14 @@ function humanizeCraving(value) {
         reconfortante: "Reconfortante",
         ligero: "Ligero",
         fresco: "Fresco",
+        fria: "Fría",
         llenador: "Llenador",
         antojo_mexicano: "Antojo mexicano",
         mealprep: "Meal prep",
-        saludable: "Saludable"
+        saludable: "Saludable",
+        picante: "Picante 🌶️",
+        caldosa: "Caldosa",
+        cozy: "Acogedor"
     };
     return table[value] || capitalize(value);
 }
