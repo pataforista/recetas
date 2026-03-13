@@ -119,6 +119,19 @@
               <div id="inventoryFilterGrid" class="inventory-filter-grid"></div>
             </div>
           </div>
+          <!-- Feature: Cocinar lo que expira -->
+          <div id="expiringBanner" class="expiring-banner hidden" role="alert" aria-live="polite">
+            <span class="material-symbols-outlined expiring-icon" aria-hidden="true">notification_important</span>
+            <div class="expiring-content">
+              <strong id="expiringCount"></strong>
+              <span id="expiringNames" class="expiring-names"></span>
+            </div>
+            <button id="expiringRescueBtn" type="button" class="chip expiring-chip">
+              <span class="material-symbols-outlined" aria-hidden="true">local_fire_department</span>
+              Cocinar esto
+            </button>
+          </div>
+
           <div id="inventoryList" class="inventory-grid">
             <div class="empty-state">
               <span class="empty-icon">🫙</span>
@@ -307,6 +320,12 @@
         </div>
 
         <div id="customListView" class="grocery-view">
+          <!-- Feature: List Templates -->
+          <div class="list-templates-section">
+            <p class="hint" style="margin-bottom:6px;">Empezar desde plantilla:</p>
+            <div id="templateChips" class="template-chips"></div>
+          </div>
+
           <form id="createCustomListForm" class="inline-form">
             <input id="customListName" type="text" maxlength="40" placeholder="Ej. Súper del sábado" required />
             <button type="submit" class="secondary">Crear</button>
@@ -347,6 +366,15 @@
             <button type="submit">Agregar a la lista</button>
           </form>
           <div id="customListItems" class="custom-list-items"></div>
+        </div>
+
+        <!-- Feature: Monthly Waste Stats -->
+        <div id="wasteStatsSection" class="waste-stats-card hidden">
+          <h3 class="waste-stats-title">
+            <span class="material-symbols-outlined" aria-hidden="true">bar_chart</span>
+            Registro del mes
+          </h3>
+          <div id="wasteStatsContent"></div>
         </div>
 
         <div class="sync-card">
