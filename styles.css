@@ -3348,33 +3348,42 @@ body {
 
 /* ── Feature 1: Location selector in inventory ── */
 .small-controls select {
-  font-size: 0.78rem;
-  padding: 3px 6px;
-  border-radius: var(--md-sys-shape-corner-small);
-  border: 1px solid var(--md-sys-color-outline-variant);
-  background: var(--md-sys-color-surface-container-low);
-  color: var(--md-sys-color-on-surface);
+  font-size: 0.75rem;
+  padding: 4px 24px 4px 10px;
+  border-radius: 12px;
+  border: none;
+  background-color: rgba(53, 37, 84, 0.05); /* very light violet */
+  color: var(--clr-violet);
+  font-weight: 600;
   cursor: pointer;
   min-width: 0;
   flex-shrink: 1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='16' viewBox='0 -960 960 960' width='16'%3E%3Cpath fill='%23352554' d='M480-345 240-585l56-56 184 184 184-184 56 56-240 240Z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  transition: all 0.2s ease;
+}
+
+.small-controls select:hover:not(:disabled) {
+  background-color: rgba(53, 37, 84, 0.1);
 }
 
 .small-controls select:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+  background-color: transparent;
 }
 
-/* ── Feature 2: Expiring Banner ── */
 .expiring-banner {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  margin-bottom: 12px;
-  background: linear-gradient(135deg, #FFF4E6, #FFE8CC);
-  border: 1.5px solid #F0A040;
-  border-radius: var(--md-sys-shape-corner-medium);
-  animation: slideDown 0.3s ease;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background: rgba(159, 62, 34, 0.08); /* Light brick tint */
+  border: 1px solid rgba(159, 62, 34, 0.25);
+  border-radius: var(--bento-radius);
+  animation: slideDown 0.3s cubic-bezier(0.2, 0, 0, 1);
 }
 
 .expiring-banner.hidden {
@@ -3398,8 +3407,8 @@ body {
 }
 
 .expiring-icon {
-  color: #D4700A;
-  font-size: 1.4rem;
+  color: var(--clr-brick);
+  font-size: 1.6rem;
   flex-shrink: 0;
 }
 
@@ -3411,13 +3420,13 @@ body {
 .expiring-content strong {
   display: block;
   font-size: 0.85rem;
-  color: #7A3A00;
-  font-weight: 600;
+  color: var(--clr-brick);
+  font-weight: 700;
 }
 
 .expiring-names {
   font-size: 0.78rem;
-  color: #9A5A10;
+  color: color-mix(in srgb, var(--clr-brick) 80%, black 20%);
   display: block;
   white-space: nowrap;
   overflow: hidden;
@@ -3426,10 +3435,13 @@ body {
 
 .expiring-chip {
   flex-shrink: 0;
-  background: #D4700A !important;
+  background: var(--clr-brick) !important;
   color: #FFF !important;
-  border-color: #D4700A !important;
+  border-color: var(--clr-brick) !important;
   font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 16px;
+  padding: 6px 12px;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -3441,7 +3453,7 @@ body {
 }
 
 .expiring-chip:hover {
-  background: #B85C00 !important;
+  background: color-mix(in srgb, var(--clr-brick) 80%, black 20%) !important;
 }
 
 @keyframes slideDown {
@@ -3462,11 +3474,13 @@ body {
 
 /* ── Feature 4: Waste Stats Card ── */
 .waste-stats-card {
-  background: var(--md-sys-color-surface-container-low);
-  border: 1px solid var(--md-sys-color-outline-variant);
-  border-radius: var(--md-sys-shape-corner-medium);
-  padding: 16px;
+  background: var(--bento-card-bg);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: var(--bento-radius);
+  padding: var(--bento-padding);
+  box-shadow: var(--bento-shadow);
   margin-top: 16px;
+  animation: fadeIn 0.4s ease;
 }
 
 .waste-stats-card.hidden {
@@ -3507,32 +3521,33 @@ body {
   font-size: 1rem !important;
 }
 
-.waste-icon.consumed { color: var(--md-sys-color-success); }
-.waste-icon.wasted   { color: var(--md-sys-color-error); }
+.waste-icon.consumed { color: var(--clr-teal); }
+.waste-icon.wasted   { color: var(--clr-brick); }
 
 .waste-stat-num {
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: 1.25rem;
+  font-weight: 800;
   min-width: 32px;
   text-align: right;
+  letter-spacing: -0.5px;
 }
 
-.waste-stat-num.consumed { color: var(--md-sys-color-success); }
-.waste-stat-num.wasted   { color: var(--md-sys-color-error); }
+.waste-stat-num.consumed { color: var(--clr-teal); }
+.waste-stat-num.wasted   { color: var(--clr-brick); }
 
 .waste-progress-track {
-  height: 8px;
+  height: 10px;
   border-radius: 99px;
-  background: var(--md-sys-color-error-container);
-  margin-top: 8px;
+  background: rgba(159, 62, 34, 0.15); /* Light brick for 'wasted' background */
+  margin-top: 12px;
   overflow: hidden;
 }
 
 .waste-progress-fill {
   height: 100%;
-  background: var(--md-sys-color-success);
+  background: var(--clr-teal); /* Teal for consumed */
   border-radius: 99px;
-  transition: width 0.5s ease;
+  transition: width 0.6s cubic-bezier(0.2, 0, 0, 1);
 }
 
 /* ── Feature 5: List Templates ── */
