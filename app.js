@@ -511,6 +511,7 @@ function renderInventoryFilters() {
         btn.className = `chip ${activeCategoryFilter === category ? "active" : ""}`;
         const iconName = getCategoryIcon(category);
         const categoryName = CATEGORY_DESCRIPTIONS[category]?.name || capitalize(category);
+        btn.setAttribute("aria-label", `Filtrar por ${categoryName}`);
 
         if (showCounter && category !== "all") {
             const count = countIngredientsByCategory(category);
@@ -733,6 +734,7 @@ function renderCravings() {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = `chip ${state.selectedCravings.includes(craving) ? "active" : ""}`;
+        btn.setAttribute("aria-label", `Seleccionar antojo: ${humanizeCraving(craving)}`);
         const iconName = getCravingIcon(craving);
         btn.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">${iconName}</span> ${humanizeCraving(craving)}`;
         btn.addEventListener("click", () => {
@@ -1116,9 +1118,11 @@ function createRecipeCard(item) {
     const expandBtn = node.querySelector('.recipe-expand-btn');
     const collapsible = node.querySelector('.recipe-collapsible');
     if (expandBtn && collapsible) {
+        expandBtn.setAttribute('aria-label', `Ver detalles de ${recipe.name}`);
         expandBtn.addEventListener('click', () => {
             const isExpanded = expandBtn.getAttribute('aria-expanded') === 'true';
             expandBtn.setAttribute('aria-expanded', String(!isExpanded));
+            expandBtn.setAttribute('aria-label', !isExpanded ? `Ocultar detalles de ${recipe.name}` : `Ver detalles de ${recipe.name}`);
             expandBtn.querySelector('.expand-label').textContent = isExpanded ? 'Ver detalles' : 'Ocultar detalles';
             expandBtn.querySelector('.material-symbols-outlined').textContent = isExpanded ? 'expand_more' : 'expand_less';
             collapsible.classList.toggle('expanded', !isExpanded);
@@ -1222,6 +1226,7 @@ function renderPlanner() {
             const removeBtn = document.createElement("button");
             removeBtn.className = "remove-btn";
             removeBtn.title = "Quitar receta";
+            removeBtn.setAttribute("aria-label", `Quitar ${recipe.name} del ${day}`);
             removeBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px" aria-hidden="true">delete</span>`;
             removeBtn.addEventListener("click", (e) => {
                 e.stopPropagation();
