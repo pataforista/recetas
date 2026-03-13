@@ -650,6 +650,8 @@ function renderInventory() {
         activeCategoryFilter === "all" ? true : item.category === activeCategoryFilter
     );
 
+    const fragment = document.createDocumentFragment();
+
     filtered.forEach((ingredient) => {
         const wrapper = document.createElement("div");
         const hasItem = !!state.inventory[ingredient.id]?.has;
@@ -681,10 +683,8 @@ function renderInventory() {
             state.inventory[ingredient.id].has = hasIt.checked;
             if (!hasIt.checked) {
                 state.inventory[ingredient.id].urgency = "normal";
-                urgencySelect.value = "normal";
             }
-            urgencySelect.disabled = !hasIt.checked;
-            wrapper.classList.toggle("has-item", hasIt.checked);
+            updateInventoryItemUrgency(ingredient.id, wrapper);
             persistInventory();
             updateInventoryBadge();
         });
@@ -720,10 +720,22 @@ function renderInventory() {
 
         wrapper.appendChild(row1);
         wrapper.appendChild(row2);
-        inventoryListEl.appendChild(wrapper);
+        wrapper.dataset.urgencySelect = urgencySelect;
+        fragment.appendChild(wrapper);
     });
 
+    inventoryListEl.appendChild(fragment);
     updateInventoryBadge();
+}
+
+function updateInventoryItemUrgency(ingredientId, wrapper) {
+    const urgencySelect = wrapper.dataset.urgencySelect || wrapper.querySelector("select");
+    const hasItem = !!state.inventory[ingredientId]?.has;
+    if (urgencySelect) {
+        urgencySelect.disabled = !hasItem;
+        urgencySelect.value = state.inventory[ingredientId]?.urgency || "normal";
+    }
+    wrapper.classList.toggle("has-item", hasItem);
 }
 
 // ─── Cravings ───
