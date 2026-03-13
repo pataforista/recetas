@@ -880,26 +880,31 @@ function rankRecipes(recipes, context) {
 
     const scored = recipes.map((recipe) => {
         const baseScore = scoreRecipe(recipe, context);
-
-        // Apply penalties based on frequency in history
         const frequency = recipeFrequency[recipe.id] || 0;
+
+        // EXCLUSION: If recipe appears 3+ times in recent history, exclude it completely
+        if (frequency >= 3) {
+            baseScore.score = -999;  // Mark for filtering
+            return baseScore;
+        }
+
+        // For recipes with lower frequency, apply penalties
         const lastEntry = state.recentSuggestedRecipes.slice().reverse().find(item => item.id === recipe.id);
 
         if (frequency > 0 && lastEntry) {
             const daysSince = (Date.now() - lastEntry.timestamp) / (24 * 60 * 60 * 1000);
 
-            // Frequency-based penalty: every appearance adds 150 points of penalty
-            const frequencyPenalty = frequency * 150;
+            // Frequency-based penalty: 200 points per appearance
+            const frequencyPenalty = frequency * 200;
 
-            // Recency penalty: much longer cooldown (30 days instead of 7)
-            // 300 points immediately, decays at 10 points/day
-            const recencyPenalty = Math.max(0, 300 - (daysSince * 10));
+            // Recency penalty: 400 points immediately, decays at 15 points/day
+            const recencyPenalty = Math.max(0, 400 - (daysSince * 15));
 
             const totalPenalty = frequencyPenalty + recencyPenalty;
             baseScore.score -= totalPenalty;
 
             if (totalPenalty > 0) {
-                baseScore.reasons.push(`Sugerida ${frequency}x recientemente (${Math.ceil(totalPenalty)} pts penalidad)`);
+                baseScore.reasons.push(`Sugerida ${frequency}x recientemente (penalidad: ${Math.ceil(totalPenalty)} pts)`);
             }
         }
 
@@ -909,6 +914,16 @@ function rankRecipes(recipes, context) {
 
     // Sort by score first
     scored.sort((a, b) => b.score - a.score);
+
+    // DEBUG: Log top 10 recipes for debugging
+    console.log("=== TOP SCORED RECIPES (BEFORE DIVERSITY FILTER) ===");
+    console.log(`Total recipes scored: ${scored.length}`);
+    console.log(`Recent history size: ${state.recentSuggestedRecipes.length}`);
+    console.log(`Recent recipes: ${state.recentSuggestedRecipes.map(r => r.id).join(', ')}`);
+    scored.slice(0, 10).forEach((item, idx) => {
+        const freq = state.recentSuggestedRecipes.filter(r => r.id === item.recipe.id).length;
+        console.log(`${idx + 1}. ${item.recipe.name} (${item.recipe.id}): ${Math.round(item.score)} pts, frequency: ${freq}x`);
+    });
 
     // STRICT DIVERSITY: max 1 recipe per family in final results
     // This ensures we never see 2+ recipes from the same family
