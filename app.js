@@ -1136,19 +1136,22 @@ const SUBSTITUTIONS = {
     frijol: ["garbanzo", "lenteja", "haba", "ayocote"],
     garbanzo: ["frijol", "lenteja", "haba"],
     lenteja: ["frijol", "garbanzo"],
-    // Salsas / Bases
-    salsa_verde: ["salsa_roja", "jitomate", "tomate_verde", "chile_serrano"],
-    salsa_roja: ["salsa_verde", "jitomate", "chile_guajillo"],
+    // Salsas / Bases / Grasas
+    salsa_verde: ["salsa_roja", "jitomate", "tomate_verde", "chile_serrano", "chile_poblano"],
+    salsa_roja: ["salsa_verde", "jitomate", "chile_guajillo", "chile_ancho"],
     crema: ["yogurt_natural", "crema_acida", "leche_coco"],
+    manteca: ["aceite_vegtal", "aceite_oliva", "mantequilla"],
+    aceite_oliva: ["aguacate", "aceite_vegtal"],
     // Carbohidratos
-    tortilla_maiz: ["tostada", "pan_blanco", "masa_maiz", "totopos"],
-    arroz_blanco: ["arroz_integral", "quinoa", "pasta_seca", "maiz_pozolero"],
-    papa: ["camote", "yuca", "chayote"],
+    tortilla_maiz: ["tostada", "pan_blanco", "masa_maiz", "totopos", "tlayuda"],
+    arroz_blanco: ["arroz_integral", "quinoa", "pasta_seca", "maiz_pozolero", "coliflor"],
+    papa: ["camote", "yuca", "chayote", "mandioca"],
     // Verduras
-    calabacita: ["chayote", "nopal", "pimiento_verde"],
-    chayote: ["calabacita", "papa", "nopal"],
-    pimiento_verde: ["chile_poblano", "calabacita"],
-    pimiento_rojo: ["jitomate", "chile_ancho"],
+    calabacita: ["chayote", "nopal", "pimiento_verde", "pepino"],
+    chayote: ["calabacita", "papa", "nopal", "mandioca"],
+    pimiento_verde: ["chile_poblano", "calabacita", "nopal"],
+    pimiento_rojo: ["jitomate", "chile_ancho", "zanahoria"],
+    espinaca: ["acelga", "verdolaga", "quelites", "kale"],
 };
 
 function shuffleArray(arr) {
@@ -1198,25 +1201,29 @@ function rankRecipes(recipes, context) {
     // Sort by score first
     scored.sort((a, b) => b.score - a.score);
 
-    // STRICT DIVERSITY: max 1 recipe per family in final results
-    // This ensures we never see 2+ recipes from the same family
+    // DIVERSITY: Use soft penalties instead of strict exclusion
+    // This allows exceptionally good matches to override diversity while still promoting variety
     const finalRanked = [];
-    const familyUsed = new Set();
+    const familyCounts = {};
 
     scored.forEach((item) => {
-        const family = item.recipe.family;
+        const family = item.recipe.family || 'none';
+        const count = familyCounts[family] || 0;
 
-        // Skip this recipe if we already have one from this family
-        if (familyUsed.has(family)) {
-            return;
+        // Apply a penalty per existing member of the same family
+        const diversityPenalty = count * 25;
+        item.adjustedScore = item.score - diversityPenalty;
+
+        if (count > 0 && diversityPenalty > 0) {
+            item.reasons.push(`Variedad: Penalidad por familia "${family}" (-${diversityPenalty} pts)`);
         }
 
-        item.adjustedScore = item.score;
         finalRanked.push(item);
-        familyUsed.add(family);
+        familyCounts[family] = count + 1;
     });
 
-    return finalRanked;
+    // Re-sort based on adjusted score
+    return finalRanked.sort((a, b) => b.adjustedScore - a.adjustedScore);
 }
 
 function scoreRecipe(recipe, context) {
@@ -1259,7 +1266,8 @@ function scoreRecipe(recipe, context) {
     }
 
     const cravingMatches = recipe.cravings.filter((c) => context.cravings.includes(c));
-    score += cravingMatches.length * 10;
+    // Boost score for craving matches, especially for specific/new characteristics
+    score += cravingMatches.length * 12;
     if (cravingMatches.length) reasons.push(`Coincide con tu antojo: ${cravingMatches.map(humanizeCraving).join(", ")}`);
 
     if (recipe.timeMin <= context.maxTime) {
@@ -1301,12 +1309,16 @@ function scoreRecipe(recipe, context) {
     const urgentCount = urgencies.filter((u) => u === "urgent").length;
     const soonCount = urgencies.filter((u) => u === "soon").length;
 
-    if (urgentCount) {
-        score += urgentCount * 10;
+    if (context.mode === "rescue" && urgentCount > 0) {
+        score += urgentCount * 30; // High priority in rescue mode
+        reasons.push(`PRIORIDAD RESCATE: Aprovecha ${urgentCount} ingrediente(s) crítico(s)`);
+    } else if (urgentCount) {
+        score += urgentCount * 12;
         reasons.push("Aprovecha ingredientes urgentes");
     }
+
     if (soonCount) {
-        score += soonCount * 5;
+        score += soonCount * 6;
     }
 
     if (context.seasonBoost) {

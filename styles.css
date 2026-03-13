@@ -1,67 +1,34 @@
-﻿:root {
+:root {
+  /* Bento UI Redesign Tokens */
+  --bento-bg: #F8F7F2;
+  --bento-card-bg: #FFFFFF;
+  --bento-gap: 16px;
+  --bento-radius: 24px;
+  --bento-padding: 20px;
+  --bento-shadow: 0 8px 30px rgba(0, 0, 0, 0.04), 0 4px 8px rgba(0, 0, 0, 0.02);
+  --bento-border: 1px solid rgba(0, 0, 0, 0.05);
+
   /* Earth-tone Primary */
-  --md-sys-color-primary: #5B6F3A;
+  --md-sys-color-primary: #4A5D23; /* Slightly deeper for better contrast */
   --md-sys-color-on-primary: #FFFFFF;
   --md-sys-color-primary-container: #DEE8C7;
   --md-sys-color-on-primary-container: #1A2605;
 
-  /* Terracotta Secondary */
-  --md-sys-color-secondary: #A65A2A;
-  --md-sys-color-on-secondary: #FFFFFF;
-  --md-sys-color-secondary-container: #FADBCB;
-  --md-sys-color-on-secondary-container: #3B1704;
+  /* Neutrals - Warm Bento tones */
+  --md-sys-color-background: var(--bento-bg);
+  --md-sys-color-surface: var(--bento-card-bg);
+  --md-sys-color-on-surface: #1C1B17;
+  --md-sys-color-surface-variant: #F1EFE7;
+  --md-sys-color-outline-variant: rgba(0, 0, 0, 0.08);
 
-  /* Sage Green Tertiary (Milpa) */
-  --md-sys-color-tertiary: #7F8C3A;
-  --md-sys-color-on-tertiary: #FFFFFF;
-  --md-sys-color-tertiary-container: #E8E7B9;
-  --md-sys-color-on-tertiary-container: #2A2F00;
-
-  /* Neutrals - Warm M3 tones */
-  --md-sys-color-background: #F6F1E8;
-  --md-sys-color-on-background: #28221A;
-  --md-sys-color-surface: #FCF8F1;
-  --md-sys-color-on-surface: #28221A;
-  --md-sys-color-surface-variant: #E8DED1;
-  --md-sys-color-on-surface-variant: #5A4E40;
-  --md-sys-color-outline: #8E7D6B;
-  --md-sys-color-outline-variant: #D4C7B8;
-
-  /* M3 Surface Containers */
-  --md-sys-color-surface-container-lowest: #FFFFFF;
-  --md-sys-color-surface-container-low: #F8F2E8;
-  --md-sys-color-surface-container: #F1E7D9;
-  --md-sys-color-surface-container-high: #E9DDCE;
-  --md-sys-color-surface-container-highest: #E1D3C2;
-
-  /* Semantic */
-  --md-sys-color-success: #3D7A58;
-  --md-sys-color-error: #BA1A1A;
-  --md-sys-color-error-container: #FFDAD6;
-  --md-sys-color-on-error-container: #410002;
-  --md-sys-color-warning: #8F4E00;
-
-  /* Shapes - M3 Standard */
-  --md-sys-shape-corner-extra-large: 28px;
+  /* Shapes - Bento Standard */
+  --md-sys-shape-corner-extra-large: var(--bento-radius);
   --md-sys-shape-corner-large: 16px;
   --md-sys-shape-corner-medium: 12px;
   --md-sys-shape-corner-small: 8px;
 
-  /* Elevations (Refined High-End Shadows) */
-  --md-sys-elevation-1: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
-  --md-sys-elevation-2: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
-  --md-sys-elevation-3: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  --md-sys-elevation-4: 0 25px 50px -12px rgba(0, 0, 0, 0.12);
-  --md-sys-elevation-5: 0 35px 60px -15px rgba(0, 0, 0, 0.2);
-
   /* Nav */
-  --nav-height: 80px;
-  --mobile-fab-offset: calc(var(--nav-height) + 14px + env(safe-area-inset-bottom, 0px));
-
-  /* Toggle switch */
-  --toggle-width: 52px;
-  --toggle-height: 32px;
-  --toggle-thumb: 24px;
+  --nav-height: 84px;
 }
 
 /* â”€â”€â”€ Dark Mode â”€â”€â”€ */
@@ -231,16 +198,43 @@ body {
   pointer-events: none;
 }
 
+.app-header {
+  padding: 24px var(--bento-gap);
+  background: var(--bento-card-bg);
+  color: var(--md-sys-color-on-surface);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: var(--bento-radius); /* Full Bento box */
+  margin: var(--bento-gap) auto 0;
+  max-width: 800px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--bento-shadow);
+  border: var(--bento-border);
+}
+
+/* Redesigning background decorations for Bento */
+.app-header::before {
+  content: '';
+  position: absolute;
+  top: -100px;
+  right: -50px;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(74, 93, 35, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
 .app-header::after {
   content: '';
   position: absolute;
-  bottom: -40px;
-  right: 30px;
-  width: 130px;
-  height: 130px;
+  bottom: -50px;
+  left: -50px;
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(circle, rgba(166, 90, 42, 0.05) 0%, transparent 70%);
   border-radius: 50%;
-  border: 28px solid var(--md-sys-color-primary);
-  opacity: 0.08;
   pointer-events: none;
 }
 
@@ -267,17 +261,42 @@ body {
 
 .subtitle {
   margin: 3px 0 0;
-  opacity: 0.85;
-  font-weight: 400;
-  font-size: 0.875rem;
-  letter-spacing: 0.1px;
+  opacity: 0.65;
+  font-weight: 500;
+  font-size: 0.82rem;
+  letter-spacing: 0.2px;
 }
 
-/* â”€â”€â”€ Layout â”€â”€â”€ */
+/* ─── Layout: Bento Grid System ─── */
 .layout {
-  padding: 12px 16px;
-  max-width: 600px; /* Crucial: restricts width for "mobile-first" feel */
+  padding: var(--bento-gap);
+  max-width: 800px; /* Expanded for better Bento feel on larger screens */
   margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--bento-gap);
+}
+
+.page-view {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--bento-gap);
+}
+
+.panel {
+  grid-column: 1 / -1; /* Default to full width */
+  background: var(--bento-card-bg);
+  border: var(--bento-border);
+  border-radius: var(--bento-radius);
+  padding: var(--bento-padding);
+  box-shadow: var(--bento-shadow);
+  margin-bottom: 0;
+  transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.25s ease;
+  overflow: hidden;
+  position: relative;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 /* â”€â”€â”€ Wizard Stepper (Strict Steps) â”€â”€â”€ */
@@ -285,14 +304,16 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
-  background: var(--md-sys-color-surface-container);
-  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  padding: 16px var(--bento-gap);
+  background: var(--bento-card-bg);
+  border-radius: var(--bento-radius);
+  border: var(--bento-border);
+  box-shadow: var(--bento-shadow);
   position: sticky;
-  top: 0;
+  top: var(--bento-gap);
   z-index: 100;
-  max-width: 600px;
-  margin: 0 auto;
+  max-width: 800px;
+  margin: var(--bento-gap) auto;
 }
 
 .flow-step {
@@ -393,55 +414,15 @@ body {
   flex: 1;
 }
 
-/* â”€â”€â”€ Panels (Adjusted for Wizard) â”€â”€â”€ */
-.panel {
-  background: color-mix(in srgb, var(--md-sys-color-surface) 90%, transparent 10%);
-  border: 1px solid var(--md-sys-color-outline-variant);
-  border-radius: 26px;
-  padding: 16px 18px; /* Tighter padding */
-  box-shadow: var(--md-sys-elevation-1);
-  margin-bottom: 8px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  transition: box-shadow 0.3s ease;
-}
-
-.panel:focus-within {
-  box-shadow: var(--md-sys-elevation-2);
-}
-
+/* Header spacing for Bento Panels */
 .panel-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--bento-gap);
   gap: 12px;
-  cursor: pointer;
-  user-select: none;
 }
 
-.panel-header h2 {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.panel h2 {
-  margin-top: 0;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--md-sys-color-primary);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  line-height: 1.3;
-}
-
-.hint {
-  color: var(--md-sys-color-on-surface-variant);
-  margin-bottom: 16px;
-  margin-top: 6px;
-  font-size: 0.85rem;
-  font-weight: 400;
-  line-height: 1.55;
-}
 
 /* â”€â”€â”€ Empty State â”€â”€â”€ */
 .empty-state {
@@ -479,36 +460,32 @@ body {
 /* â”€â”€â”€ Inventory â”€â”€â”€ */
 .inventory-grid {
   display: grid;
-  gap: 8px;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); /* Slightly smaller targets for more bento blocks */
 }
 
 .inventory-item {
-  background: var(--md-sys-color-surface);
-  border-radius: var(--md-sys-shape-corner-large);
-  padding: 12px 14px;
+  background: var(--bento-card-bg);
+  border: var(--bento-border);
+  border-radius: 16px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  border: 1px solid var(--md-sys-color-outline-variant);
-  transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
   cursor: pointer;
+  position: relative;
 }
 
 .inventory-item:hover {
-  transform: translateY(-2px) scale(1.02);
-  border-color: var(--md-sys-color-secondary);
-  box-shadow: var(--md-sys-elevation-2);
-}
-
-.inventory-item:active {
-  transform: scale(0.98);
+  transform: translateY(-2px);
+  border-color: var(--md-sys-color-primary);
+  box-shadow: var(--bento-shadow);
 }
 
 .inventory-item.has-item {
-  border-color: var(--md-sys-color-primary);
   background: var(--md-sys-color-primary-container);
-  box-shadow: 0 0 15px color-mix(in srgb, var(--md-sys-color-primary) 20%, transparent);
+  border-color: var(--md-sys-color-primary);
 }
 
 .inventory-row {
@@ -547,28 +524,27 @@ body {
 }
 
 .chip {
-  background: var(--md-sys-color-surface);
-  color: var(--md-sys-color-on-surface-variant);
-  border: 1px solid var(--md-sys-color-outline);
-  border-radius: var(--md-sys-shape-corner-small);
-  padding: 8px 16px;
+  background: var(--bento-card-bg);
+  color: var(--md-sys-color-on-surface);
+  border: var(--bento-border);
+  border-radius: 14px; /* Slightly more rounded for Bento chips */
+  padding: 10px 18px;
   cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 500;
-  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  min-height: 40px;
-  white-space: nowrap;
+  gap: 8px;
+  min-height: 44px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
 }
 
 .chip.active {
-  background: var(--md-sys-color-secondary-container);
-  color: var(--md-sys-color-on-secondary-container);
+  background: var(--md-sys-color-primary);
+  color: white;
   border-color: transparent;
-  box-shadow: none;
-  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(74, 93, 35, 0.15);
 }
 
 .chip:active {
@@ -1096,32 +1072,36 @@ button.error-btn:hover {
 
 /* â”€â”€â”€ Recipe Cards â”€â”€â”€ */
 .recipe-card {
-  background: var(--md-sys-color-surface);
-  border: 1px solid var(--md-sys-color-outline-variant);
-  border-radius: var(--md-sys-shape-corner-extra-large);
+  background: var(--bento-card-bg);
+  border: var(--bento-border);
+  border-radius: var(--bento-radius);
   padding: 0;
-  margin-bottom: 20px;
+  margin-bottom: var(--bento-gap);
   overflow: hidden;
   position: relative;
-  box-shadow: var(--md-sys-elevation-1);
-  transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+  box-shadow: var(--bento-shadow);
+  transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.3s ease;
   animation: fadeIn 0.4s ease forwards;
   display: flex;
   flex-direction: column;
 }
 
 .recipe-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--md-sys-elevation-2);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
 }
 
-/* Colored top accent bar */
-.recipe-card::before {
+
+/* Bento cards don't use top borders, but subtle inset highlights */
+.recipe-card::after {
   content: '';
-  display: block;
-  height: 4px;
-  background: var(--md-sys-color-primary);
-  border-radius: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100px;
+  background: linear-gradient(to bottom, rgba(74, 93, 35, 0.03), transparent);
+  pointer-events: none;
 }
 
 .recipe-card-inner {
@@ -1159,15 +1139,18 @@ button.error-btn:hover {
 }
 
 .score-badge {
-  background: var(--md-sys-color-tertiary-container);
-  color: var(--md-sys-color-on-tertiary-container);
-  padding: 6px 13px;
-  border-radius: 999px;
-  font-weight: 800;
-  font-size: 1rem;
-  box-shadow: 0 0 0 1.5px var(--md-sys-color-tertiary);
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-primary);
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  border: 1px solid rgba(74, 93, 35, 0.1);
   white-space: nowrap;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .recipe-description {
@@ -1179,11 +1162,11 @@ button.error-btn:hover {
 }
 
 .recipe-section {
-  background: color-mix(in srgb, var(--md-sys-color-background) 60%, var(--md-sys-color-surface) 40%);
-  border-radius: var(--md-sys-shape-corner-small);
-  padding: 10px 12px;
-  margin-top: 8px;
-  border: 1px solid var(--md-sys-color-surface-variant);
+  background: var(--md-sys-color-surface-variant);
+  border-radius: 16px;
+  padding: 12px 14px;
+  margin-top: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.03);
 }
 
 .recipe-section strong {
@@ -1325,21 +1308,22 @@ button.error-btn:hover {
 /* â”€â”€â”€ Bottom Nav â”€â”€â”€ */
 .bottom-nav {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--md-sys-color-surface-container);
+  bottom: 24px; /* Floating */
+  left: var(--bento-gap);
+  right: var(--bento-gap);
+  background: var(--bento-card-bg);
   display: flex;
   justify-content: space-around;
   align-items: center;
-  height: var(--nav-height);
-  border-top: none;
-  box-shadow: none;
-  z-index: 100;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  height: 64px;
+  border-radius: 999px; /* Pill-shaped bento bar */
+  border: var(--bento-border);
+  box-shadow: var(--bento-shadow);
+  z-index: 1001;
   max-width: 600px;
   margin: 0 auto;
 }
+
 
 .nav-item {
   background: transparent;
@@ -1397,17 +1381,21 @@ button.error-btn:hover {
 }
 
 .planner-day {
-  background: var(--md-sys-color-surface-variant);
-  border-radius: var(--md-sys-shape-corner-medium);
-  padding: 14px;
-  min-height: 100px;
-  border: 1.5px solid transparent;
-  transition: border-color 0.2s;
+  background: var(--bento-card-bg);
+  border: var(--bento-border);
+  border-radius: 20px;
+  padding: 16px;
+  min-height: 120px;
+  transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
 }
 
 .planner-day.is-today {
   border-color: var(--md-sys-color-primary);
-  background: color-mix(in srgb, var(--md-sys-color-primary-container) 40%, var(--md-sys-color-surface-variant) 60%);
+  background: var(--md-sys-color-primary-container);
+  box-shadow: 0 4px 20px rgba(74, 93, 35, 0.1);
 }
 
 .planner-day h3 {
@@ -2327,27 +2315,28 @@ button.error-btn:hover {
 }
 
 .sort-chip {
-  padding: 4px 14px;
-  border-radius: 999px;
-  border: 1.5px solid var(--md-sys-color-outline);
-  background: transparent;
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: var(--bento-border);
+  background: var(--bento-card-bg);
   color: var(--md-sys-color-on-surface-variant);
-  font-size: 0.78rem;
-  font-weight: 500;
-  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 .sort-chip:hover {
   background: var(--md-sys-color-surface-variant);
+  transform: translateY(-1px);
 }
 
 .sort-chip.active {
-  border-color: var(--md-sys-color-primary);
-  background: color-mix(in srgb, var(--md-sys-color-primary) 12%, transparent);
-  color: var(--md-sys-color-primary);
-  font-weight: 600;
+  background: var(--md-sys-color-primary);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(74, 93, 35, 0.15);
 }
 
 .results-search {
@@ -3963,4 +3952,5 @@ body {
 
 .rd-actions button {
   flex: 1;
+}
 }
