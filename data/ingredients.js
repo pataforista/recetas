@@ -293,3 +293,133 @@ export const INGREDIENTS = [
     { id: "ciruela_mexicana", name: "Ciruela mexicana", category: "frutas", aliases: ["jocote"], seasonal: true, frequency: "media" },
     { id: "mamey", name: "Mamey", category: "frutas", seasonal: true, frequency: "media" },
 ];
+
+/**
+ * SHELF LIFE DATABASE – Duración esperada de ingredientes
+ *
+ * Define cuántos días típicamente dura cada ingrediente desde su compra.
+ * Usado para calcular urgencia en listas de compra.
+ */
+export const INGREDIENT_SHELF_LIFE = {
+    dairy: {
+        default: 14,
+        items: {
+            queso: 21,
+            queso_fresco: 7,
+            queso_oaxaca: 10,
+            leche: 10,
+            yogurt: 14,
+            mantequilla: 30,
+            crema_fraiche: 14,
+            chamoy: 30,
+            dulce_leche: 30
+        }
+    },
+    produce: {
+        default: 7,
+        items: {
+            jitomate: 5,
+            tomate_verde: 6,
+            lechuga: 5,
+            espinaca: 4,
+            cilantro: 8,
+            zanahoria: 21,
+            cebolla: 30,
+            cebollín: 10,
+            ajo: 30,
+            papa: 30,
+            chile_habanero: 21,
+            chile_serrano: 14,
+            chile_poblano: 14,
+            chile_guajillo: 60,
+            chayote: 14,
+            calabacita: 7,
+            calabaza: 30,
+            nopal: 3,
+            nopales: 3,
+            hongos: 4,
+            champiñones: 4,
+            brócoli: 5,
+            coliflor: 7,
+            papaya: 7,
+            plátano: 5,
+            aguacate: 3,
+            limón: 30,
+            naranja: 21,
+            toronja: 21,
+            manzana: 30,
+            pera: 14,
+            durazno: 7,
+            sandía: 14,
+            melón: 14,
+            fresa: 4,
+            guayaba: 7,
+            tamarindo: 30
+        }
+    },
+    meat: {
+        default: 3,
+        items: {
+            pollo: 2,
+            pechuga_pollo: 2,
+            muslo_pollo: 3,
+            res_molida: 2,
+            res_magra: 4,
+            res_bistec: 3,
+            cerdo_molida: 2,
+            cerdo: 4,
+            chorizo: 7,
+            cecina: 14,
+            longaniza: 7,
+            salchicha: 7,
+            atun: 180,
+            salmon: 3,
+            sardina: 3,
+            camaron: 2,
+            pulpo: 2,
+            huevo: 30,
+            huevos: 30
+        }
+    },
+    pantry: {
+        default: 180,
+        items: {
+            arroz: 365,
+            frijol: 365,
+            frijol_negro: 365,
+            frijol_pinto: 365,
+            lenteja: 365,
+            harina_maiz: 365,
+            masa_maiz: 14,
+            tortilla_maiz: 3,
+            pan: 3,
+            pan_bolillo: 2,
+            aceite: 365,
+            sal: 365,
+            especias: 180,
+            canela: 365,
+            pimienta: 365,
+            comino: 365,
+            orégano: 365,
+            ajo_polvo: 365,
+            cebolla_polvo: 365,
+            caldo_pollo: 365,
+            vinagre: 365,
+            salsa_soya: 365,
+            salsa_tabasco: 365,
+            mayonesa: 180
+        }
+    },
+    frozen: {
+        default: 180,
+        items: {
+            pollo_congelado: 365,
+            verduras_congeladas: 180,
+            pays_congelados: 180
+        }
+    },
+    other: {
+        default: 14,
+        items: {}
+    }
+};

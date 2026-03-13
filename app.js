@@ -1,4 +1,4 @@
-import { INGREDIENTS } from "./data/ingredients.js";
+import { INGREDIENTS, INGREDIENT_SHELF_LIFE } from "./data/ingredients.js";
 import { SEASONALITY_MX } from "./data/seasonality_mx.js";
 import { MEALPREP_BASES } from "./data/mealprep_bases.js";
 import { HEALTH_RULES } from "./data/health_rules.js";
@@ -58,6 +58,75 @@ const SUBCATEGORIES = {
     ]
 };
 
+// ─── Urgency Calculation System ───
+
+/**
+ * Calcula el estado de urgencia de un item según fecha de compra y vida útil
+ * @param {number} purchaseDate - timestamp de cuando se compró
+ * @param {number} estimatedShelfLife - días de vida útil estimada
+ * @returns {Object} {status, percentage, daysRemaining}
+ */
+function calculateUrgency(purchaseDate, estimatedShelfLife) {
+    const now = Date.now();
+    const daysElapsed = Math.floor((now - purchaseDate) / (1000 * 60 * 60 * 24));
+    const percentageUsed = (daysElapsed / estimatedShelfLife) * 100;
+    const daysRemaining = estimatedShelfLife - daysElapsed;
+
+    let status;
+    if (percentageUsed > 100) {
+        status = "expired";
+    } else if (percentageUsed >= 70) {
+        status = "urgent";
+    } else if (percentageUsed >= 30) {
+        status = "aging";
+    } else {
+        status = "fresh";
+    }
+
+    return { status, percentage: percentageUsed, daysRemaining };
+}
+
+/**
+ * Obtiene la clase CSS para el estado de urgencia
+ */
+function getUrgencyClass(urgencyStatus) {
+    const map = {
+        fresh: "urgency-fresh",
+        aging: "urgency-aging",
+        urgent: "urgency-urgent",
+        expired: "urgency-expired"
+    };
+    return map[urgencyStatus] || "urgency-fresh";
+}
+
+/**
+ * Formatea mensaje de días restantes/expirado
+ */
+function formatDaysRemaining(daysRemaining, urgencyStatus) {
+    if (urgencyStatus === "expired") {
+        return `Expirado hace ${Math.abs(daysRemaining)} ${Math.abs(daysRemaining) === 1 ? "día" : "días"}`;
+    }
+    if (daysRemaining === 0) return "Expira hoy";
+    if (daysRemaining === 1) return "Expira mañana";
+    return `Expira en ${daysRemaining} ${daysRemaining === 1 ? "día" : "días"}`;
+}
+
+/**
+ * Obtiene la vida útil estimada para un ingrediente
+ */
+function getDefaultShelfLife(ingredientId, category) {
+    if (!category) category = "other";
+
+    const categoryData = INGREDIENT_SHELF_LIFE[category];
+    if (!categoryData) return 14;
+
+    if (ingredientId && categoryData.items[ingredientId]) {
+        return categoryData.items[ingredientId];
+    }
+
+    return categoryData.default || 14;
+}
+
 const DAYS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
 
 const state = {
@@ -93,6 +162,25 @@ function getSelectedChipValue(groupId) {
 let activeCategoryFilter = "all";
 // Pending day assignment state for day picker modal
 let _pendingRecipeId = null;
+
+/**
+ * Inicializa la fecha de compra al valor de hoy en el formulario
+ */
+function setupDefaultPurchaseDate() {
+    const dateInput = document.getElementById("customItemDate");
+    if (dateInput && !dateInput.value) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
+    }
+
+    // Initialize shelf life with default value
+    const categoryInput = document.getElementById("customItemCategory");
+    const shelfLifeInput = document.getElementById("customItemShelfLife");
+    if (shelfLifeInput && !shelfLifeInput.value) {
+        const category = categoryInput?.value || "other";
+        shelfLifeInput.value = getDefaultShelfLife(null, category);
+    }
+}
 
 // ─── Init ───
 function init() {
@@ -1170,6 +1258,7 @@ function renderGroceryHub() {
     renderGroceryList();
     renderCustomLists();
     renderCustomListItems();
+    setupDefaultPurchaseDate();
 }
 
 function renderGroceryMode() {
@@ -1216,8 +1305,17 @@ function setupGroceryEvents() {
         const nameInput = document.getElementById("customItemName");
         const qtyInput = document.getElementById("customItemQty");
         const unitInput = document.getElementById("customItemUnit");
+        const categoryInput = document.getElementById("customItemCategory");
+        const dateInput = document.getElementById("customItemDate");
+        const shelfLifeInput = document.getElementById("customItemShelfLife");
+
         const name = nameInput.value.trim();
         if (!name) return;
+
+        const dateValue = dateInput?.value || new Date().toISOString().split('T')[0];
+        const purchaseDate = new Date(dateValue).getTime();
+        const category = categoryInput?.value || "other";
+        const estimatedShelfLife = Number(shelfLifeInput?.value) || getDefaultShelfLife(null, category);
 
         list.items.push({
             id: `itm_${Date.now()}`,
@@ -1225,15 +1323,39 @@ function setupGroceryEvents() {
             qty: qtyInput.value ? Number(qtyInput.value) : null,
             unit: unitInput.value.trim(),
             have: false,
-            bought: false
+            bought: false,
+            purchaseDate,
+            estimatedShelfLife,
+            category,
+            ingredientId: null
         });
 
         persistCustomLists();
         nameInput.value = "";
         qtyInput.value = "";
         unitInput.value = "";
+        categoryInput && (categoryInput.value = "");
+        dateInput && (dateInput.value = new Date().toISOString().split('T')[0]);
+        shelfLifeInput && (shelfLifeInput.value = "");
         renderCustomListItems();
+        showToast("Producto agregado");
     });
+
+    // Event listeners for new form fields
+    document.getElementById("customItemCategory")?.addEventListener("change", (e) => {
+        const shelfLifeInput = document.getElementById("customItemShelfLife");
+        if (shelfLifeInput) {
+            const shelfLife = getDefaultShelfLife(null, e.target.value);
+            shelfLifeInput.value = shelfLife;
+        }
+    });
+
+    document.getElementById("customItemDate")?.addEventListener("change", () => {
+        // Trigger recalculation on form submission
+    });
+
+    // Initialize default date on page load
+    setupDefaultPurchaseDate();
 
     document.getElementById("shareSyncBtn")?.addEventListener("click", shareSyncData);
     document.getElementById("importSyncBtn")?.addEventListener("click", openSyncModal);
@@ -1357,19 +1479,63 @@ function renderCustomListItems() {
         return;
     }
 
-    list.items.forEach((item) => {
+    // Sort items by urgency: expired → urgent → aging → fresh → no date
+    const sortedItems = [...list.items].sort((a, b) => {
+        // Items without purchaseDate go to the end
+        if (!a.purchaseDate && !b.purchaseDate) return 0;
+        if (!a.purchaseDate) return 1;
+        if (!b.purchaseDate) return -1;
+
+        // Calculate urgency for both items
+        const urgencyA = calculateUrgency(a.purchaseDate, a.estimatedShelfLife || 14);
+        const urgencyB = calculateUrgency(b.purchaseDate, b.estimatedShelfLife || 14);
+
+        // Order by urgency: expired > urgent > aging > fresh
+        const urgencyOrder = { expired: 0, urgent: 1, aging: 2, fresh: 3 };
+        if (urgencyOrder[urgencyA.status] !== urgencyOrder[urgencyB.status]) {
+            return urgencyOrder[urgencyA.status] - urgencyOrder[urgencyB.status];
+        }
+
+        // If same urgency level, show more urgent first (less days remaining)
+        return urgencyA.daysRemaining - urgencyB.daysRemaining;
+    });
+
+    sortedItems.forEach((item) => {
         const row = document.createElement("div");
         row.className = `grocery-item ${item.bought ? "checked" : ""}`;
+
+        // Calculate urgency if item has purchaseDate
+        let urgencyBadge = "";
+        if (item.purchaseDate) {
+            const urgency = calculateUrgency(item.purchaseDate, item.estimatedShelfLife || 14);
+            const urgencyClass = getUrgencyClass(urgency.status);
+            const daysText = formatDaysRemaining(urgency.daysRemaining, urgency.status);
+            urgencyBadge = `
+                <span class="urgency-badge ${urgencyClass}">
+                    <span class="urgency-dot"></span>
+                    <span class="urgency-label">${urgency.status.toUpperCase()}</span>
+                </span>
+                <span class="days-remaining">${daysText}</span>
+            `;
+        }
+
         row.innerHTML = `
             <label class="grocery-checkline">
               <input type="checkbox" ${item.bought ? "checked" : ""} aria-label="Comprado ${item.name}">
-              <span><strong>${item.name}</strong> ${item.qty ? `• ${item.qty}${item.unit ? ` ${item.unit}` : ""}` : ""}</span>
+              <span>
+                <strong>${item.name}</strong>
+                ${item.qty ? `• ${item.qty}${item.unit ? ` ${item.unit}` : ""}` : ""}
+                ${item.category && item.category !== "other" ? `<small class="category-tag">${item.category}</small>` : ""}
+              </span>
             </label>
+            <div class="item-urgency">
+              ${urgencyBadge}
+            </div>
             <label class="mini-toggle">Tengo <input type="checkbox" ${item.have ? "checked" : ""}></label>
             <button type="button" class="text-btn">Eliminar</button>
         `;
 
-        const [boughtInput, haveInput] = row.querySelectorAll("input");
+        const [boughtInput, haveInput] = row.querySelectorAll("input[type='checkbox']");
         boughtInput.addEventListener("change", (e) => {
             item.bought = e.target.checked;
             persistCustomLists();
@@ -1597,7 +1763,22 @@ function persistShoppingList() {
 }
 
 function loadCustomLists() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.customLists)) || []; } catch { return []; }
+    try {
+        const data = JSON.parse(localStorage.getItem(STORAGE_KEYS.customLists)) || [];
+        // Migrate old items to new schema (add missing fields)
+        return data.map(list => ({
+            ...list,
+            items: (list.items || []).map(item => ({
+                ...item,
+                purchaseDate: item.purchaseDate || Date.now(),
+                estimatedShelfLife: item.estimatedShelfLife || getDefaultShelfLife(null, item.category || "other"),
+                category: item.category || "other",
+                ingredientId: item.ingredientId || null
+            }))
+        }));
+    } catch {
+        return [];
+    }
 }
 function persistCustomLists() {
     localStorage.setItem(STORAGE_KEYS.customLists, JSON.stringify(state.customLists));
