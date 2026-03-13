@@ -875,15 +875,15 @@ function rankRecipes(recipes, context) {
     const scored = recipes.map((recipe) => {
         const baseScore = scoreRecipe(recipe, context);
 
-        // Apply recency penalty: heavily penalize recipes suggested recently
+        // Apply aggressive recency penalty: heavily penalize recipes suggested recently
         const recentEntry = state.recentSuggestedRecipes.find(item => item.id === recipe.id);
         if (recentEntry) {
             const daysSince = (Date.now() - recentEntry.timestamp) / (24 * 60 * 60 * 1000);
-            // Strong penalty that decays over days: 50 points immediately, 25 points after 2 days, 0 after 7 days
-            const recencyPenalty = Math.max(0, 50 - (daysSince * 8));
+            // Very aggressive penalty that barely decays: 200 points immediately, 30 points/day, 0 after 6.7 days
+            const recencyPenalty = Math.max(0, 200 - (daysSince * 30));
             baseScore.score -= recencyPenalty;
             if (recencyPenalty > 0) {
-                baseScore.reasons.push(`Sugerida recientemente (penalidad por variedad)`);
+                baseScore.reasons.push(`Sugerida recientemente (penalidad máxima por variedad)`);
             }
         }
 
@@ -891,35 +891,28 @@ function rankRecipes(recipes, context) {
     })
         .filter((item) => item.score > 10);
 
-    // Shuffle first so ties are broken randomly
-    shuffleArray(scored);
-
     // Sort by score first
     scored.sort((a, b) => b.score - a.score);
 
-    // Now apply diversity penalty to guarantee variety
-    // Strategy: allow max 2 recipes per family, applying heavy penalties to excess
+    // STRICT DIVERSITY: max 1 recipe per family in final results
+    // This ensures we never see 2+ recipes from the same family
     const finalRanked = [];
-    const familyCounts = {};
-    const maxPerFamily = 2;
+    const familyUsed = new Set();
 
     scored.forEach((item) => {
         const family = item.recipe.family;
-        const count = familyCounts[family] || 0;
 
-        // Apply escalating diversity penalty based on count
-        // 0 recipes: no penalty
-        // 1 recipe: 25 point penalty
-        // 2 recipes: 50 point penalty
-        // 3+ recipes: 75+ point penalty (increasingly penalized)
-        const diversityPenalty = count * 25;
-        item.adjustedScore = item.score - diversityPenalty;
+        // Skip this recipe if we already have one from this family
+        if (familyUsed.has(family)) {
+            return;
+        }
 
+        item.adjustedScore = item.score;
         finalRanked.push(item);
-        familyCounts[family] = count + 1;
+        familyUsed.add(family);
     });
 
-    return finalRanked.sort((a, b) => b.adjustedScore - a.adjustedScore);
+    return finalRanked;
 }
 
 function scoreRecipe(recipe, context) {
