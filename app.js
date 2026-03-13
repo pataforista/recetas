@@ -2075,6 +2075,277 @@ function sortResults(criterion) {
     applySortAndFilter();
 }
 
+// ── Recipe Browser Modal ──────────────────────────────────────────────────────
+
+const _browserState = { search: "", family: "", maxTime: 0 };
+
+const FAMILY_LABELS = {
+    pollo: "Pollo", frijol: "Frijol", nopal: "Nopal", huevo: "Huevo",
+    verduras: "Verduras", pescado: "Pescado", res: "Res", cerdo: "Cerdo",
+    tofu: "Tofu", elote: "Elote", pasta: "Pasta", postres: "Postres",
+    leguminosas: "Leguminosas", cereales: "Cereales", milpa: "Milpa",
+    atun: "Atún", atun_fresco: "Atún fresco", pescado_blanco: "Pez blanco",
+    pescados: "Pescados", queso: "Queso", maiz: "Maíz", miso: "Miso"
+};
+
+function openRecipesBrowserModal() {
+    const modal = document.getElementById("recipesBrowserModal");
+    modal.classList.remove("hidden");
+    _buildFamilyFilterChips();
+    _renderRecipesBrowser();
+    requestAnimationFrame(() => {
+        document.getElementById("recipesBrowserSearch")?.focus();
+    });
+    document.body.style.overflow = "hidden";
+}
+
+function closeRecipesBrowserModal() {
+    document.getElementById("recipesBrowserModal").classList.add("hidden");
+    document.getElementById("recipeDetailPanel").classList.add("hidden");
+    _browserState.search = "";
+    _browserState.family = "";
+    _browserState.maxTime = 0;
+    const input = document.getElementById("recipesBrowserSearch");
+    if (input) input.value = "";
+    document.body.style.overflow = "";
+}
+
+function _buildFamilyFilterChips() {
+    const container = document.getElementById("recipesFamilyFilter");
+    if (!container || container.children.length > 0) return;
+
+    const families = [...new Set(RECIPES.map(r => r.family))].sort();
+    const allBtn = document.createElement("button");
+    allBtn.type = "button";
+    allBtn.className = "option-chip active";
+    allBtn.dataset.family = "";
+    allBtn.textContent = "Todas";
+    allBtn.addEventListener("click", () => _setBrowserFamily("", allBtn));
+    container.appendChild(allBtn);
+
+    families.forEach(fam => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "option-chip";
+        btn.dataset.family = fam;
+        btn.textContent = FAMILY_LABELS[fam] || capitalize(fam);
+        btn.addEventListener("click", () => _setBrowserFamily(fam, btn));
+        container.appendChild(btn);
+    });
+}
+
+function _setBrowserFamily(family, clickedBtn) {
+    _browserState.family = family;
+    document.querySelectorAll("#recipesFamilyFilter .option-chip").forEach(b => b.classList.remove("active"));
+    clickedBtn.classList.add("active");
+    _renderRecipesBrowser();
+}
+
+function _setBrowserTime(maxTime, clickedBtn) {
+    _browserState.maxTime = maxTime;
+    document.querySelectorAll("#recipesTimeFilter .option-chip").forEach(b => b.classList.remove("active"));
+    clickedBtn.classList.add("active");
+    _renderRecipesBrowser();
+}
+
+function _renderRecipesBrowser() {
+    const box = document.getElementById("recipesBrowserResults");
+    const countEl = document.getElementById("recipesBrowserCount");
+    if (!box) return;
+
+    const q = _browserState.search.toLowerCase().trim();
+    const fam = _browserState.family;
+    const maxT = _browserState.maxTime;
+
+    const filtered = RECIPES.filter(r => {
+        if (fam && r.family !== fam) return false;
+        if (maxT && r.timeMin > maxT) return false;
+        if (q) {
+            return r.name.toLowerCase().includes(q) ||
+                   r.description?.toLowerCase().includes(q) ||
+                   r.family?.toLowerCase().includes(q);
+        }
+        return true;
+    });
+
+    if (countEl) countEl.textContent = filtered.length;
+
+    if (!filtered.length) {
+        box.innerHTML = `<div class="recipes-browser-empty">
+            <span class="material-symbols-outlined">search_off</span>
+            <p>Sin resultados para los filtros seleccionados</p>
+        </div>`;
+        return;
+    }
+
+    box.innerHTML = "";
+    filtered.forEach(recipe => {
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "recipe-browser-card";
+        card.setAttribute("aria-label", `Ver detalle de ${recipe.name}`);
+        card.innerHTML = `
+            <div class="rbc-top">
+                <span class="rbc-name">${escapeHtml(recipe.name)}</span>
+                <span class="rbc-arrow material-symbols-outlined" aria-hidden="true">chevron_right</span>
+            </div>
+            <div class="rbc-meta">
+                <span class="rbc-badge">
+                    <span class="material-symbols-outlined" aria-hidden="true">restaurant</span>
+                    ${escapeHtml(FAMILY_LABELS[recipe.family] || capitalize(recipe.family || ""))}
+                </span>
+                <span class="rbc-badge">
+                    <span class="material-symbols-outlined" aria-hidden="true">schedule</span>
+                    ${recipe.timeMin} min
+                </span>
+                <span class="rbc-badge">
+                    <span class="material-symbols-outlined" aria-hidden="true">flatware</span>
+                    ${escapeHtml(recipe.format || "")}
+                </span>
+                ${recipe.lowFriction ? `<span class="rbc-badge"><span class="material-symbols-outlined" aria-hidden="true">bolt</span>Fácil</span>` : ""}
+            </div>
+            <p class="rbc-desc">${escapeHtml(recipe.description || "")}</p>
+        `;
+        card.addEventListener("click", () => openRecipeDetail(recipe.id));
+        box.appendChild(card);
+    });
+}
+
+function openRecipeDetail(recipeId) {
+    const recipe = RECIPES.find(r => r.id === recipeId);
+    if (!recipe) return;
+
+    const panel = document.getElementById("recipeDetailPanel");
+    const titleEl = document.getElementById("recipeDetailTitle");
+    const contentEl = document.getElementById("recipeDetailContent");
+
+    titleEl.textContent = recipe.name;
+
+    // Build ingredients HTML
+    const detailedIds = new Set((recipe.ingredientsDetailed || []).map(i => i.id || i));
+    const allRequired = recipe.ingredientsDetailed?.length
+        ? recipe.ingredientsDetailed
+        : recipe.ingredientsRequired.map(id => ({ id }));
+
+    const requiredHtml = allRequired.map(item => {
+        const id = typeof item === "string" ? item : item.id;
+        const ing = INGREDIENTS.find(i => i.id === id);
+        const name = ing ? ing.name : id;
+        const amountStr = item.amount && item.unit ? `${item.amount} ${item.unit}` : "";
+        const notes = item.notes ? ` — ${item.notes}` : "";
+        return `<li class="rd-ingredient-item">
+            <span class="rd-ingredient-name">${escapeHtml(name)}${escapeHtml(notes)}</span>
+            ${amountStr ? `<span class="rd-ingredient-amount">${escapeHtml(amountStr)}</span>` : ""}
+        </li>`;
+    }).join("");
+
+    const optionalIngredients = recipe.ingredientsOptional?.filter(id => !detailedIds.has(id)) || [];
+    const optionalHtml = optionalIngredients.map(id => {
+        const ing = INGREDIENTS.find(i => i.id === id);
+        const name = ing ? ing.name : id;
+        return `<li class="rd-ingredient-item optional"><span class="rd-ingredient-name">${escapeHtml(name)}</span></li>`;
+    }).join("");
+
+    // Profile colors
+    function profileColor(field, value) {
+        const goodHigh = ["fiber", "protein", "vegetableVolume"];
+        const goodLow = ["satFat", "glyLoad", "energyDensity"];
+        if (goodHigh.includes(field)) {
+            return value === "alta" || value === "alto" || value === "muy alta" ? "good" : value === "baja" || value === "bajo" ? "bad" : "warn";
+        }
+        if (goodLow.includes(field)) {
+            return value === "baja" || value === "bajo" ? "good" : value === "alta" || value === "alto" ? "bad" : "warn";
+        }
+        return "";
+    }
+
+    const profileLabels = {
+        fiber: "Fibra", protein: "Proteína", satFat: "Grasa sat.",
+        glyLoad: "Carga gluc.", vegetableVolume: "Vol. vegetal", energyDensity: "Dens. energética"
+    };
+    const profileHtml = Object.entries(recipe.profile || {}).map(([key, val]) => `
+        <div class="rd-profile-item">
+            <span class="rd-profile-label">${profileLabels[key] || key}</span>
+            <span class="rd-profile-value ${profileColor(key, val)}">${val}</span>
+        </div>
+    `).join("");
+
+    // Cravings
+    const cravingsHtml = (recipe.cravings || []).map(c =>
+        `<span class="rd-craving-chip">${humanizeCraving(c)}</span>`
+    ).join("");
+
+    // Meal prep
+    const mp = recipe.mealPrep || {};
+    const mpParts = [];
+    if (mp.usesBases?.length) mpParts.push(`<strong>Usa bases:</strong> ${mp.usesBases.join(", ")}`);
+    if (mp.leavesBases?.length) mpParts.push(`<strong>Deja bases:</strong> ${mp.leavesBases.join(", ")}`);
+    if (mp.derivatives?.length) mpParts.push(`<strong>Deriva en:</strong> ${mp.derivatives.join(", ")}`);
+    const mpHtml = mpParts.length ? mpParts.join("<br>") : "Sin relaciones de meal prep";
+
+    const effortLabel = { bajo: "Esfuerzo bajo", medio: "Esfuerzo medio", alto: "Esfuerzo alto" };
+    const mealTypeLabel = { comida: "Comida", desayuno: "Desayuno", cena: "Cena", colacion: "Colación" };
+
+    contentEl.innerHTML = `
+        <div class="rd-hero">
+            <h3 class="rd-title">${escapeHtml(recipe.name)}</h3>
+            <div class="rd-badges">
+                <span class="rd-badge"><span class="material-symbols-outlined" aria-hidden="true">restaurant</span>${escapeHtml(FAMILY_LABELS[recipe.family] || capitalize(recipe.family || ""))}</span>
+                <span class="rd-badge"><span class="material-symbols-outlined" aria-hidden="true">schedule</span>${recipe.timeMin} min</span>
+                <span class="rd-badge"><span class="material-symbols-outlined" aria-hidden="true">flatware</span>${escapeHtml(recipe.format || "")}</span>
+                ${recipe.effort ? `<span class="rd-badge"><span class="material-symbols-outlined" aria-hidden="true">fitness_center</span>${effortLabel[recipe.effort] || recipe.effort}</span>` : ""}
+                ${recipe.mealType ? `<span class="rd-badge"><span class="material-symbols-outlined" aria-hidden="true">sunny</span>${mealTypeLabel[recipe.mealType] || recipe.mealType}</span>` : ""}
+            </div>
+            <p class="rd-desc">${escapeHtml(recipe.description || "")}</p>
+        </div>
+
+        ${cravingsHtml ? `
+        <div class="rd-section">
+            <p class="rd-section-title"><span class="material-symbols-outlined" aria-hidden="true">mood</span>Antojos que satisface</p>
+            <div class="rd-craving-chips">${cravingsHtml}</div>
+        </div>` : ""}
+
+        <div class="rd-section">
+            <p class="rd-section-title"><span class="material-symbols-outlined" aria-hidden="true">grocery</span>Ingredientes necesarios</p>
+            <ul class="rd-ingredients-list">${requiredHtml}</ul>
+        </div>
+
+        ${optionalHtml ? `
+        <div class="rd-section">
+            <p class="rd-section-title"><span class="material-symbols-outlined" aria-hidden="true">add_circle</span>Ingredientes opcionales</p>
+            <ul class="rd-ingredients-list">${optionalHtml}</ul>
+        </div>` : ""}
+
+        ${profileHtml ? `
+        <div class="rd-section">
+            <p class="rd-section-title"><span class="material-symbols-outlined" aria-hidden="true">nutrition</span>Perfil nutricional</p>
+            <div class="rd-profile-grid">${profileHtml}</div>
+        </div>` : ""}
+
+        <div class="rd-section">
+            <p class="rd-section-title"><span class="material-symbols-outlined" aria-hidden="true">inventory</span>Meal prep</p>
+            <p class="rd-mealprep-text">${mpHtml}</p>
+        </div>
+
+        <div class="rd-actions">
+            <button type="button" class="action-btn" id="rdAddToPlanBtn">
+                <span class="material-symbols-outlined" aria-hidden="true">calendar_add_on</span>
+                Añadir al plan
+            </button>
+        </div>
+    `;
+
+    document.getElementById("rdAddToPlanBtn")?.addEventListener("click", () => {
+        openDayPicker(recipe.id);
+    });
+
+    panel.classList.remove("hidden");
+}
+
+function closeRecipeDetail() {
+    document.getElementById("recipeDetailPanel").classList.add("hidden");
+}
+
 // ── Global Search Modal ───────────────────────────────────────────────────────
 
 function openSearchModal() {
@@ -2271,6 +2542,57 @@ function initSearch() {
             resSearch.focus();
         });
     }
+
+    // ── Recipe Browser Modal ────────────────────────────────────
+    document.getElementById("browseAllRecipesBtn")?.addEventListener("click", openRecipesBrowserModal);
+
+    document.getElementById("closeRecipesBrowser")?.addEventListener("click", closeRecipesBrowserModal);
+
+    document.getElementById("recipesBrowserModal")?.addEventListener("click", (e) => {
+        if (e.target === e.currentTarget) closeRecipesBrowserModal();
+    });
+
+    document.getElementById("backToRecipesList")?.addEventListener("click", closeRecipeDetail);
+
+    document.getElementById("closeRecipeDetail")?.addEventListener("click", closeRecipesBrowserModal);
+
+    const rbSearch = document.getElementById("recipesBrowserSearch");
+    const rbClear = document.getElementById("recipesBrowserSearchClear");
+    if (rbSearch) {
+        rbSearch.addEventListener("input", () => {
+            rbClear?.classList.toggle("hidden", !rbSearch.value);
+            _browserState.search = rbSearch.value;
+            clearTimeout(_inventoryDebounceTimer);
+            _inventoryDebounceTimer = setTimeout(() => _renderRecipesBrowser(), 150);
+        });
+    }
+    if (rbClear) {
+        rbClear.addEventListener("click", () => {
+            rbSearch.value = "";
+            rbClear.classList.add("hidden");
+            _browserState.search = "";
+            _renderRecipesBrowser();
+            rbSearch.focus();
+        });
+    }
+
+    document.querySelectorAll("#recipesTimeFilter .option-chip").forEach(btn => {
+        btn.addEventListener("click", () => _setBrowserTime(Number(btn.dataset.time), btn));
+    });
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            const browser = document.getElementById("recipesBrowserModal");
+            if (browser && !browser.classList.contains("hidden")) {
+                const detail = document.getElementById("recipeDetailPanel");
+                if (detail && !detail.classList.contains("hidden")) {
+                    closeRecipeDetail();
+                } else {
+                    closeRecipesBrowserModal();
+                }
+            }
+        }
+    });
 }
 
 init();

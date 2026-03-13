@@ -251,6 +251,9 @@
             <button id="backToContext" type="button" class="secondary">
               <span class="material-symbols-outlined">arrow_back</span> Ajustar filtros
             </button>
+            <button id="browseAllRecipesBtn" type="button" class="secondary">
+              <span class="material-symbols-outlined" aria-hidden="true">menu_book</span> Explorar todas
+            </button>
           </div>
         </div>
       </section>
@@ -492,6 +495,58 @@
       </div>
     </article>
   </template>
+
+  <!-- Modal: Recipe Browser -->
+  <div id="recipesBrowserModal" class="recipes-browser-modal hidden" role="dialog" aria-modal="true" aria-labelledby="recipesBrowserTitle">
+    <div class="recipes-browser-box">
+      <!-- List Panel -->
+      <div id="recipesBrowserList" class="recipes-browser-panel">
+        <div class="recipes-browser-header">
+          <div class="recipes-browser-title-row">
+            <span class="material-symbols-outlined" aria-hidden="true">menu_book</span>
+            <h2 id="recipesBrowserTitle">Explorar recetas</h2>
+            <span id="recipesBrowserCount" class="panel-badge"></span>
+            <button id="closeRecipesBrowser" class="modal-close" type="button" aria-label="Cerrar explorador">
+              <span class="material-symbols-outlined" aria-hidden="true">close</span>
+            </button>
+          </div>
+          <div class="recipes-browser-filters">
+            <div class="search-bar-wrap">
+              <span class="search-bar-icon material-symbols-outlined" aria-hidden="true">search</span>
+              <input id="recipesBrowserSearch" class="search-bar" type="search" placeholder="Buscar receta…" autocomplete="off" spellcheck="false" />
+              <button id="recipesBrowserSearchClear" class="search-clear hidden" type="button" aria-label="Limpiar búsqueda">
+                <span class="material-symbols-outlined" aria-hidden="true">close</span>
+              </button>
+            </div>
+            <div class="recipes-browser-filter-row">
+              <div id="recipesFamilyFilter" class="option-chips-group recipes-family-chips" role="group" aria-label="Filtrar por familia"></div>
+              <div id="recipesTimeFilter" class="option-chips-group" role="group" aria-label="Filtrar por tiempo">
+                <button type="button" class="option-chip active" data-time="0">Todos</button>
+                <button type="button" class="option-chip" data-time="20">≤ 20 min</button>
+                <button type="button" class="option-chip" data-time="30">≤ 30 min</button>
+                <button type="button" class="option-chip" data-time="45">≤ 45 min</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="recipesBrowserResults" class="recipes-browser-results"></div>
+      </div>
+
+      <!-- Detail Panel -->
+      <div id="recipeDetailPanel" class="recipes-browser-panel recipes-detail-panel hidden">
+        <div class="recipes-browser-header recipes-detail-header">
+          <button id="backToRecipesList" class="icon-btn" type="button" aria-label="Volver a la lista">
+            <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+          </button>
+          <h2 id="recipeDetailTitle">Detalle</h2>
+          <button id="closeRecipeDetail" class="modal-close" type="button" aria-label="Cerrar">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+          </button>
+        </div>
+        <div id="recipeDetailContent" class="recipe-detail-content"></div>
+      </div>
+    </div>
+  </div>
 
   <script type="module" src="./app.js"></script>
 </body>
