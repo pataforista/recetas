@@ -3348,6 +3348,207 @@ body {
   flex-shrink: 0;
   color: var(--md-sys-color-primary);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   NEW FEATURES: Pantry App Features
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Feature 1: Location selector in inventory ── */
+.small-controls select {
+  font-size: 0.78rem;
+  padding: 3px 6px;
+  border-radius: var(--md-sys-shape-corner-small);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface-container-low);
+  color: var(--md-sys-color-on-surface);
+  cursor: pointer;
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+.small-controls select:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ── Feature 2: Expiring Banner ── */
+.expiring-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, #FFF4E6, #FFE8CC);
+  border: 1.5px solid #F0A040;
+  border-radius: var(--md-sys-shape-corner-medium);
+  animation: slideDown 0.3s ease;
+}
+
+.expiring-banner.hidden {
+  display: none;
+}
+
+.expiring-icon {
+  color: #D4700A;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.expiring-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.expiring-content strong {
+  display: block;
+  font-size: 0.85rem;
+  color: #7A3A00;
+  font-weight: 600;
+}
+
+.expiring-names {
+  font-size: 0.78rem;
+  color: #9A5A10;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.expiring-chip {
+  flex-shrink: 0;
+  background: #D4700A !important;
+  color: #FFF !important;
+  border-color: #D4700A !important;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.expiring-chip .material-symbols-outlined {
+  font-size: 1rem;
+}
+
+.expiring-chip:hover {
+  background: #B85C00 !important;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Feature 3: Choice toast (multi-action) ── */
+.toast-choice {
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.toast-choice .toast-action {
+  padding: 4px 10px;
+  font-size: 0.78rem;
+}
+
+/* ── Feature 4: Waste Stats Card ── */
+.waste-stats-card {
+  background: var(--md-sys-color-surface-container-low);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.waste-stats-card.hidden {
+  display: none;
+}
+
+.waste-stats-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+  margin: 0 0 12px;
+}
+
+.waste-stats-title .material-symbols-outlined {
+  color: var(--md-sys-color-primary);
+  font-size: 1.2rem;
+}
+
+.waste-stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.waste-stat-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.85rem;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.waste-icon {
+  font-size: 1rem !important;
+}
+
+.waste-icon.consumed { color: var(--md-sys-color-success); }
+.waste-icon.wasted   { color: var(--md-sys-color-error); }
+
+.waste-stat-num {
+  font-size: 1.1rem;
+  font-weight: 700;
+  min-width: 32px;
+  text-align: right;
+}
+
+.waste-stat-num.consumed { color: var(--md-sys-color-success); }
+.waste-stat-num.wasted   { color: var(--md-sys-color-error); }
+
+.waste-progress-track {
+  height: 8px;
+  border-radius: 99px;
+  background: var(--md-sys-color-error-container);
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.waste-progress-fill {
+  height: 100%;
+  background: var(--md-sys-color-success);
+  border-radius: 99px;
+  transition: width 0.5s ease;
+}
+
+/* ── Feature 5: List Templates ── */
+.list-templates-section {
+  padding: 12px 0 8px;
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  margin-bottom: 12px;
+}
+
+.template-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.template-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.82rem;
+  padding: 5px 10px;
+}
+
+.template-chip .material-symbols-outlined {
+  font-size: 1rem;
 /* ─── Recipe Browser Modal ─── */
 .recipes-browser-modal {
   position: fixed;

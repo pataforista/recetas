@@ -10,6 +10,7 @@ const STORAGE_KEYS = {
     weeklyPlan: "milpa_nime_weekly_plan_v1",
     shoppingList: "milpa_nime_shopping_list_v1",
     customLists: "milpa_nime_custom_lists_v1",
+    wasteLog: "milpa_nime_waste_log_v1"
     recentSuggestedRecipes: "milpa_nime_recent_recipes_v1"
 };
 
@@ -27,6 +28,83 @@ const CRAVINGS = [
 ];
 
 const CATEGORY_ORDER = ["milpa", "leguminosas", "verduras", "proteinas", "lacteos", "cereales", "basicos", "grasas", "hierbas", "frutas"];
+
+// ─── Storage Location System ───
+const LOCATIONS = {
+    refri:      { label: "Refri",      icon: "ac_unit",           shelfMultiplier: 1.0 },
+    congelador: { label: "Congelador", icon: "kitchen",           shelfMultiplier: 6.0 },
+    despensa:   { label: "Despensa",   icon: "shelves",           shelfMultiplier: 1.0 },
+    otro:       { label: "Otro",       icon: "inventory_2",       shelfMultiplier: 1.0 }
+};
+
+// Default location based on ingredient category
+function getDefaultLocation(category) {
+    const refriCategories = ["lacteos", "proteinas", "frutas", "verduras", "milpa"];
+    const despensaCategories = ["leguminosas", "cereales", "basicos", "grasas", "hierbas"];
+    if (refriCategories.includes(category)) return "refri";
+    if (despensaCategories.includes(category)) return "despensa";
+    return "otro";
+}
+
+// ─── List Templates ───
+const LIST_TEMPLATES = [
+    {
+        id: "asado",
+        name: "Asado dominical",
+        icon: "outdoor_grill",
+        items: [
+            { name: "Carne para asar", category: "meat" },
+            { name: "Chorizos", category: "meat" },
+            { name: "Chiles para asar", category: "produce" },
+            { name: "Cebolla cambray", category: "produce" },
+            { name: "Tortillas de maíz", category: "pantry" },
+            { name: "Limones", category: "produce" },
+            { name: "Aguacate", category: "produce" },
+            { name: "Carbón", category: "other" }
+        ]
+    },
+    {
+        id: "limpieza",
+        name: "Limpieza mensual",
+        icon: "cleaning_services",
+        items: [
+            { name: "Jabón trastes", category: "other" },
+            { name: "Jabón lavatrastes", category: "other" },
+            { name: "Limpiador multiusos", category: "other" },
+            { name: "Papel de baño", category: "other" },
+            { name: "Cloro", category: "other" },
+            { name: "Esponja de cocina", category: "other" }
+        ]
+    },
+    {
+        id: "desayunos",
+        name: "Desayunos semanales",
+        icon: "breakfast_dining",
+        items: [
+            { name: "Huevos", category: "dairy" },
+            { name: "Leche", category: "dairy" },
+            { name: "Pan de caja", category: "pantry" },
+            { name: "Tortillas", category: "pantry" },
+            { name: "Frijoles", category: "pantry" },
+            { name: "Fruta de temporada", category: "produce" },
+            { name: "Queso fresco", category: "dairy" }
+        ]
+    },
+    {
+        id: "calditos",
+        name: "Semana de caldos",
+        icon: "soup_kitchen",
+        items: [
+            { name: "Pollo entero o piezas", category: "meat" },
+            { name: "Verduras para caldo", category: "produce" },
+            { name: "Pasta seca o arroz", category: "pantry" },
+            { name: "Jitomate", category: "produce" },
+            { name: "Cebolla", category: "produce" },
+            { name: "Chile serrano", category: "produce" },
+            { name: "Cilantro", category: "produce" }
+        ]
+    }
+];
 
 const CATEGORY_DESCRIPTIONS = {
     all: { name: "Todos", description: "Ver todos los ingredientes" },
@@ -136,6 +214,7 @@ const state = {
     weeklyPlan: loadWeeklyPlan(),
     shoppingList: loadShoppingList(),
     customLists: loadCustomLists(),
+    wasteLog: loadWasteLog(),
     activeCustomListId: null,
     groceryView: "auto",
     currentMonth: new Date().getMonth() + 1,
@@ -293,6 +372,18 @@ function bindEvents() {
         });
     });
 
+    // Expiring banner: "Cocinar esto" button
+    document.getElementById("expiringRescueBtn")?.addEventListener("click", () => {
+        const rescueChip = document.querySelector('#modeChips .option-chip[data-value="rescue"]');
+        if (rescueChip) {
+            document.querySelectorAll('#modeChips .option-chip').forEach(c => c.classList.remove('active'));
+            rescueChip.classList.add('active');
+        }
+        showView("today");
+        switchToStep("panel-context");
+        showToast("Modo Rescate activado — encuentra recetas para lo urgente");
+    });
+
     // Build day picker buttons once
     buildDayPickerButtons();
 
@@ -407,6 +498,93 @@ function showToast(message, actionText = null, actionCb = null, duration = 4000)
             toast.addEventListener("animationend", () => toast.remove());
         }
     }, duration);
+}
+
+/**
+ * Shows a toast with multiple action buttons (choice toast).
+ * choices = [{text, cb}]
+ */
+function showChoice(message, choices, duration = 6000) {
+    const container = document.getElementById("toastContainer");
+    const toast = document.createElement("div");
+    toast.className = "toast toast-choice";
+
+    const textSpan = document.createElement("span");
+    textSpan.textContent = message;
+    toast.appendChild(textSpan);
+
+    choices.forEach(({ text, cb }) => {
+        const btn = document.createElement("button");
+        btn.className = "toast-action";
+        btn.textContent = text;
+        btn.addEventListener("click", () => {
+            cb();
+            toast.classList.add("exit");
+            setTimeout(() => toast.remove(), 300);
+        });
+        toast.appendChild(btn);
+    });
+
+    container.appendChild(toast);
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.classList.add("exit");
+            toast.addEventListener("animationend", () => toast.remove());
+        }
+    }, duration);
+}
+
+// ─── Shopping List Helpers ───
+function mapIngredientCategoryToListCategory(ingCategory) {
+    const map = {
+        lacteos: "dairy",
+        verduras: "produce",
+        frutas: "produce",
+        proteinas: "meat",
+        milpa: "pantry",
+        leguminosas: "pantry",
+        cereales: "pantry",
+        basicos: "pantry",
+        grasas: "pantry",
+        hierbas: "pantry"
+    };
+    return map[ingCategory] || "other";
+}
+
+function addIngredientToShoppingList(ingredient) {
+    let list = state.customLists.find(l => l.id === state.activeCustomListId)
+        || state.customLists.find(l => l.name === "Compra rápida")
+        || null;
+
+    if (!list) {
+        list = { id: `lst_${Date.now()}`, name: "Compra rápida", items: [] };
+        state.customLists.unshift(list);
+        state.activeCustomListId = list.id;
+    }
+
+    if (list.items.some(i => i.ingredientId === ingredient.id || i.name === ingredient.name)) {
+        showToast(`${ingredient.name} ya está en la lista`);
+        return;
+    }
+
+    list.items.push({
+        id: `itm_${Date.now()}`,
+        name: ingredient.name,
+        qty: null,
+        unit: "",
+        have: false,
+        bought: false,
+        purchaseDate: Date.now(),
+        estimatedShelfLife: getDefaultShelfLife(ingredient.id, ingredient.category),
+        category: mapIngredientCategoryToListCategory(ingredient.category),
+        ingredientId: ingredient.id
+    });
+
+    persistCustomLists();
+    showToast(`${ingredient.name} añadido a compras`, "Ver lista", () => {
+        state.groceryView = "custom";
+        showView("grocery");
+    });
 }
 
 // ─── Confirm Modal ───
@@ -655,6 +833,8 @@ function countIngredientsByCategory(category) {
 function renderInventory() {
     inventoryListEl.innerHTML = "";
 
+    renderExpiringBanner();
+
     const filtered = INGREDIENTS.filter((item) =>
         activeCategoryFilter === "all" ? true : item.category === activeCategoryFilter
     );
@@ -688,14 +868,56 @@ function renderInventory() {
         hasIt.checked = hasItem;
         hasIt.setAttribute("aria-label", `Tengo ${ingredient.name}`);
         hasIt.addEventListener("change", () => {
-            ensureInventoryItem(ingredient.id);
-            state.inventory[ingredient.id].has = hasIt.checked;
-            if (!hasIt.checked) {
+            ensureInventoryItem(ingredient.id, ingredient.category);
+            const nowChecked = hasIt.checked;
+            state.inventory[ingredient.id].has = nowChecked;
+
+            if (nowChecked) {
+                // Record when the item entered the pantry
+                if (!state.inventory[ingredient.id].dateAdded) {
+                    state.inventory[ingredient.id].dateAdded = Date.now();
+                }
+                // Auto-set location if not already set
+                if (!state.inventory[ingredient.id].location) {
+                    const defaultLoc = getDefaultLocation(ingredient.category);
+                    state.inventory[ingredient.id].location = defaultLoc;
+                    locationSelect.value = defaultLoc;
+                }
+            } else {
+                // Item removed from inventory — handle waste logging + shopping list
+                const prevUrgency = state.inventory[ingredient.id].urgency;
+                const hadTracking = !!state.inventory[ingredient.id].dateAdded;
+
+                if (prevUrgency === "urgent" && hadTracking) {
+                    showChoice(`¿Qué pasó con ${ingredient.name}?`, [
+                        { text: "Lo usé", cb: () => {
+                            logWaste(ingredient.id, ingredient.name, "consumed");
+                            addIngredientToShoppingList(ingredient);
+                        }},
+                        { text: "Se echó a perder", cb: () => {
+                            logWaste(ingredient.id, ingredient.name, "wasted");
+                        }}
+                    ]);
+                } else {
+                    if (hadTracking) logWaste(ingredient.id, ingredient.name, "consumed");
+                    showToast(`${ingredient.name} retirado`, "Añadir a compras", () => {
+                        addIngredientToShoppingList(ingredient);
+                    });
+                }
+
                 state.inventory[ingredient.id].urgency = "normal";
+                urgencySelect.value = "normal";
+                delete state.inventory[ingredient.id].dateAdded;
+            }
+
+            urgencySelect.disabled = !nowChecked;
+            locationSelect.disabled = !nowChecked;
+            wrapper.classList.toggle("has-item", nowChecked);
             }
             updateInventoryItemUrgency(ingredient.id, wrapper);
             persistInventory();
             updateInventoryBadge();
+            renderExpiringBanner();
         });
 
         row1.appendChild(nameEl);
@@ -714,8 +936,24 @@ function renderInventory() {
         urgencySelect.value = state.inventory[ingredient.id]?.urgency || "normal";
         urgencySelect.disabled = !state.inventory[ingredient.id]?.has;
         urgencySelect.addEventListener("change", () => {
-            ensureInventoryItem(ingredient.id);
+            ensureInventoryItem(ingredient.id, ingredient.category);
             state.inventory[ingredient.id].urgency = urgencySelect.value;
+            persistInventory();
+            renderExpiringBanner();
+        });
+
+        // Location selector (Feature 1: Storage Locations)
+        const locationSelect = document.createElement("select");
+        locationSelect.setAttribute("aria-label", `Ubicación de ${ingredient.name}`);
+        locationSelect.innerHTML = Object.entries(LOCATIONS).map(([val, loc]) =>
+            `<option value="${val}">${loc.label}</option>`
+        ).join("");
+        const currentLocation = state.inventory[ingredient.id]?.location || getDefaultLocation(ingredient.category);
+        locationSelect.value = currentLocation;
+        locationSelect.disabled = !state.inventory[ingredient.id]?.has;
+        locationSelect.addEventListener("change", () => {
+            ensureInventoryItem(ingredient.id, ingredient.category);
+            state.inventory[ingredient.id].location = locationSelect.value;
             persistInventory();
         });
 
@@ -725,6 +963,7 @@ function renderInventory() {
         seasonalTag.textContent = isInSeason ? "🌱 Temporada" : (ingredient.seasonal ? "Estacional" : "Todo el año");
 
         row2.appendChild(urgencySelect);
+        row2.appendChild(locationSelect);
         row2.appendChild(seasonalTag);
 
         wrapper.appendChild(row1);
@@ -737,6 +976,26 @@ function renderInventory() {
     updateInventoryBadge();
 }
 
+// ─── Expiring Banner ───
+function renderExpiringBanner() {
+    const banner = document.getElementById("expiringBanner");
+    if (!banner) return;
+
+    const urgentItems = Object.entries(state.inventory)
+        .filter(([, item]) => item.has && (item.urgency === "urgent" || item.urgency === "soon"))
+        .map(([id]) => INGREDIENTS.find(i => i.id === id)?.name)
+        .filter(Boolean);
+
+    if (!urgentItems.length) {
+        banner.classList.add("hidden");
+        return;
+    }
+
+    banner.classList.remove("hidden");
+    const countEl = document.getElementById("expiringCount");
+    const namesEl = document.getElementById("expiringNames");
+    if (countEl) countEl.textContent = `${urgentItems.length} ingrediente${urgentItems.length !== 1 ? "s" : ""} para usar pronto`;
+    if (namesEl) namesEl.textContent = urgentItems.slice(0, 3).join(", ") + (urgentItems.length > 3 ? "…" : "");
 function updateInventoryItemUrgency(ingredientId, wrapper) {
     const urgencySelect = wrapper.dataset.urgencySelect || wrapper.querySelector("select");
     const hasItem = !!state.inventory[ingredientId]?.has;
@@ -1327,6 +1586,8 @@ function renderGroceryHub() {
     renderGroceryList();
     renderCustomLists();
     renderCustomListItems();
+    renderListTemplates();
+    renderWasteStats();
     setupDefaultPurchaseDate();
 }
 
@@ -1749,11 +2010,13 @@ function handleReset() {
             state.selectedCravings = [];
             state.weeklyPlan = {};
             state.customLists = [];
+            state.wasteLog = [];
             state.activeCustomListId = null;
             persistInventory();
             persistCravings();
             persistWeeklyPlan();
             persistCustomLists();
+            persistWasteLog();
             renderInventory();
             renderCravings();
             renderInitialMessage();
@@ -1784,9 +2047,13 @@ function prettyIngredients(ingredients) {
     }).join(", ");
 }
 
-function ensureInventoryItem(id) {
+function ensureInventoryItem(id, category = null) {
     if (!state.inventory[id]) {
-        state.inventory[id] = { has: false, urgency: "normal" };
+        state.inventory[id] = {
+            has: false,
+            urgency: "normal",
+            location: category ? getDefaultLocation(category) : "otro"
+        };
     }
 }
 
@@ -1857,6 +2124,105 @@ function loadCravings() {
 }
 function persistCravings() {
     localStorage.setItem(STORAGE_KEYS.cravings, JSON.stringify(state.selectedCravings));
+}
+function loadWasteLog() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.wasteLog)) || []; } catch { return []; }
+}
+function persistWasteLog() {
+    localStorage.setItem(STORAGE_KEYS.wasteLog, JSON.stringify(state.wasteLog));
+}
+
+// ─── Waste Logging ───
+function logWaste(ingredientId, ingredientName, action) {
+    const now = new Date();
+    state.wasteLog.push({
+        ingredientId,
+        ingredientName,
+        action, // "consumed" | "wasted"
+        month: now.getMonth() + 1,
+        year: now.getFullYear(),
+        date: now.getTime()
+    });
+    persistWasteLog();
+}
+
+// ─── Waste Stats Rendering ───
+function renderWasteStats() {
+    const section = document.getElementById("wasteStatsSection");
+    const content = document.getElementById("wasteStatsContent");
+    if (!section || !content) return;
+
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+    const monthLog = state.wasteLog.filter(e => e.month === month && e.year === year);
+
+    if (!monthLog.length) {
+        section.classList.add("hidden");
+        return;
+    }
+
+    section.classList.remove("hidden");
+    const consumed = monthLog.filter(e => e.action === "consumed").length;
+    const wasted = monthLog.filter(e => e.action === "wasted").length;
+    const total = consumed + wasted;
+    const consumedPct = total ? Math.round((consumed / total) * 100) : 0;
+    const monthNames = ["Enero","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+    const monthName = monthNames[month - 1];
+
+    content.innerHTML = `
+        <div class="waste-stat-row">
+            <span class="waste-stat-label"><span class="material-symbols-outlined waste-icon consumed">check_circle</span> Usados este ${monthName}</span>
+            <span class="waste-stat-num consumed">${consumed}</span>
+        </div>
+        <div class="waste-stat-row">
+            <span class="waste-stat-label"><span class="material-symbols-outlined waste-icon wasted">delete</span> Desperdiciados</span>
+            <span class="waste-stat-num wasted">${wasted}</span>
+        </div>
+        <div class="waste-progress-track">
+            <div class="waste-progress-fill" style="width:${consumedPct}%"></div>
+        </div>
+        <p class="hint" style="margin-top:4px;text-align:center;">${consumedPct}% aprovechado este mes</p>
+    `;
+}
+
+// ─── List Templates Rendering ───
+function renderListTemplates() {
+    const chips = document.getElementById("templateChips");
+    if (!chips) return;
+    chips.innerHTML = "";
+
+    LIST_TEMPLATES.forEach(template => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "chip template-chip";
+        btn.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">${template.icon}</span> ${template.name}`;
+        btn.addEventListener("click", () => {
+            const list = {
+                id: `lst_${Date.now()}`,
+                name: template.name,
+                items: template.items.map((item, idx) => ({
+                    id: `itm_${Date.now()}_${idx}`,
+                    name: item.name,
+                    qty: null,
+                    unit: "",
+                    have: false,
+                    bought: false,
+                    purchaseDate: Date.now(),
+                    estimatedShelfLife: getDefaultShelfLife(null, item.category === "produce" ? "dairy" : item.category === "meat" ? "meat" : "pantry"),
+                    category: item.category,
+                    ingredientId: null
+                }))
+            };
+            state.customLists.unshift(list);
+            state.activeCustomListId = list.id;
+            state.groceryView = "custom";
+            persistCustomLists();
+            renderGroceryHub();
+            showToast(`Lista "${template.name}" creada con ${template.items.length} productos`);
+        });
+        chips.appendChild(btn);
+    });
 }
 
 function loadRecentSuggestedRecipes() {
