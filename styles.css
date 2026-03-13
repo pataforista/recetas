@@ -1,40 +1,43 @@
 :root {
-  /* Bento UI Redesign Tokens - Refined Palette */
-  --bento-bg: #262240; /* Dark background as suggested */
+  /* Refined Mid-Century Modern Palette */
+  --clr-ochre: #D29D1A;
+  --clr-teal: #0A7E8C;
+  --clr-brick: #9F3E22;
+  --clr-violet: #352554;
+  --clr-stone: #F2F1ED;
+
+  /* Bento UI Redesign Tokens */
+  --bento-bg: var(--clr-violet);
   --bento-card-bg: #FFFFFF;
   --bento-gap: 16px;
   --bento-radius: 24px;
-  --bento-padding: 20px;
-  --bento-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  --bento-border: 1px solid rgba(255, 255, 255, 0.1);
-
-  /* User Suggested Palette Mapper */
-  --clr-deep: #262240;
-  --clr-teal: #036873;
-  --clr-gold: #D98F07;
-  --clr-orange: #D97904;
-  --clr-red: #8C2C16;
+  --bento-padding: 24px;
+  --bento-shadow: 0 12px 48px rgba(0, 0, 0, 0.25);
+  --bento-border: 1px solid rgba(255, 255, 255, 0.08);
 
   /* M3 Mapping */
   --md-sys-color-primary: var(--clr-teal); 
   --md-sys-color-on-primary: #FFFFFF;
-  --md-sys-color-primary-container: #E0F2F1;
-  --md-sys-color-on-primary-container: #004D40;
+  --md-sys-color-primary-container: #E0F5F6;
+  --md-sys-color-on-primary-container: #00363D;
 
-  --md-sys-color-secondary: var(--clr-gold);
+  --md-sys-color-secondary: var(--clr-ochre);
   --md-sys-color-on-secondary: #FFFFFF;
+  
+  --md-sys-color-tertiary: var(--clr-brick);
+  --md-sys-color-on-tertiary: #FFFFFF;
 
   --md-sys-color-background: var(--bento-bg);
   --md-sys-color-on-background: #FFFFFF;
   
   --md-sys-color-surface: var(--bento-card-bg);
-  --md-sys-color-on-surface: var(--clr-deep);
-  --md-sys-color-surface-variant: #F5F5F5;
+  --md-sys-color-on-surface: var(--clr-violet);
+  --md-sys-color-surface-variant: var(--clr-stone);
   --md-sys-color-on-surface-variant: #5A5A5A;
   
   /* Shapes */
   --md-sys-shape-corner-extra-large: var(--bento-radius);
-  --md-sys-shape-corner-large: 16px;
+  --md-sys-shape-corner-large: 18px;
   --md-sys-shape-corner-medium: 12px;
   --md-sys-shape-corner-small: 8px;
 
@@ -128,10 +131,11 @@ button,
 body {
   margin: 0;
   font-family: 'Outfit', system-ui, sans-serif;
-  background-color: var(--bento-bg);
+  background-color: var(--clr-violet);
   background-image:
-    radial-gradient(at 0% 0%, rgba(3, 104, 115, 0.2) 0px, transparent 55%),
-    radial-gradient(at 100% 100%, rgba(217, 143, 7, 0.15) 0px, transparent 55%);
+    radial-gradient(at 0% 0%, rgba(10, 126, 140, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(210, 157, 26, 0.1) 0px, transparent 40%),
+    radial-gradient(at 50% 100%, rgba(159, 62, 34, 0.08) 0px, transparent 50%);
   background-attachment: fixed;
   color: var(--md-sys-color-on-background);
   line-height: 1.5;
@@ -226,13 +230,14 @@ body {
 }
 
 .app-header h1 {
-  color: white;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  color: var(--clr-ochre); /* Luxury Branding concept */
+  text-shadow: 0 4px 12px rgba(0,0,0,0.4);
 }
 
 .subtitle {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
+  letter-spacing: 0.03em;
 }
 
 /* Redesigning background decorations for Bento */
@@ -308,7 +313,7 @@ body {
 .panel {
   grid-column: 1 / -1;
   background: white;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.04);
   border-radius: var(--bento-radius);
   padding: var(--bento-padding);
   box-shadow: var(--bento-shadow);
@@ -316,13 +321,13 @@ body {
   transition: transform 0.25s ease;
   overflow: hidden;
   position: relative;
-  color: var(--clr-deep); /* Dark text on white card */
+  color: var(--clr-violet); /* Dark text on white card */
 }
 
 .panel h2 {
-  color: var(--clr-teal);
+  color: var(--clr-ochre); /* Mid-Century highlight */
   margin-top: 0;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 800;
   display: flex;
   align-items: center;
@@ -1050,20 +1055,26 @@ button:disabled {
 }
 
 #suggestBtn {
-  background: var(--md-sys-color-primary);
-  color: var(--md-sys-color-on-primary);
+  background: var(--clr-teal);
+  color: white;
   flex: 2;
-  box-shadow: none;
+  border-radius: 20px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  box-shadow: 0 8px 20px rgba(10, 126, 140, 0.3);
+  transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
 }
 
 #suggestBtn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--md-sys-color-primary) 92%, white 8%);
-  box-shadow: var(--md-sys-elevation-1);
+  background: #0C95A6;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(10, 126, 140, 0.4);
 }
 
 #suggestBtn:active:not(:disabled) {
-  background: color-mix(in srgb, var(--md-sys-color-primary) 88%, white 12%);
-  box-shadow: none;
+  transform: translateY(0);
+  scale: 0.98;
+  box-shadow: 0 4px 10px rgba(10, 126, 140, 0.3);
 }
 
 button.secondary {
@@ -1349,23 +1360,24 @@ button.error-btn:hover {
   bottom: 24px;
   left: var(--bento-gap);
   right: var(--bento-gap);
-  background: white;
+  background: var(--clr-violet);
   display: flex;
   justify-content: space-around;
   align-items: center;
   height: 72px;
   border-radius: 36px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
   z-index: 1001;
   max-width: 600px;
   margin: 0 auto;
+  backdrop-filter: blur(20px);
 }
 
 .nav-item {
   background: transparent;
   border: none;
-  color: #A0A0A0;
+  color: rgba(255, 255, 255, 0.4);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1376,11 +1388,12 @@ button.error-btn:hover {
 }
 
 .nav-item.active {
-  color: var(--clr-teal);
+  color: var(--clr-ochre);
 }
 
 .nav-item.active .material-symbols-outlined {
-  background: rgba(3, 104, 115, 0.1);
+  background: rgba(210, 157, 26, 0.15);
+  border-radius: 12px;
 }
 
 /* â”€â”€â”€ Planner â”€â”€â”€ */
