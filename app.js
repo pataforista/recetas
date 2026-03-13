@@ -9,7 +9,8 @@ const STORAGE_KEYS = {
     cravings: "milpa_nime_cravings_v1",
     weeklyPlan: "milpa_nime_weekly_plan_v1",
     shoppingList: "milpa_nime_shopping_list_v1",
-    customLists: "milpa_nime_custom_lists_v1"
+    customLists: "milpa_nime_custom_lists_v1",
+    recentSuggestedRecipes: "milpa_nime_recent_recipes_v1"
 };
 
 const CRAVINGS = [
@@ -137,7 +138,8 @@ const state = {
     customLists: loadCustomLists(),
     activeCustomListId: null,
     groceryView: "auto",
-    currentMonth: new Date().getMonth() + 1
+    currentMonth: new Date().getMonth() + 1,
+    recentSuggestedRecipes: loadRecentSuggestedRecipes()
 };
 
 // ─── DOM refs ───
@@ -816,6 +818,10 @@ function handleSuggest() {
         }
 
         _lastRanked = ranked;
+
+        // Save suggested recipes to history for diversity tracking
+        addToRecentRecipes(ranked.map(item => item.recipe.id));
+
         _sortCriterion = "score";
         document.querySelectorAll(".sort-chip").forEach(c => c.classList.toggle("active", c.dataset.sort === "score"));
         document.getElementById("resultsToolbar")?.classList.remove("hidden");
@@ -866,30 +872,63 @@ function shuffleArray(arr) {
 }
 
 function rankRecipes(recipes, context) {
-    const scored = recipes.map((recipe) => scoreRecipe(recipe, context))
+    // Calculate frequency of each recipe in recent history
+    const recipeFrequency = {};
+    state.recentSuggestedRecipes.forEach(item => {
+        recipeFrequency[item.id] = (recipeFrequency[item.id] || 0) + 1;
+    });
+
+    const scored = recipes.map((recipe) => {
+        const baseScore = scoreRecipe(recipe, context);
+
+        // Apply penalties based on frequency in history
+        const frequency = recipeFrequency[recipe.id] || 0;
+        const lastEntry = state.recentSuggestedRecipes.slice().reverse().find(item => item.id === recipe.id);
+
+        if (frequency > 0 && lastEntry) {
+            const daysSince = (Date.now() - lastEntry.timestamp) / (24 * 60 * 60 * 1000);
+
+            // Frequency-based penalty: every appearance adds 150 points of penalty
+            const frequencyPenalty = frequency * 150;
+
+            // Recency penalty: much longer cooldown (30 days instead of 7)
+            // 300 points immediately, decays at 10 points/day
+            const recencyPenalty = Math.max(0, 300 - (daysSince * 10));
+
+            const totalPenalty = frequencyPenalty + recencyPenalty;
+            baseScore.score -= totalPenalty;
+
+            if (totalPenalty > 0) {
+                baseScore.reasons.push(`Sugerida ${frequency}x recientemente (${Math.ceil(totalPenalty)} pts penalidad)`);
+            }
+        }
+
+        return baseScore;
+    })
         .filter((item) => item.score > 10);
 
-    // Shuffle first so that ties are broken randomly (Math.random inside sort is unreliable)
-    shuffleArray(scored);
-
-    // Variety penalty: avoid suggesting too many recipes from the same family in the top results
+    // Sort by score first
     scored.sort((a, b) => b.score - a.score);
 
+    // STRICT DIVERSITY: max 1 recipe per family in final results
+    // This ensures we never see 2+ recipes from the same family
     const finalRanked = [];
-    const familyCounts = {};
+    const familyUsed = new Set();
 
     scored.forEach((item) => {
         const family = item.recipe.family;
-        const count = familyCounts[family] || 0;
 
-        // If we already have 2 of this family, apply a diversity penalty for ranking
-        const adjustedScore = item.score - (count * 8);
-        item.adjustedScore = adjustedScore;
+        // Skip this recipe if we already have one from this family
+        if (familyUsed.has(family)) {
+            return;
+        }
+
+        item.adjustedScore = item.score;
         finalRanked.push(item);
-        familyCounts[family] = count + 1;
+        familyUsed.add(family);
     });
 
-    return finalRanked.sort((a, b) => b.adjustedScore - a.adjustedScore);
+    return finalRanked;
 }
 
 function scoreRecipe(recipe, context) {
@@ -1793,6 +1832,32 @@ function loadCravings() {
 }
 function persistCravings() {
     localStorage.setItem(STORAGE_KEYS.cravings, JSON.stringify(state.selectedCravings));
+}
+
+function loadRecentSuggestedRecipes() {
+    try {
+        const data = JSON.parse(localStorage.getItem(STORAGE_KEYS.recentSuggestedRecipes)) || [];
+        // Keep only recipes from the last 7 days and max 30 recipes
+        const oneWeekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+        return data.filter(item => item.timestamp > oneWeekAgo).slice(-30);
+    } catch {
+        return [];
+    }
+}
+
+function persistRecentSuggestedRecipes() {
+    localStorage.setItem(STORAGE_KEYS.recentSuggestedRecipes, JSON.stringify(state.recentSuggestedRecipes));
+}
+
+function addToRecentRecipes(recipeIds) {
+    const now = Date.now();
+    recipeIds.forEach(id => {
+        state.recentSuggestedRecipes = state.recentSuggestedRecipes.filter(item => item.id !== id);
+        state.recentSuggestedRecipes.push({ id, timestamp: now });
+    });
+    // Keep only last 30 entries
+    state.recentSuggestedRecipes = state.recentSuggestedRecipes.slice(-30);
+    persistRecentSuggestedRecipes();
 }
 
 // ─── PWA Install ───
