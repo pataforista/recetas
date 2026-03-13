@@ -139,7 +139,8 @@ const state = {
     activeCustomListId: null,
     groceryView: "auto",
     currentMonth: new Date().getMonth() + 1,
-    recentSuggestedRecipes: loadRecentSuggestedRecipes()
+    recentSuggestedRecipes: loadRecentSuggestedRecipes(),
+    lastSuggestedRecipeIds: []  // Track last suggestion set to force diversity
 };
 
 // ─── DOM refs ───
@@ -979,7 +980,11 @@ function handleSuggest() {
         _lastRanked = ranked;
 
         // Save suggested recipes to history for diversity tracking
-        addToRecentRecipes(ranked.map(item => item.recipe.id));
+        const suggestedIds = ranked.map(item => item.recipe.id);
+        addToRecentRecipes(suggestedIds);
+
+        // Force diversity: exclude these exact recipes from the next suggestion
+        state.lastSuggestedRecipeIds = suggestedIds;
 
         _sortCriterion = "score";
         document.querySelectorAll(".sort-chip").forEach(c => c.classList.toggle("active", c.dataset.sort === "score"));
@@ -1040,6 +1045,13 @@ function rankRecipes(recipes, context) {
     const scored = recipes.map((recipe) => {
         const baseScore = scoreRecipe(recipe, context);
         const frequency = recipeFrequency[recipe.id] || 0;
+
+        // HARD EXCLUSION: If this recipe was in the last suggestion set, exclude it completely
+        if (state.lastSuggestedRecipeIds.includes(recipe.id)) {
+            baseScore.score = -999;  // Mark for filtering
+            baseScore.reasons.push("Sugerida justo ahora (fuerza rotación)");
+            return baseScore;
+        }
 
         // EXCLUSION: If recipe appears 3+ times in recent history, exclude it completely
         if (frequency >= 3) {
