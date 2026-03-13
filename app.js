@@ -10,7 +10,7 @@ const STORAGE_KEYS = {
     weeklyPlan: "milpa_nime_weekly_plan_v1",
     shoppingList: "milpa_nime_shopping_list_v1",
     customLists: "milpa_nime_custom_lists_v1",
-    wasteLog: "milpa_nime_waste_log_v1"
+    wasteLog: "milpa_nime_waste_log_v1",
     recentSuggestedRecipes: "milpa_nime_recent_recipes_v1"
 };
 
@@ -917,7 +917,7 @@ function renderInventory() {
             urgencySelect.disabled = !nowChecked;
             locationSelect.disabled = !nowChecked;
             wrapper.classList.toggle("has-item", nowChecked);
-            }
+
             updateInventoryItemUrgency(ingredient.id, wrapper);
             persistInventory();
             updateInventoryBadge();
@@ -1000,6 +1000,8 @@ function renderExpiringBanner() {
     const namesEl = document.getElementById("expiringNames");
     if (countEl) countEl.textContent = `${urgentItems.length} ingrediente${urgentItems.length !== 1 ? "s" : ""} para usar pronto`;
     if (namesEl) namesEl.textContent = urgentItems.slice(0, 3).join(", ") + (urgentItems.length > 3 ? "…" : "");
+}
+
 function updateInventoryItemUrgency(ingredientId, wrapper) {
     const urgencySelect = wrapper.dataset.urgencySelect || wrapper.querySelector("select");
     const hasItem = !!state.inventory[ingredientId]?.has;
