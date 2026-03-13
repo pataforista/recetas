@@ -872,18 +872,34 @@ function shuffleArray(arr) {
 }
 
 function rankRecipes(recipes, context) {
+    // Calculate frequency of each recipe in recent history
+    const recipeFrequency = {};
+    state.recentSuggestedRecipes.forEach(item => {
+        recipeFrequency[item.id] = (recipeFrequency[item.id] || 0) + 1;
+    });
+
     const scored = recipes.map((recipe) => {
         const baseScore = scoreRecipe(recipe, context);
 
-        // Apply aggressive recency penalty: heavily penalize recipes suggested recently
-        const recentEntry = state.recentSuggestedRecipes.find(item => item.id === recipe.id);
-        if (recentEntry) {
-            const daysSince = (Date.now() - recentEntry.timestamp) / (24 * 60 * 60 * 1000);
-            // Very aggressive penalty that barely decays: 200 points immediately, 30 points/day, 0 after 6.7 days
-            const recencyPenalty = Math.max(0, 200 - (daysSince * 30));
-            baseScore.score -= recencyPenalty;
-            if (recencyPenalty > 0) {
-                baseScore.reasons.push(`Sugerida recientemente (penalidad máxima por variedad)`);
+        // Apply penalties based on frequency in history
+        const frequency = recipeFrequency[recipe.id] || 0;
+        const lastEntry = state.recentSuggestedRecipes.slice().reverse().find(item => item.id === recipe.id);
+
+        if (frequency > 0 && lastEntry) {
+            const daysSince = (Date.now() - lastEntry.timestamp) / (24 * 60 * 60 * 1000);
+
+            // Frequency-based penalty: every appearance adds 150 points of penalty
+            const frequencyPenalty = frequency * 150;
+
+            // Recency penalty: much longer cooldown (30 days instead of 7)
+            // 300 points immediately, decays at 10 points/day
+            const recencyPenalty = Math.max(0, 300 - (daysSince * 10));
+
+            const totalPenalty = frequencyPenalty + recencyPenalty;
+            baseScore.score -= totalPenalty;
+
+            if (totalPenalty > 0) {
+                baseScore.reasons.push(`Sugerida ${frequency}x recientemente (${Math.ceil(totalPenalty)} pts penalidad)`);
             }
         }
 
