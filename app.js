@@ -186,20 +186,25 @@ function setupDefaultPurchaseDate() {
 
 // ─── Init ───
 function init() {
+    // Critical path - render UI immediately
     renderInventoryFilters();
     renderInventory();
     renderCravings();
-    initializeCustomListState();
     bindEvents();
     renderInitialMessage();
-    setupPWAInstall();
-    registerSW();
     initNavigation();
     initAccordions();
-    setupOfflineDetection();
-    handleShortcutParam();
-    maybeImportFromUrl();
-    initSearch();
+
+    // Defer non-critical initialization to avoid blocking
+    requestIdleCallback(() => {
+        initializeCustomListState();
+        setupPWAInstall();
+        registerSW();
+        setupOfflineDetection();
+        handleShortcutParam();
+        maybeImportFromUrl();
+        initSearch();
+    }, { timeout: 2000 });
 }
 
 // Handle ?view= query param from manifest shortcuts
@@ -532,9 +537,11 @@ function renderInventoryFilters() {
     };
 
     // Render visible filters in scrollable container
+    const filtersFragment = document.createDocumentFragment();
     visibleCategories.forEach((category) => {
-        inventoryFiltersEl.appendChild(createCategoryChip(category));
+        filtersFragment.appendChild(createCategoryChip(category));
     });
+    inventoryFiltersEl.appendChild(filtersFragment);
 
     // Show/hide menu button based on hidden categories
     const menuBtn = document.getElementById("inventoryMenuBtn");
@@ -546,6 +553,7 @@ function renderInventoryFilters() {
 
     // Populate modal grid with enhanced category cards
     if (inventoryFilterGrid) {
+        const gridFragment = document.createDocumentFragment();
         categories.forEach((category) => {
             const categoryCard = document.createElement("div");
             categoryCard.className = "category-card";
@@ -613,8 +621,9 @@ function renderInventoryFilters() {
                 });
             });
 
-            inventoryFilterGrid.appendChild(categoryCard);
+            gridFragment.appendChild(categoryCard);
         });
+        inventoryFilterGrid.appendChild(gridFragment);
     }
 }
 
@@ -765,9 +774,11 @@ function renderCravings() {
 
     // Render chips in scrollable container - show first 6 items
     const visibleCount = 6;
+    const cravingsFragment = document.createDocumentFragment();
     CRAVINGS.slice(0, visibleCount).forEach((craving) => {
-        cravingChipsEl.appendChild(createCravingChip(craving));
+        cravingsFragment.appendChild(createCravingChip(craving));
     });
+    cravingChipsEl.appendChild(cravingsFragment);
 
     // Show menu toggle button if there are more items
     const menuBtn = document.getElementById("cravingMenuBtn");
@@ -779,9 +790,11 @@ function renderCravings() {
 
     // Render all chips in modal
     if (cravingModalGrid) {
+        const modalFragment = document.createDocumentFragment();
         CRAVINGS.forEach((craving) => {
-            cravingModalGrid.appendChild(createCravingChip(craving));
+            modalFragment.appendChild(createCravingChip(craving));
         });
+        cravingModalGrid.appendChild(modalFragment);
     }
 }
 
