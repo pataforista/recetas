@@ -1546,6 +1546,137 @@ button.error-btn:hover {
   text-decoration: line-through;
 }
 
+/* ─── Urgency Indicators ─── */
+.item-urgency {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.urgency-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.urgency-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.urgency-fresh {
+  background: color-mix(in srgb, #4CAF50 12%, transparent);
+  color: #2E7D32;
+}
+
+.urgency-fresh .urgency-dot {
+  background: #4CAF50;
+}
+
+.urgency-aging {
+  background: color-mix(in srgb, #FFC107 12%, transparent);
+  color: #F57F17;
+}
+
+.urgency-aging .urgency-dot {
+  background: #FFC107;
+}
+
+.urgency-urgent {
+  background: color-mix(in srgb, #FF9800 12%, transparent);
+  color: #E65100;
+}
+
+.urgency-urgent .urgency-dot {
+  background: #FF9800;
+}
+
+.urgency-expired {
+  background: color-mix(in srgb, var(--md-sys-color-error) 12%, transparent);
+  color: var(--md-sys-color-error);
+}
+
+.urgency-expired .urgency-dot {
+  background: var(--md-sys-color-error);
+}
+
+.days-remaining {
+  font-size: 0.75rem;
+  color: var(--md-sys-color-on-surface-variant);
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.category-tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 6px;
+  background: color-mix(in srgb, var(--md-sys-color-primary) 15%, transparent);
+  color: var(--md-sys-color-primary);
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+/* ─── Form Groups ─── */
+.form-group {
+  display: grid;
+  gap: 4px;
+}
+
+.form-group label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface);
+}
+
+.form-group input,
+.form-group select {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--md-sys-color-outline);
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  font-size: 0.9rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--md-sys-color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--md-sys-color-primary) 20%, transparent);
+}
+
+.form-group select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235A4E40' d='M2 4l4 4 4-4z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 32px;
+  cursor: pointer;
+}
+
+.form-group input[readonly] {
+  background: var(--md-sys-color-surface-container);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 /* â”€â”€â”€ Toast Notifications â”€â”€â”€ */
 .toast-container {
   position: fixed;
