@@ -2997,7 +2997,7 @@ function openRecipeDetail(recipeId) {
     const mpHtml = mpParts.length ? mpParts.join("<br>") : "Sin relaciones de meal prep";
 
     const effortLabel = { bajo: "Esfuerzo bajo", medio: "Esfuerzo medio", alto: "Esfuerzo alto" };
-    const mealTypeLabel = { comida: "Comida", desayuno: "Desayuno", cena: "Cena", colacion: "Colación" };
+    const mealTypeLabel = { comida: "Comida", desayuno: "Desayuno", cena: "Cena", colacion: "Colación", comida_indulgente: "Comida no tan sana" };
 
     contentEl.innerHTML = `
         <div class="rd-hero">
