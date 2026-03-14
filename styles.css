@@ -1332,7 +1332,7 @@ button.error-btn:hover {
   display: flex;
   justify-content: space-around;
   align-items: center;
-  height: 72px;
+  height: 80px;
   border-radius: 36px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
@@ -1345,20 +1345,26 @@ button.error-btn:hover {
 .nav-item {
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.5);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 8px 12px;
-  transition: color 0.25s ease;
+  gap: 6px;
+  padding: 10px 14px;
+  transition: color 0.3s ease, transform 0.2s ease;
   flex: 1;
   cursor: pointer;
   min-width: 0;
+  border-radius: 12px;
+}
+
+.nav-item:hover {
+  color: rgba(255, 255, 255, 0.85);
+  transform: translateY(-2px);
 }
 
 .nav-item span:last-child {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.3px;
 }
@@ -1373,15 +1379,17 @@ button.error-btn:hover {
 
 /* Pill indicator (Material 3 / iOS style) */
 .nav-item > .material-symbols-outlined {
-  padding: 4px 16px;
+  padding: 6px 18px;
   border-radius: 16px;
-  transition: background 0.25s ease, transform 0.2s ease;
+  font-size: 28px;
+  transition: background 0.3s ease, transform 0.2s ease;
 }
 
 .nav-item .nav-icon-wrap .material-symbols-outlined {
-  padding: 4px 16px;
+  padding: 6px 18px;
   border-radius: 16px;
-  transition: background 0.25s ease, transform 0.2s ease;
+  font-size: 28px;
+  transition: background 0.3s ease, transform 0.2s ease;
 }
 
 .nav-item.active {
@@ -1390,8 +1398,8 @@ button.error-btn:hover {
 
 .nav-item.active > .material-symbols-outlined,
 .nav-item.active .nav-icon-wrap .material-symbols-outlined {
-  background: rgba(210, 157, 26, 0.18);
-  transform: translateY(-1px);
+  background: rgba(210, 157, 26, 0.22);
+  transform: translateY(-2px);
 }
 
 /* Grocery badge */
