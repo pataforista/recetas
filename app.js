@@ -287,6 +287,11 @@ function init() {
         handleShortcutParam();
         maybeImportFromUrl();
         initSearch();
+        initFAB();
+        initQuickAddBar();
+        initAddRecipeToList();
+        initSwipeActions();
+        renderRecentLists();
     }, { timeout: 2000 });
 }
 
@@ -1802,6 +1807,7 @@ function renderCustomLists() {
         btn.textContent = `${list.name} (${list.items.length})`;
         btn.addEventListener("click", () => {
             state.activeCustomListId = list.id;
+            trackRecentList(list.id);
             renderCustomLists();
             renderCustomListItems();
         });
@@ -1850,7 +1856,7 @@ function renderCustomListItems() {
 
     sortedItems.forEach((item) => {
         const row = document.createElement("div");
-        row.className = `grocery-item ${item.bought ? "checked" : ""}`;
+        row.className = `grocery-item custom-list-item-row ${item.bought ? "checked" : ""}`;
 
         // Calculate urgency if item has purchaseDate
         let urgencyBadge = "";
@@ -1880,7 +1886,7 @@ function renderCustomListItems() {
               ${urgencyBadge}
             </div>
             <label class="mini-toggle">Tengo <input type="checkbox" ${item.have ? "checked" : ""}></label>
-            <button type="button" class="text-btn">Eliminar</button>
+            <button type="button" class="text-btn item-delete-btn" style="display:none;">Eliminar</button>
         `;
 
         const [boughtInput, haveInput] = row.querySelectorAll("input[type='checkbox']");
@@ -2302,7 +2308,301 @@ function setupPWAInstall() {
     });
 }
 
-// ─── Service Worker ───
+// ─── FAB (Floating Action Button) ───
+function initFAB() {
+    const fabMainBtn = document.getElementById("fabMainBtn");
+    const fabMenu = document.getElementById("fabMenu");
+    const fabBackdrop = document.getElementById("fabBackdrop");
+    const fabNewList = document.getElementById("fabNewList");
+    const fabQuickAdd = document.getElementById("fabQuickAdd");
+    const fabGoToGrocery = document.getElementById("fabGoToGrocery");
+
+    if (!fabMainBtn) return;
+
+    // Toggle FAB menu
+    fabMainBtn.addEventListener("click", () => {
+        const isExpanded = fabMainBtn.getAttribute("aria-expanded") === "true";
+        fabMainBtn.setAttribute("aria-expanded", !isExpanded);
+        fabMenu.classList.toggle("hidden");
+        fabBackdrop.classList.toggle("hidden");
+    });
+
+    // Close FAB menu when clicking backdrop
+    fabBackdrop.addEventListener("click", () => {
+        fabMainBtn.setAttribute("aria-expanded", "false");
+        fabMenu.classList.add("hidden");
+        fabBackdrop.classList.add("hidden");
+    });
+
+    // FAB actions
+    fabNewList?.addEventListener("click", () => {
+        showView("grocery");
+        const input = document.getElementById("customListName");
+        setTimeout(() => {
+            input?.focus();
+            input?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 300);
+        closeFABMenu();
+    });
+
+    fabQuickAdd?.addEventListener("click", () => {
+        showView("grocery");
+        setTimeout(() => {
+            document.getElementById("quickAddInput")?.focus();
+        }, 300);
+        closeFABMenu();
+    });
+
+    fabGoToGrocery?.addEventListener("click", () => {
+        showView("grocery");
+        closeFABMenu();
+    });
+
+    function closeFABMenu() {
+        fabMainBtn.setAttribute("aria-expanded", "false");
+        fabMenu.classList.add("hidden");
+        fabBackdrop.classList.add("hidden");
+    }
+}
+
+// ─── Quick Add Bar ───
+function initQuickAddBar() {
+    const quickAddInput = document.getElementById("quickAddInput");
+    const quickAddBtn = document.getElementById("quickAddBtn");
+
+    if (!quickAddBtn) return;
+
+    const addItem = () => {
+        const itemName = quickAddInput.value.trim();
+        if (!itemName) return;
+
+        const customLists = loadCustomLists();
+        if (customLists.length === 0) {
+            showToast("Crea una lista primero");
+            return;
+        }
+
+        // Use active list or the most recent one
+        const activeListId = state.activeCustomListId || customLists[customLists.length - 1].id;
+        const list = customLists.find(l => l.id === activeListId);
+
+        if (!list) {
+            showToast("Selecciona una lista");
+            return;
+        }
+
+        list.items.push({
+            id: `itm_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            name: itemName,
+            category: "other",
+            completed: false,
+            dateAdded: new Date().toISOString().split("T")[0]
+        });
+
+        persistCustomLists();
+        quickAddInput.value = "";
+        renderCustomListItems();
+        showToast(`"${itemName}" agregado a ${list.name}`);
+        trackRecentList(activeListId);
+    };
+
+    quickAddBtn.addEventListener("click", addItem);
+    quickAddInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            addItem();
+        }
+    });
+}
+
+// ─── Recent Lists Tracking ───
+function trackRecentList(listId) {
+    const recentKey = "milpa_nime_recent_lists_v1";
+    const recent = JSON.parse(localStorage.getItem(recentKey) || "[]");
+    const filtered = recent.filter(id => id !== listId);
+    filtered.unshift(listId);
+    localStorage.setItem(recentKey, JSON.stringify(filtered.slice(0, 5)));
+    renderRecentLists();
+}
+
+function renderRecentLists() {
+    const recentKey = "milpa_nime_recent_lists_v1";
+    const recent = JSON.parse(localStorage.getItem(recentKey) || "[]");
+    const customLists = loadCustomLists();
+    const section = document.getElementById("recentListsSection");
+    const buttons = document.getElementById("recentListsButtons");
+
+    if (!section || recent.length === 0) {
+        section?.classList.add("hidden");
+        return;
+    }
+
+    section.classList.remove("hidden");
+    buttons.innerHTML = "";
+
+    recent.forEach(listId => {
+        const list = customLists.find(l => l.id === listId);
+        if (list) {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.textContent = `${list.name} (${list.items.length})`;
+            btn.addEventListener("click", () => {
+                state.activeCustomListId = listId;
+                renderCustomLists();
+                renderCustomListItems();
+                document.getElementById("quickAddInput")?.focus();
+            });
+            buttons.appendChild(btn);
+        }
+    });
+}
+
+// ─── Add Recipe to Shopping List ───
+function initAddRecipeToList() {
+    document.addEventListener("click", (e) => {
+        if (e.target.closest(".add-to-list-btn")) {
+            const card = e.target.closest(".recipe-card");
+            if (!card) return;
+
+            const titleEl = card.querySelector(".recipe-title");
+            const recipeName = titleEl?.textContent || "Receta";
+            const ingredientsText = card.querySelector(".ingredients-text")?.textContent || "";
+
+            showAddRecipeToListModal(recipeName, ingredientsText);
+        }
+    });
+
+    document.getElementById("cancelAddRecipeToList")?.addEventListener("click", closeAddRecipeToListModal);
+}
+
+function showAddRecipeToListModal(recipeName, ingredientsText) {
+    const modal = document.getElementById("addRecipeToListModal");
+    const recipeNameEl = document.getElementById("addRecipeToListRecipeName");
+    const optionsContainer = document.getElementById("addRecipeToListOptions");
+
+    if (!modal) return;
+
+    recipeNameEl.textContent = recipeName;
+    optionsContainer.innerHTML = "";
+
+    const customLists = loadCustomLists();
+    if (customLists.length === 0) {
+        const msg = document.createElement("p");
+        msg.className = "hint";
+        msg.textContent = "Crea una lista primero para agregar ingredientes";
+        optionsContainer.appendChild(msg);
+        modal.classList.remove("hidden");
+        return;
+    }
+
+    customLists.forEach(list => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "secondary";
+        btn.textContent = list.name;
+        btn.style.marginBottom = "8px";
+        btn.style.width = "100%";
+
+        btn.addEventListener("click", () => {
+            addIngredientsToList(list, ingredientsText, recipeName);
+            closeAddRecipeToListModal();
+        });
+
+        optionsContainer.appendChild(btn);
+    });
+
+    // Add "Create new list" option
+    const newListBtn = document.createElement("button");
+    newListBtn.type = "button";
+    newListBtn.style.marginTop = "12px";
+    newListBtn.style.borderTop = "1px solid rgba(53, 37, 84, 0.1)";
+    newListBtn.style.paddingTop = "12px";
+    newListBtn.textContent = "+ Crear nueva lista";
+    newListBtn.addEventListener("click", () => {
+        closeAddRecipeToListModal();
+        showView("grocery");
+        setTimeout(() => document.getElementById("customListName")?.focus(), 300);
+    });
+    optionsContainer.appendChild(newListBtn);
+
+    modal.classList.remove("hidden");
+}
+
+function closeAddRecipeToListModal() {
+    document.getElementById("addRecipeToListModal")?.classList.add("hidden");
+}
+
+function addIngredientsToList(list, ingredientsText, recipeName) {
+    const ingredients = ingredientsText
+        .split(",")
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+
+    if (ingredients.length === 0) {
+        showToast("No se encontraron ingredientes");
+        return;
+    }
+
+    const customLists = loadCustomLists();
+    const targetList = customLists.find(l => l.id === list.id);
+    if (!targetList) return;
+
+    ingredients.forEach(ingredient => {
+        targetList.items.push({
+            id: `itm_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            name: ingredient,
+            category: "other",
+            completed: false,
+            dateAdded: new Date().toISOString().split("T")[0]
+        });
+    });
+
+    persistCustomLists();
+    trackRecentList(list.id);
+    showToast(`${ingredients.length} ingredientes de "${recipeName}" agregados a ${list.name}`);
+}
+
+// ─── Swipe Actions for Shopping List Items ───
+function initSwipeActions() {
+    let startX = 0;
+    let currentX = 0;
+
+    document.addEventListener("touchstart", (e) => {
+        const row = e.target.closest(".custom-list-item-row");
+        if (!row) return;
+        startX = e.touches[0].clientX;
+    }, { passive: true });
+
+    document.addEventListener("touchmove", (e) => {
+        const row = e.target.closest(".custom-list-item-row");
+        if (!row) return;
+        currentX = e.touches[0].clientX;
+    }, { passive: true });
+
+    document.addEventListener("touchend", (e) => {
+        const row = e.target.closest(".custom-list-item-row");
+        if (!row) return;
+
+        const diff = startX - currentX;
+        if (Math.abs(diff) < 30) return; // Ignore small movements
+
+        if (diff > 50) {
+            // Swiped left - show delete action
+            const deleteBtn = row.querySelector(".item-delete-btn");
+            if (deleteBtn) {
+                row.classList.add("swiped");
+                deleteBtn.style.display = "block";
+            }
+        } else if (diff < -50) {
+            // Swiped right - hide delete action
+            row.classList.remove("swiped");
+            const deleteBtn = row.querySelector(".item-delete-btn");
+            if (deleteBtn) deleteBtn.style.display = "none";
+        }
+    });
+}
+
+// Service Worker ───
 function registerSW() {
     if (!("serviceWorker" in navigator)) return;
 
