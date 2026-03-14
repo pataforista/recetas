@@ -284,6 +284,10 @@ function init() {
     const fabContainer = document.getElementById("fabContainer");
     if (fabContainer) fabContainer.classList.add("fab-hidden");
 
+    // Initialize FAB immediately (needed for quick navigation)
+    initFAB();
+    initQuickAddBar();
+
     // Defer non-critical initialization to avoid blocking
     requestIdleCallback(() => {
         initializeCustomListState();
@@ -293,8 +297,6 @@ function init() {
         handleShortcutParam();
         maybeImportFromUrl();
         initSearch();
-        initFAB();
-        initQuickAddBar();
         initAddRecipeToList();
         initSwipeActions();
         renderRecentLists();

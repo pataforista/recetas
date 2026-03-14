@@ -1420,6 +1420,7 @@ button.error-btn:hover {
   opacity: 0;
   pointer-events: none;
   transform: scale(0.8);
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 
@@ -1739,7 +1740,9 @@ button.error-btn:hover {
   bottom: calc(var(--nav-height) + 32px);
   right: 24px;
   z-index: 1000;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .fab-main {
