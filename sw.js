@@ -1,6 +1,8 @@
-const CACHE_NAME = "milpa-nime-v2";
+const CACHE_NAME = "milpa-nime-v3";
+const RUNTIME_CACHE = "milpa-nime-runtime";
 
-const APP_ASSETS = [
+// Critical assets required for app to work offline
+const CRITICAL_ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
@@ -14,64 +16,138 @@ const APP_ASSETS = [
   "./data/recipes.js"
 ];
 
+// Optional modules (lazy-loaded, can fail offline)
+const OPTIONAL_MODULES = [
+  "./modules/virtual_list.js"
+];
+
+// File types that should be cached
+const CACHE_EXTENSIONS = /\.(js|css|svg|woff2|png|gif)$/;
+
+/**
+ * Install: Cache critical assets
+ */
 self.addEventListener("install", (event) => {
+  console.log("[SW] Installing cache:", CACHE_NAME);
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_ASSETS))
+    caches.open(CACHE_NAME).then((cache) => {
+      // Cache all critical assets
+      return cache.addAll(CRITICAL_ASSETS).then(() => {
+        // Try to cache optional modules (non-critical)
+        Promise.all(OPTIONAL_MODULES.map(url =>
+          fetch(url).then(r => cache.put(url, r)).catch(() => {
+            console.log("[SW] Optional module not cached:", url);
+          })
+        ));
+      });
+    })
   );
-  // Don't skipWaiting automatically — wait for user confirmation
 });
 
+/**
+ * Activate: Clean up old caches
+ */
 self.addEventListener("activate", (event) => {
+  console.log("[SW] Activating, cleaning old caches");
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
         keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
+          .filter((key) => key !== CACHE_NAME && key !== RUNTIME_CACHE)
+          .map((key) => {
+            console.log("[SW] Deleting old cache:", key);
+            return caches.delete(key);
+          })
       )
     )
   );
   self.clients.claim();
 });
 
-// Allow the app to trigger skipWaiting when user confirms update
+/**
+ * Message: Allow app to trigger skipWaiting for updates
+ */
 self.addEventListener("message", (event) => {
   if (event.data === "skipWaiting") {
+    console.log("[SW] User confirmed update, skipWaiting");
     self.skipWaiting();
   }
 });
 
+/**
+ * Fetch: Smart caching strategy
+ * - Navigation (HTML): network-first with fallback
+ * - Assets (JS, CSS, etc): cache-first with fallback
+ * - External APIs: network-only
+ */
 self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") return;
+  const { request } = event;
+  const url = new URL(request.url);
 
-  // For navigation requests (HTML), try network first then cache
-  if (event.request.mode === "navigate") {
+  // Skip non-GET and external requests
+  if (request.method !== "GET") return;
+  if (url.origin !== self.location.origin) {
+    // External request: network-only
+    event.respondWith(fetch(request).catch(() =>
+      new Response("Offline: external resource unavailable", { status: 503 })
+    ));
+    return;
+  }
+
+  // HTML navigation: network-first with cache fallback
+  if (request.mode === "navigate") {
     event.respondWith(
-      fetch(event.request)
+      fetch(request)
         .then((response) => {
+          // Update cache with fresh version
           const cloned = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, cloned));
           return response;
         })
-        .catch(() => caches.match("./index.html"))
+        .catch(() => {
+          // Fall back to cached index.html
+          return caches.match("./index.html").then(r =>
+            r || new Response("Offline: app shell unavailable", { status: 503 })
+          );
+        })
     );
     return;
   }
 
-  // For other assets: cache-first with network fallback
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
+  // Assets: cache-first with network fallback + update in background
+  if (CACHE_EXTENSIONS.test(url.pathname)) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) {
+          // Return cached immediately, update in background if online
+          fetch(request)
+            .then((fresh) => {
+              const cloned = fresh.clone();
+              caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, cloned));
+            })
+            .catch(() => {}); // Silently fail if offline
+          return cached;
+        }
 
-      return fetch(event.request)
-        .then((response) => {
-          // Only cache successful same-origin responses
-          if (response.ok && (response.type === "basic" || response.type === "cors")) {
-            const cloned = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
-          }
-          return response;
-        });
-    })
+        // Not in cache: fetch and cache
+        return fetch(request)
+          .then((response) => {
+            if (response.ok && (response.type === "basic" || response.type === "cors")) {
+              const cloned = response.clone();
+              caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, cloned));
+            }
+            return response;
+          })
+          .catch(() => new Response("Offline: asset unavailable", { status: 503 }));
+      })
+    );
+    return;
+  }
+
+  // Everything else: network with fallback
+  event.respondWith(
+    fetch(request).catch(() =>
+      new Response("Offline: request failed", { status: 503 })
+    )
   );
 });
