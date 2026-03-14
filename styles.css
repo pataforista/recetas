@@ -1663,6 +1663,210 @@ button.error-btn:hover {
   opacity: 0.6;
 }
 
+/* Floating Action Button (FAB) */
+.fab-container {
+  position: fixed;
+  bottom: calc(var(--nav-height) + 32px);
+  right: 24px;
+  z-index: 1000;
+}
+
+.fab-main {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--clr-ochre);
+  border: none;
+  color: var(--clr-violet);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(210, 157, 26, 0.3);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  font-size: 28px;
+}
+
+.fab-main:hover {
+  box-shadow: 0 12px 32px rgba(210, 157, 26, 0.4);
+  transform: scale(1.05);
+}
+
+.fab-main:active {
+  transform: scale(0.95);
+}
+
+.fab-main[aria-expanded=”true”] {
+  transform: rotate(45deg);
+}
+
+.fab-menu {
+  position: absolute;
+  bottom: 72px;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.fab-menu.hidden {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.fab-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bento-card-bg);
+  border: none;
+  border-radius: 12px;
+  color: var(--clr-violet);
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.fab-action:hover {
+  background: var(--clr-stone);
+  transform: translateX(-4px);
+}
+
+.fab-action .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.fab-label {
+  display: none;
+}
+
+@media (min-width: 600px) {
+  .fab-label {
+    display: inline;
+  }
+}
+
+.fab-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+  transition: opacity 0.3s ease;
+}
+
+.fab-backdrop.hidden {
+  visibility: hidden;
+  opacity: 0;
+}
+
+/* Quick Add Bar */
+.quick-add-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  background: var(--clr-stone);
+  padding: 12px;
+  border-radius: 12px;
+}
+
+#quickAddInput {
+  flex: 1;
+  border: none;
+  background: var(--bento-card-bg);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-size: 14px;
+  color: var(--clr-violet);
+}
+
+#quickAddInput::placeholder {
+  color: rgba(53, 37, 84, 0.5);
+}
+
+#quickAddBtn {
+  padding: 8px 12px;
+  background: var(--clr-teal);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+#quickAddBtn:hover {
+  opacity: 0.9;
+}
+
+/* Recent Lists Section */
+.recent-lists-section {
+  margin-bottom: 16px;
+}
+
+.recent-lists-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.recent-lists-buttons button {
+  padding: 8px 12px;
+  background: var(--clr-stone);
+  border: 1px solid rgba(53, 37, 84, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--clr-violet);
+  transition: all 0.2s ease;
+}
+
+.recent-lists-buttons button:hover {
+  background: var(--bento-card-bg);
+  border-color: var(--clr-teal);
+  color: var(--clr-teal);
+}
+
+/* Swipe Actions */
+.swipe-actions-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.custom-list-item-actions {
+  display: flex;
+  gap: 8px;
+  animation: slideOutRight 0.3s ease;
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.custom-list-item-actions button {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
 /* â”€â”€â”€ Toast Notifications â”€â”€â”€ */
 .toast-container {
   position: fixed;

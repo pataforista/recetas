@@ -324,6 +324,14 @@
         </div>
 
         <div id="customListView" class="grocery-view">
+          <!-- Quick-Add Bar (always visible) -->
+          <div id="quickAddBar" class="quick-add-bar">
+            <input id="quickAddInput" type="text" placeholder="Agregar ingrediente..." maxlength="50" />
+            <button id="quickAddBtn" type="button" class="secondary" aria-label="Agregar rápido">
+              <span class="material-symbols-outlined">add</span>
+            </button>
+          </div>
+
           <!-- Feature: List Templates -->
           <div class="list-templates-section">
             <p class="hint" style="margin-bottom:6px;">Empezar desde plantilla:</p>
@@ -334,6 +342,13 @@
             <input id="customListName" type="text" maxlength="40" placeholder="Ej. Súper del sábado" required />
             <button type="submit" class="secondary">Crear</button>
           </form>
+
+          <!-- Recent Lists Section -->
+          <div id="recentListsSection" class="recent-lists-section hidden">
+            <p class="hint" style="margin-bottom:6px;">Listas recientes:</p>
+            <div id="recentListsButtons" class="recent-lists-buttons"></div>
+          </div>
+
           <div id="customListsContainer" class="custom-lists-container"></div>
           <form id="addCustomItemForm" class="stack-form hidden">
             <h3 id="activeCustomListTitle">Nueva compra</h3>
@@ -394,6 +409,28 @@
       </section>
     </div>
   </main>
+
+  <!-- Floating Action Button (FAB) -->
+  <div id="fabContainer" class="fab-container">
+    <button id="fabMainBtn" class="fab-main" aria-label="Menú rápido" aria-expanded="false">
+      <span class="material-symbols-outlined">add</span>
+    </button>
+    <div id="fabMenu" class="fab-menu hidden">
+      <button id="fabNewList" class="fab-action" aria-label="Nueva lista">
+        <span class="material-symbols-outlined">note_add</span>
+        <span class="fab-label">Nueva lista</span>
+      </button>
+      <button id="fabQuickAdd" class="fab-action" aria-label="Agregar item">
+        <span class="material-symbols-outlined">shopping_cart</span>
+        <span class="fab-label">Agregar item</span>
+      </button>
+      <button id="fabGoToGrocery" class="fab-action" aria-label="Ir a compras">
+        <span class="material-symbols-outlined">local_shipping</span>
+        <span class="fab-label">Ir a compras</span>
+      </button>
+    </div>
+    <div id="fabBackdrop" class="fab-backdrop hidden"></div>
+  </div>
 
   <nav class="bottom-nav" aria-label="Navegación principal">
     <button class="nav-item active" data-view="today" aria-label="Hoy" aria-current="page">
@@ -470,6 +507,19 @@
     </div>
   </div>
 
+  <!-- Modal: Add Recipe Ingredients to List -->
+  <div id="addRecipeToListModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="addRecipeToListTitle">
+    <div class="modal">
+      <h3 id="addRecipeToListTitle">Agregar ingredientes a lista</h3>
+      <p id="addRecipeToListRecipeName" class="hint"></p>
+      <p class="hint" style="margin-bottom: 12px;">Selecciona a qué lista agregarlos:</p>
+      <div id="addRecipeToListOptions" class="add-recipe-list-options"></div>
+      <div class="actions" style="justify-content: flex-end; margin-top: 8px;">
+        <button id="cancelAddRecipeToList" class="secondary" type="button">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
 
   <template id="recipeCardTemplate">
     <article class="recipe-card">
@@ -516,6 +566,10 @@
         <button type="button" class="action-btn add-to-plan-btn">
           <span class="material-symbols-outlined" aria-hidden="true">calendar_add_on</span>
           Añadir al plan
+        </button>
+        <button type="button" class="action-btn add-to-list-btn">
+          <span class="material-symbols-outlined" aria-hidden="true">shopping_cart</span>
+          Comprar
         </button>
         <button type="button" class="action-btn save-recipe-btn">
           <span class="material-symbols-outlined" aria-hidden="true">bookmark</span>
