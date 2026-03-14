@@ -1227,7 +1227,7 @@ function rankRecipes(recipes, context) {
     });
 
     const scored = recipes.map((recipe) => {
-        const baseScore = scoreRecipe(recipe, context);
+        const baseScore = getScoreCached(recipe, context);
 
         // Apply penalties based on frequency in history
         const frequency = recipeFrequency[recipe.id] || 0;
@@ -2162,6 +2162,7 @@ function loadInventory() {
 }
 function persistInventory() {
     localStorage.setItem(STORAGE_KEYS.inventory, JSON.stringify(state.inventory));
+    clearScoringCache(); // Invalidate scores when inventory changes
 }
 function loadWeeklyPlan() {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.weeklyPlan)) || {}; } catch { return {}; }
@@ -2700,9 +2701,6 @@ function showUpdateBanner(registration) {
 /** Ranked recipes kept in module scope so search/sort can re-render without re-ranking */
 let _lastRanked = [];
 let _sortCriterion = "score";
-let _inventoryDebounceTimer = null;
-let _globalDebounceTimer = null;
-
 /**
  * Wraps every occurrence of `query` inside `text` with <mark> tags.
  * Returns a safe HTML string.
@@ -2730,9 +2728,16 @@ function escapeRegExp(str) {
 function ingredientMatches(ing, query) {
     const q = query.toLowerCase().trim();
     if (!q) return true;
-    if (ing.name.toLowerCase().includes(q)) return true;
-    if (ing.category.toLowerCase().includes(q)) return true;
-    if (ing.aliases?.some(a => a.toLowerCase().includes(q))) return true;
+
+    // Try name
+    if (smartMatch(q, ing.name).match) return true;
+
+    // Try category
+    if (smartMatch(q, ing.category).match) return true;
+
+    // Try aliases
+    if (ing.aliases?.some(a => smartMatch(q, a).match)) return true;
+
     return false;
 }
 
@@ -2740,13 +2745,101 @@ function ingredientMatches(ing, query) {
 function recipeMatches(recipe, query) {
     const q = query.toLowerCase().trim();
     if (!q) return true;
-    if (recipe.name.toLowerCase().includes(q)) return true;
-    if (recipe.description?.toLowerCase().includes(q)) return true;
+
+    // Try recipe name
+    if (smartMatch(q, recipe.name).match) return true;
+
+    // Try description
+    if (recipe.description && smartMatch(q, recipe.description).match) return true;
+
+    // Try ingredients
     const allIds = [...(recipe.ingredientsRequired || []), ...(recipe.ingredientsOptional || [])];
     return allIds.some(id => {
         const ing = INGREDIENTS.find(i => i.id === id);
-        return ing?.name.toLowerCase().includes(q);
+        return ing && smartMatch(q, ing.name).match;
     });
+}
+
+// ── PERFORMANCE: Debounce, Fuzzy Search & Caching ──────────────────────────
+
+/**
+ * Debounce helper: delays execution until N ms have passed without new calls
+ * Useful for search inputs to reduce re-renders
+ */
+function debounce(fn, delay = 300) {
+    let timeoutId;
+    return function debounced(...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => fn(...args), delay);
+    };
+}
+
+/**
+ * Fuzzy matching: allows typos and missing chars
+ * e.g., "plt" matches "pollo" with char-by-char search
+ */
+function fuzzyMatch(query, text) {
+    const q = query.toLowerCase();
+    const t = text.toLowerCase();
+    let qIndex = 0;
+
+    for (let tIndex = 0; tIndex < t.length && qIndex < q.length; tIndex++) {
+        if (t[tIndex] === q[qIndex]) {
+            qIndex++;
+        }
+    }
+
+    return qIndex === q.length;
+}
+
+/**
+ * Enhanced matching: combines exact substring with fuzzy fallback
+ * Prioritizes exact matches, allows typos
+ */
+function smartMatch(query, text) {
+    const q = query.toLowerCase().trim();
+    const t = text.toLowerCase();
+
+    // Exact substring match (highest priority)
+    if (t.includes(q)) return { match: true, score: 100 };
+
+    // Fuzzy match (lower priority)
+    if (fuzzyMatch(q, t)) return { match: true, score: 50 };
+
+    return { match: false, score: 0 };
+}
+
+/**
+ * Scoring cache: avoids recalculating scores for same context
+ * Clears when inventory changes
+ */
+const scoringCache = new Map();
+const MAX_CACHE_SIZE = 1000;
+
+function getScoreCached(recipe, context) {
+    const cacheKey = `${recipe.id}_${JSON.stringify(context)}`;
+
+    if (scoringCache.has(cacheKey)) {
+        return scoringCache.get(cacheKey);
+    }
+
+    const scored = scoreRecipe(recipe, context);
+
+    // Simple LRU: if cache too big, remove oldest
+    if (scoringCache.size >= MAX_CACHE_SIZE) {
+        const firstKey = scoringCache.keys().next().value;
+        scoringCache.delete(firstKey);
+    }
+
+    scoringCache.set(cacheKey, scored);
+    return scored;
+}
+
+/**
+ * Clear scoring cache when data changes
+ */
+function clearScoringCache() {
+    scoringCache.clear();
 }
 
 // ── Inventory search ──────────────────────────────────────────────────────────
@@ -3235,6 +3328,12 @@ function searchAll(query) {
 // ── initSearch ────────────────────────────────────────────────────────────────
 
 function initSearch() {
+    // ── Debounced search handlers (PERFORMANCE OPTIMIZATION) ────
+    const debouncedSearchAll = debounce((query) => searchAll(query), 150);
+    const debouncedFilterInventory = debounce((query) => filterInventory(query), 120);
+    const debouncedApplySortAndFilter = debounce(() => applySortAndFilter(), 150);
+    const debouncedBrowserSearch = debounce(() => _renderRecipesBrowser(), 150);
+
     // ── Global palette trigger ─────────────────────────────────
     document.getElementById("searchBtn")?.addEventListener("click", openSearchModal);
 
@@ -3256,8 +3355,7 @@ function initSearch() {
     const globalInput = document.getElementById("globalSearch");
     if (globalInput) {
         globalInput.addEventListener("input", () => {
-            clearTimeout(_globalDebounceTimer);
-            _globalDebounceTimer = setTimeout(() => searchAll(globalInput.value), 150);
+            debouncedSearchAll(globalInput.value);
         });
     }
 
@@ -3269,8 +3367,7 @@ function initSearch() {
         invSearch.addEventListener("input", () => {
             const q = invSearch.value;
             invClear?.classList.toggle("hidden", !q);
-            clearTimeout(_inventoryDebounceTimer);
-            _inventoryDebounceTimer = setTimeout(() => filterInventory(q), 120);
+            debouncedFilterInventory(q);
         });
     }
 
@@ -3294,8 +3391,7 @@ function initSearch() {
     if (resSearch) {
         resSearch.addEventListener("input", () => {
             resClear?.classList.toggle("hidden", !resSearch.value);
-            clearTimeout(_inventoryDebounceTimer);
-            _inventoryDebounceTimer = setTimeout(() => applySortAndFilter(), 150);
+            debouncedApplySortAndFilter();
         });
     }
 
@@ -3327,8 +3423,7 @@ function initSearch() {
         rbSearch.addEventListener("input", () => {
             rbClear?.classList.toggle("hidden", !rbSearch.value);
             _browserState.search = rbSearch.value;
-            clearTimeout(_inventoryDebounceTimer);
-            _inventoryDebounceTimer = setTimeout(() => _renderRecipesBrowser(), 150);
+            debouncedBrowserSearch();
         });
     }
     if (rbClear) {
