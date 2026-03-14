@@ -278,6 +278,12 @@ function init() {
     initNavigation();
     initAccordions();
 
+    updateGroceryBadge();
+
+    // FAB starts hidden (default view is "today", FAB only shows in grocery)
+    const fabContainer = document.getElementById("fabContainer");
+    if (fabContainer) fabContainer.classList.add("fab-hidden");
+
     // Defer non-critical initialization to avoid blocking
     requestIdleCallback(() => {
         initializeCustomListState();
@@ -427,8 +433,14 @@ function updateStepperState(activePanelId) {
     const activeIdx = panelOrder.indexOf(activePanelId);
     steps.forEach((step, i) => {
         step.classList.remove('active', 'done');
-        if (i < activeIdx) step.classList.add('done');
-        else if (i === activeIdx) step.classList.add('active');
+        const numEl = step.querySelector('.flow-step-num');
+        if (i < activeIdx) {
+            step.classList.add('done');
+            if (numEl) numEl.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">check</span>';
+        } else {
+            if (numEl) numEl.textContent = String(i + 1);
+            if (i === activeIdx) step.classList.add('active');
+        }
     });
 }
 
@@ -455,6 +467,13 @@ function initNavigation() {
     });
 }
 
+const VIEW_META = {
+    today:    { subtitle: "Qué cocinar hoy con lo que hay" },
+    planner:  { subtitle: "Plan de comidas de la semana" },
+    mealprep: { subtitle: "Prepara bases para la semana" },
+    grocery:  { subtitle: "Lista de compras" },
+};
+
 function showView(viewId) {
     document.querySelectorAll(".nav-item").forEach((btn) => {
         btn.classList.toggle("active", btn.getAttribute("data-view") === viewId);
@@ -463,9 +482,38 @@ function showView(viewId) {
         view.classList.toggle("active", view.id === `view-${viewId}`);
     });
 
+    // Show stepper only in today view
+    const stepper = document.getElementById("flowStepper");
+    if (stepper) stepper.classList.toggle("hidden", viewId !== "today");
+
+    // FAB only makes sense in grocery view
+    const fabContainer = document.getElementById("fabContainer");
+    if (fabContainer) fabContainer.classList.toggle("fab-hidden", viewId !== "grocery");
+
+    // Update header subtitle
+    const subtitle = document.querySelector(".app-header .subtitle");
+    if (subtitle && VIEW_META[viewId]) subtitle.textContent = VIEW_META[viewId].subtitle;
+
     if (viewId === "planner") renderPlanner();
     if (viewId === "mealprep") renderMealPrepInitial();
-    if (viewId === "grocery") renderGroceryHub();
+    if (viewId === "grocery") { renderGroceryHub(); updateGroceryBadge(); }
+}
+
+// ─── Grocery Nav Badge ───
+function updateGroceryBadge() {
+    const badge = document.getElementById("groceryNavBadge");
+    if (!badge) return;
+    // Count unchecked items across all grocery lists
+    const autoItems = (state.shoppingList || []).filter(i => !i.checked).length;
+    const customLists = loadCustomLists();
+    const customItems = customLists.reduce((sum, l) => sum + (l.items || []).filter(i => !i.checked).length, 0);
+    const total = autoItems + customItems;
+    if (total > 0) {
+        badge.textContent = total > 99 ? "99+" : String(total);
+        badge.classList.remove("hidden");
+    } else {
+        badge.classList.add("hidden");
+    }
 }
 
 // ─── Offline Detection ───
@@ -2124,6 +2172,7 @@ function loadShoppingList() {
 }
 function persistShoppingList() {
     localStorage.setItem(STORAGE_KEYS.shoppingList, JSON.stringify(state.shoppingList));
+    updateGroceryBadge();
 }
 
 function loadCustomLists() {
@@ -2146,6 +2195,7 @@ function loadCustomLists() {
 }
 function persistCustomLists() {
     localStorage.setItem(STORAGE_KEYS.customLists, JSON.stringify(state.customLists));
+    updateGroceryBadge();
 }
 function loadCravings() {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.cravings)) || []; } catch { return []; }
