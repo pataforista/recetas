@@ -3,6 +3,7 @@ import { SEASONALITY_MX } from "./data/seasonality_mx.js";
 import { MEALPREP_BASES } from "./data/mealprep_bases.js";
 import { HEALTH_RULES } from "./data/health_rules.js";
 import { RECIPES } from "./data/recipes.js";
+import { RecipeVirtualList } from "./modules/virtual_list.js";
 
 const STORAGE_KEYS = {
     inventory: "milpa_nime_inventory_v1",
@@ -247,6 +248,8 @@ function getSelectedChipValue(groupId) {
 let activeCategoryFilter = "all";
 // Pending day assignment state for day picker modal
 let _pendingRecipeId = null;
+// Virtual list instance for large recipe results
+let _recipeVirtualList = null;
 
 /**
  * Inicializa la fecha de compra al valor de hoy en el formulario
@@ -2892,15 +2895,47 @@ function renderRankedResults(ranked, query = "") {
         </div>`;
         return;
     }
-    ranked.forEach(item => {
-        const card = createRecipeCard(item);
-        // Highlight recipe title if searching
-        if (query) {
-            const titleEl = card.querySelector(".recipe-title");
-            if (titleEl) titleEl.innerHTML = highlight(titleEl.textContent, query);
+
+    // PERFORMANCE: Use virtual scrolling for large result sets (50+ items)
+    const VIRTUAL_THRESHOLD = 50;
+
+    if (ranked.length >= VIRTUAL_THRESHOLD) {
+        // Setup virtual list
+        resultsEl.style.height = "600px";
+        resultsEl.style.overflow = "auto";
+
+        // Create virtual list instance
+        _recipeVirtualList = new RecipeVirtualList(resultsEl, (item) => {
+            const card = createRecipeCard(item);
+            if (query) {
+                const titleEl = card.querySelector(".recipe-title");
+                if (titleEl) titleEl.innerHTML = highlight(titleEl.textContent, query);
+            }
+            return card;
+        });
+
+        _recipeVirtualList.setItems(ranked);
+    } else {
+        // Standard rendering for smaller result sets
+        resultsEl.style.height = "auto";
+        resultsEl.style.overflow = "visible";
+
+        // Cleanup virtual list if it exists
+        if (_recipeVirtualList) {
+            _recipeVirtualList.destroy();
+            _recipeVirtualList = null;
         }
-        resultsEl.appendChild(card);
-    });
+
+        ranked.forEach(item => {
+            const card = createRecipeCard(item);
+            // Highlight recipe title if searching
+            if (query) {
+                const titleEl = card.querySelector(".recipe-title");
+                if (titleEl) titleEl.innerHTML = highlight(titleEl.textContent, query);
+            }
+            resultsEl.appendChild(card);
+        });
+    }
 }
 
 function applySortAndFilter() {
