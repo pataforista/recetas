@@ -14,22 +14,36 @@
  *   seasonal    – si varía con temporada
  *   frequency   – "alta" | "media" | "baja"  (frecuencia de consumo en México)
  *   mexican_alt – sustituto local cuando el ingrediente es foráneo
+ *   allergens   – array de alergenos (gluten, lacteos, huevo, cacahuate, frutos_secos, mariscos, pescado, soya, sesamo)
  */
+
+// Alérgenos comunes
+export const ALLERGEN_TYPES = {
+    gluten: { label: "Gluten", icon: "grain" },
+    lacteos: { label: "Lácteos", icon: "local_cafe" },
+    huevo: { label: "Huevo", icon: "egg" },
+    cacahuate: { label: "Cacahuate/Maní", icon: "nuts" },
+    frutos_secos: { label: "Frutos secos (nueces, almendras, etc)", icon: "nature" },
+    mariscos: { label: "Mariscos", icon: "waves" },
+    pescado: { label: "Pescado", icon: "water" },
+    soya: { label: "Soya", icon: "favorite" },
+    sesamo: { label: "Sésamo", icon: "circle" }
+};
 export const INGREDIENTS = [
 
     // ─── MILPA ──────────────────────────────────────────────────────────
     // Base de la dieta mexicana (patrimonio UNESCO). Fuentes: SADER, ENSANUT, BAM-INSP
-    { id: "tortilla_maiz", name: "Tortilla de maíz", category: "milpa", aliases: ["tortilla"], seasonal: false, frequency: "alta" },
-    { id: "masa_maiz", name: "Masa de maíz", category: "milpa", aliases: ["masa"], seasonal: false, frequency: "alta" },
-    { id: "elote", name: "Elote", category: "milpa", aliases: ["maíz tierno", "corn"], seasonal: true, frequency: "alta" },
-    { id: "nopal", name: "Nopal", category: "milpa", aliases: ["nopales"], seasonal: true, frequency: "alta" },
-    { id: "frijol", name: "Frijol negro", category: "milpa", aliases: ["frijoles negros", "black beans"], seasonal: false, frequency: "alta" },
-    { id: "calabacita", name: "Calabacita", category: "milpa", aliases: ["zucchini", "calabaza tierna"], seasonal: true, frequency: "alta" },
-    { id: "epazote", name: "Epazote", category: "milpa", seasonal: true, frequency: "media" },
-    { id: "flor_calabaza", name: "Flor de calabaza", category: "milpa", seasonal: true, frequency: "media" },
-    { id: "chayote", name: "Chayote", category: "milpa", seasonal: true, frequency: "media" },
-    { id: "maiz_pozolero", name: "Maíz pozolero", category: "milpa", aliases: ["hominy"], seasonal: false, frequency: "media" },
-    { id: "huitlacoche", name: "Huitlacoche", category: "milpa", aliases: ["cuitlacoche"], seasonal: true, frequency: "baja" },
+    { id: "tortilla_maiz", name: "Tortilla de maíz", category: "milpa", aliases: ["tortilla"], seasonal: false, frequency: "alta", allergens: [] },
+    { id: "masa_maiz", name: "Masa de maíz", category: "milpa", aliases: ["masa"], seasonal: false, frequency: "alta", allergens: [] },
+    { id: "elote", name: "Elote", category: "milpa", aliases: ["maíz tierno", "corn"], seasonal: true, frequency: "alta", allergens: [] },
+    { id: "nopal", name: "Nopal", category: "milpa", aliases: ["nopales"], seasonal: true, frequency: "alta", allergens: [] },
+    { id: "frijol", name: "Frijol negro", category: "milpa", aliases: ["frijoles negros", "black beans"], seasonal: false, frequency: "alta", allergens: [] },
+    { id: "calabacita", name: "Calabacita", category: "milpa", aliases: ["zucchini", "calabaza tierna"], seasonal: true, frequency: "alta", allergens: [] },
+    { id: "epazote", name: "Epazote", category: "milpa", seasonal: true, frequency: "media", allergens: [] },
+    { id: "flor_calabaza", name: "Flor de calabaza", category: "milpa", seasonal: true, frequency: "media", allergens: [] },
+    { id: "chayote", name: "Chayote", category: "milpa", seasonal: true, frequency: "media", allergens: [] },
+    { id: "maiz_pozolero", name: "Maíz pozolero", category: "milpa", aliases: ["hominy"], seasonal: false, frequency: "media", allergens: [] },
+    { id: "huitlacoche", name: "Huitlacoche", category: "milpa", aliases: ["cuitlacoche"], seasonal: true, frequency: "baja", allergens: [] },
 
     // ─── VERDURAS ────────────────────────────────────────────────────────
     // Hortalizas más consumidas: Atlas SADER 2016 + BAM-INSP + Kaggle mexican
@@ -300,6 +314,65 @@ export const INGREDIENTS = [
  * Define cuántos días típicamente dura cada ingrediente desde su compra.
  * Usado para calcular urgencia en listas de compra.
  */
+// Helper function to get allergens for an ingredient
+export function getIngredientAllergens(ingredientId) {
+    const allergens = [];
+
+    // Lácteos
+    if (ingredientId.includes('queso') || ingredientId.includes('leche') || ingredientId.includes('yogurt') ||
+        ingredientId.includes('crema') || ingredientId.includes('mantequilla') || ingredientId.includes('panela')) {
+        allergens.push('lacteos');
+    }
+
+    // Huevo
+    if (ingredientId === 'huevo') {
+        allergens.push('huevo');
+    }
+
+    // Gluten
+    if (ingredientId.includes('pan') || ingredientId === 'pasta_seca' || ingredientId === 'pasta_integral' ||
+        ingredientId === 'pasta_garbanzo' || ingredientId.includes('ramen') || ingredientId.includes('udon') ||
+        ingredientId.includes('soba') || ingredientId.includes('harina') || ingredientId === 'pan_blanco') {
+        allergens.push('gluten');
+    }
+
+    // Cacahuate/Maní
+    if (ingredientId.includes('cacahuate') || ingredientId.includes('mantequilla_cacahuate') ||
+        ingredientId.includes('crema_cacahuate')) {
+        allergens.push('cacahuate');
+    }
+
+    // Frutos secos
+    if (ingredientId.includes('nuez') || ingredientId === 'almendra' || ingredientId === 'avellana' ||
+        ingredientId === 'piñon' || ingredientId.includes('cashew')) {
+        allergens.push('frutos_secos');
+    }
+
+    // Mariscos
+    if (ingredientId.includes('camaron') || ingredientId.includes('marisco') || ingredientId === 'pulpo') {
+        allergens.push('mariscos');
+    }
+
+    // Pescado
+    if (ingredientId.includes('atun') || ingredientId.includes('salmon') || ingredientId.includes('sardina') ||
+        ingredientId.includes('pescado') || ingredientId.includes('anchoa') || ingredientId === 'bonito_flakes') {
+        allergens.push('pescado');
+    }
+
+    // Soya
+    if (ingredientId === 'edamame' || ingredientId === 'tofu' || ingredientId === 'tofu_firme' ||
+        ingredientId === 'tempeh' || ingredientId === 'miso' || ingredientId === 'salsa_soja') {
+        allergens.push('soya');
+    }
+
+    // Sésamo
+    if (ingredientId.includes('ajonjoli') || ingredientId === 'tahini') {
+        allergens.push('sesamo');
+    }
+
+    return allergens;
+}
+
 export const INGREDIENT_SHELF_LIFE = {
     dairy: {
         default: 14,

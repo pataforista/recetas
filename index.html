@@ -613,6 +613,50 @@
                 <button type="button" class="option-chip" data-time="45">≤ 45 min</button>
               </div>
             </div>
+            <!-- Advanced Filters Section -->
+            <details class="recipes-advanced-filters">
+              <summary>
+                <span class="material-symbols-outlined" aria-hidden="true">tune</span>
+                Filtros avanzados
+              </summary>
+              <div class="advanced-filters-content">
+                <!-- Allergen Filter -->
+                <div class="advanced-filter-group">
+                  <h3>Alérgenos</h3>
+                  <div id="recipesAllergenFilter" class="allergen-checkboxes" role="group"></div>
+                </div>
+                <!-- Effort Filter -->
+                <div class="advanced-filter-group">
+                  <h3>Nivel de esfuerzo</h3>
+                  <div id="recipesEffortFilter" class="option-chips-group" role="group" aria-label="Filtrar por esfuerzo">
+                    <button type="button" class="option-chip active" data-effort="">Todos</button>
+                    <button type="button" class="option-chip" data-effort="bajo">Bajo</button>
+                    <button type="button" class="option-chip" data-effort="medio">Medio</button>
+                    <button type="button" class="option-chip" data-effort="alto">Alto</button>
+                  </div>
+                </div>
+                <!-- Meal Type Filter -->
+                <div class="advanced-filter-group">
+                  <h3>Tipo de comida</h3>
+                  <div id="recipesMealTypeFilter" class="option-chips-group" role="group" aria-label="Filtrar por tipo de comida">
+                    <button type="button" class="option-chip active" data-mealtype="">Todos</button>
+                    <button type="button" class="option-chip" data-mealtype="desayuno">Desayuno</button>
+                    <button type="button" class="option-chip" data-mealtype="comida">Comida</button>
+                    <button type="button" class="option-chip" data-mealtype="cena">Cena</button>
+                  </div>
+                </div>
+                <!-- Sort Filter -->
+                <div class="advanced-filter-group">
+                  <h3>Ordenar por</h3>
+                  <div id="recipesSortFilter" class="option-chips-group" role="group" aria-label="Ordenar recetas">
+                    <button type="button" class="option-chip active" data-sort="relevance">Relevancia</button>
+                    <button type="button" class="option-chip" data-sort="time">Tiempo</button>
+                    <button type="button" class="option-chip" data-sort="effort">Esfuerzo</button>
+                    <button type="button" class="option-chip" data-sort="name">Nombre</button>
+                  </div>
+                </div>
+              </div>
+            </details>
           </div>
         </div>
         <div id="recipesBrowserResults" class="recipes-browser-results"></div>

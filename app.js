@@ -1,4 +1,4 @@
-import { INGREDIENTS, INGREDIENT_SHELF_LIFE } from "./data/ingredients.js";
+import { INGREDIENTS, INGREDIENT_SHELF_LIFE, ALLERGEN_TYPES, getIngredientAllergens } from "./data/ingredients.js";
 import { SEASONALITY_MX } from "./data/seasonality_mx.js";
 import { MEALPREP_BASES } from "./data/mealprep_bases.js";
 import { HEALTH_RULES } from "./data/health_rules.js";
@@ -2842,7 +2842,15 @@ function sortResults(criterion) {
 
 // ── Recipe Browser Modal ──────────────────────────────────────────────────────
 
-const _browserState = { search: "", family: "", maxTime: 0 };
+const _browserState = {
+    search: "",
+    family: "",
+    maxTime: 0,
+    allergens: [],
+    effort: "",
+    mealType: "",
+    sortBy: "relevance"
+};
 
 const FAMILY_LABELS = {
     pollo: "Pollo", frijol: "Frijol", nopal: "Nopal", huevo: "Huevo",
@@ -2857,6 +2865,7 @@ function openRecipesBrowserModal() {
     const modal = document.getElementById("recipesBrowserModal");
     modal.classList.remove("hidden");
     _buildFamilyFilterChips();
+    _buildAllergenFilterCheckboxes();
     _renderRecipesBrowser();
     requestAnimationFrame(() => {
         document.getElementById("recipesBrowserSearch")?.focus();
@@ -2870,8 +2879,17 @@ function closeRecipesBrowserModal() {
     _browserState.search = "";
     _browserState.family = "";
     _browserState.maxTime = 0;
+    _browserState.allergens = [];
+    _browserState.effort = "";
+    _browserState.mealType = "";
+    _browserState.sortBy = "relevance";
+
     const input = document.getElementById("recipesBrowserSearch");
     if (input) input.value = "";
+
+    // Reset all filter checkboxes
+    document.querySelectorAll("#recipesAllergenFilter input[type='checkbox']").forEach(cb => cb.checked = false);
+
     document.body.style.overflow = "";
 }
 
@@ -2899,6 +2917,31 @@ function _buildFamilyFilterChips() {
     });
 }
 
+function _buildAllergenFilterCheckboxes() {
+    const container = document.getElementById("recipesAllergenFilter");
+    if (!container || container.children.length > 0) return;
+
+    Object.entries(ALLERGEN_TYPES).forEach(([allergenKey, allergenInfo]) => {
+        const itemDiv = document.createElement("div");
+        itemDiv.className = "allergen-checkbox-item";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.id = `allergen-${allergenKey}`;
+        checkbox.value = allergenKey;
+        checkbox.addEventListener("change", () => _toggleAllergenFilter(allergenKey, checkbox));
+
+        const label = document.createElement("label");
+        label.htmlFor = `allergen-${allergenKey}`;
+        label.textContent = allergenInfo.label;
+
+        itemDiv.appendChild(checkbox);
+        itemDiv.appendChild(label);
+        container.appendChild(itemDiv);
+    });
+}
+
+
 function _setBrowserFamily(family, clickedBtn) {
     _browserState.family = family;
     document.querySelectorAll("#recipesFamilyFilter .option-chip").forEach(b => b.classList.remove("active"));
@@ -2913,6 +2956,59 @@ function _setBrowserTime(maxTime, clickedBtn) {
     _renderRecipesBrowser();
 }
 
+function _setBrowserEffort(effort, clickedBtn) {
+    _browserState.effort = effort;
+    document.querySelectorAll("#recipesEffortFilter .option-chip").forEach(b => b.classList.remove("active"));
+    if (clickedBtn) clickedBtn.classList.add("active");
+    _renderRecipesBrowser();
+}
+
+function _setBrowserMealType(type, clickedBtn) {
+    _browserState.mealType = type;
+    document.querySelectorAll("#recipesMealTypeFilter .option-chip").forEach(b => b.classList.remove("active"));
+    if (clickedBtn) clickedBtn.classList.add("active");
+    _renderRecipesBrowser();
+}
+
+function _setBrowserSort(sortBy, clickedBtn) {
+    _browserState.sortBy = sortBy;
+    document.querySelectorAll("#recipesSortFilter .option-chip").forEach(b => b.classList.remove("active"));
+    if (clickedBtn) clickedBtn.classList.add("active");
+    _renderRecipesBrowser();
+}
+
+function _toggleAllergenFilter(allergen, checkbox) {
+    if (checkbox.checked) {
+        if (!_browserState.allergens.includes(allergen)) {
+            _browserState.allergens.push(allergen);
+        }
+    } else {
+        _browserState.allergens = _browserState.allergens.filter(a => a !== allergen);
+    }
+    _renderRecipesBrowser();
+}
+
+function sortRecipes(recipes, sortBy) {
+    const sorted = [...recipes];
+    switch(sortBy) {
+        case "time":
+            sorted.sort((a, b) => a.timeMin - b.timeMin);
+            break;
+        case "effort":
+            const effortOrder = { bajo: 0, medio: 1, alto: 2 };
+            sorted.sort((a, b) => (effortOrder[a.effort] || 0) - (effortOrder[b.effort] || 0));
+            break;
+        case "name":
+            sorted.sort((a, b) => a.name.localeCompare(b.name));
+            break;
+        case "relevance":
+        default:
+            // Keep original order (already filtered and relevant)
+            break;
+    }
+    return sorted;
+}
+
 function _renderRecipesBrowser() {
     const box = document.getElementById("recipesBrowserResults");
     const countEl = document.getElementById("recipesBrowserCount");
@@ -2921,10 +3017,27 @@ function _renderRecipesBrowser() {
     const q = _browserState.search.toLowerCase().trim();
     const fam = _browserState.family;
     const maxT = _browserState.maxTime;
+    const allergens = _browserState.allergens || [];
+    const effort = _browserState.effort;
+    const mealType = _browserState.mealType;
+    const sortBy = _browserState.sortBy;
 
     const filtered = RECIPES.filter(r => {
         if (fam && r.family !== fam) return false;
         if (maxT && r.timeMin > maxT) return false;
+        if (effort && r.effort !== effort) return false;
+        if (mealType && r.mealType !== mealType) return false;
+
+        // Allergen filtering: exclude recipes that contain ingredients with selected allergens
+        if (allergens.length > 0) {
+            const allIngredients = [...r.ingredientsRequired, ...r.ingredientsOptional];
+            const hasAllergen = allIngredients.some(ingId => {
+                const ingAllergens = getIngredientAllergens(ingId);
+                return allergens.some(a => ingAllergens.includes(a));
+            });
+            if (hasAllergen) return false;
+        }
+
         if (q) {
             return r.name.toLowerCase().includes(q) ||
                    r.description?.toLowerCase().includes(q) ||
@@ -2933,9 +3046,12 @@ function _renderRecipesBrowser() {
         return true;
     });
 
-    if (countEl) countEl.textContent = filtered.length;
+    // Sorting
+    const sorted = sortRecipes(filtered, sortBy);
 
-    if (!filtered.length) {
+    if (countEl) countEl.textContent = sorted.length;
+
+    if (!sorted.length) {
         box.innerHTML = `<div class="recipes-browser-empty">
             <span class="material-symbols-outlined">search_off</span>
             <p>Sin resultados para los filtros seleccionados</p>
@@ -2944,7 +3060,7 @@ function _renderRecipesBrowser() {
     }
 
     box.innerHTML = "";
-    filtered.forEach(recipe => {
+    sorted.forEach(recipe => {
         const card = document.createElement("button");
         card.type = "button";
         card.className = "recipe-browser-card";
@@ -3343,6 +3459,18 @@ function initSearch() {
 
     document.querySelectorAll("#recipesTimeFilter .option-chip").forEach(btn => {
         btn.addEventListener("click", () => _setBrowserTime(Number(btn.dataset.time), btn));
+    });
+
+    document.querySelectorAll("#recipesEffortFilter .option-chip").forEach(btn => {
+        btn.addEventListener("click", () => _setBrowserEffort(btn.dataset.effort, btn));
+    });
+
+    document.querySelectorAll("#recipesMealTypeFilter .option-chip").forEach(btn => {
+        btn.addEventListener("click", () => _setBrowserMealType(btn.dataset.mealtype, btn));
+    });
+
+    document.querySelectorAll("#recipesSortFilter .option-chip").forEach(btn => {
+        btn.addEventListener("click", () => _setBrowserSort(btn.dataset.sort, btn));
     });
 
     document.addEventListener("keydown", (e) => {
