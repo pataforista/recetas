@@ -4352,4 +4352,91 @@ body {
   font-size: 0.9rem;
   color: var(--md-sys-color-on-surface);
 }
+
+/* ─── Recipe Favorites ─── */
+.recipe-browser-card-wrapper {
+  position: relative;
+  display: flex;
+}
+
+.recipe-browser-card-wrapper .recipe-browser-card {
+  flex: 1;
+}
+
+.recipe-fav-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface-variant);
+  border: 1.5px solid var(--md-sys-color-outline);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.recipe-fav-btn:hover {
+  background: var(--md-sys-color-surface-variant);
+  border-color: var(--clr-teal);
+  color: var(--clr-teal);
+}
+
+.recipe-fav-btn.is-favorite {
+  background: var(--clr-ochre);
+  color: white;
+  border-color: var(--clr-ochre);
+}
+
+.recipe-fav-btn.is-favorite:hover {
+  background: #E6B530;
+  border-color: #E6B530;
+}
+
+.recipe-fav-btn .material-symbols-outlined {
+  font-size: 20px;
+}
+
+/* ─── Recipe Browser Actions ─── */
+.recipe-browser-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.recipe-browser-actions .icon-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--md-sys-color-surface-variant);
+  color: var(--md-sys-color-on-surface-variant);
+  border: 1.5px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.recipe-browser-actions .icon-btn:hover {
+  background: var(--md-sys-color-surface);
+  color: var(--clr-teal);
+  border-color: var(--clr-teal);
+}
+
+.recipe-browser-actions .icon-btn.is-active {
+  background: var(--clr-ochre);
+  color: white;
+  border-color: var(--clr-ochre);
+}
+
+.recipe-browser-actions .material-symbols-outlined {
+  font-size: 18px;
+}
 }

@@ -11,7 +11,8 @@ const STORAGE_KEYS = {
     shoppingList: "milpa_nime_shopping_list_v1",
     customLists: "milpa_nime_custom_lists_v1",
     wasteLog: "milpa_nime_waste_log_v1",
-    recentSuggestedRecipes: "milpa_nime_recent_recipes_v1"
+    recentSuggestedRecipes: "milpa_nime_recent_recipes_v1",
+    favoriteRecipes: "milpa_nime_favorite_recipes_v1"
 };
 
 const CRAVINGS = [
@@ -2849,7 +2850,8 @@ const _browserState = {
     allergens: [],
     effort: "",
     mealType: "",
-    sortBy: "relevance"
+    sortBy: "relevance",
+    favoritesOnly: false
 };
 
 const FAMILY_LABELS = {
@@ -3009,6 +3011,115 @@ function sortRecipes(recipes, sortBy) {
     return sorted;
 }
 
+// ─── Favorites System ───
+function getFavoriteRecipes() {
+    const favs = localStorage.getItem(STORAGE_KEYS.favoriteRecipes);
+    return favs ? JSON.parse(favs) : [];
+}
+
+function isFavorite(recipeId) {
+    return getFavoriteRecipes().includes(recipeId);
+}
+
+function toggleFavorite(recipeId) {
+    const favs = getFavoriteRecipes();
+    const idx = favs.indexOf(recipeId);
+    if (idx >= 0) {
+        favs.splice(idx, 1);
+    } else {
+        favs.push(recipeId);
+    }
+    localStorage.setItem(STORAGE_KEYS.favoriteRecipes, JSON.stringify(favs));
+    _updateFavoriteButton(recipeId);
+}
+
+function _updateFavoriteButton(recipeId) {
+    const btn = document.getElementById(`fav-btn-${recipeId}`);
+    if (!btn) return;
+    const isFav = isFavorite(recipeId);
+    btn.classList.toggle("is-favorite", isFav);
+    btn.setAttribute("aria-pressed", isFav);
+}
+
+// ─── Import/Export Recipes ───
+function exportRecipes() {
+    const allRecipes = RECIPES.map(r => ({
+        id: r.id,
+        name: r.name,
+        family: r.family,
+        format: r.format,
+        description: r.description,
+        ingredientsRequired: r.ingredientsRequired,
+        ingredientsOptional: r.ingredientsOptional,
+        cravings: r.cravings,
+        timeMin: r.timeMin,
+        effort: r.effort,
+        mealType: r.mealType,
+        profile: r.profile
+    }));
+
+    const dataStr = JSON.stringify(allRecipes, null, 2);
+    const dataBlob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `recetas-export-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+function importRecipes() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "application/json";
+    input.addEventListener("change", (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const importedRecipes = JSON.parse(event.target.result);
+                if (!Array.isArray(importedRecipes)) {
+                    alert("Formato de archivo inválido. Se esperaba un array de recetas.");
+                    return;
+                }
+
+                // Add imported recipes to RECIPES array (avoiding duplicates)
+                const existingIds = new Set(RECIPES.map(r => r.id));
+                let addedCount = 0;
+                importedRecipes.forEach(recipe => {
+                    if (!existingIds.has(recipe.id)) {
+                        RECIPES.push(recipe);
+                        addedCount++;
+                    }
+                });
+
+                alert(`${addedCount} receta${addedCount !== 1 ? 's' : ''} importada${addedCount !== 1 ? 's' : ''}.`);
+                _renderRecipesBrowser();
+            } catch (error) {
+                alert("Error al importar recetas: " + error.message);
+            }
+        };
+        reader.readAsText(file);
+    });
+    input.click();
+}
+
+function toggleFavoritesOnly() {
+    _browserState.favoritesOnly = !_browserState.favoritesOnly;
+    const btn = document.getElementById("favoritesOnlyBtn");
+    if (btn) {
+        btn.classList.toggle("is-active", _browserState.favoritesOnly);
+        btn.innerHTML = _browserState.favoritesOnly
+            ? '<span class="material-symbols-outlined" aria-hidden="true">favorite</span>'
+            : '<span class="material-symbols-outlined" aria-hidden="true">favorite_border</span>';
+    }
+    _renderRecipesBrowser();
+}
+
 function _renderRecipesBrowser() {
     const box = document.getElementById("recipesBrowserResults");
     const countEl = document.getElementById("recipesBrowserCount");
@@ -3023,6 +3134,7 @@ function _renderRecipesBrowser() {
     const sortBy = _browserState.sortBy;
 
     const filtered = RECIPES.filter(r => {
+        if (_browserState.favoritesOnly && !isFavorite(r.id)) return false;
         if (fam && r.family !== fam) return false;
         if (maxT && r.timeMin > maxT) return false;
         if (effort && r.effort !== effort) return false;
@@ -3061,33 +3173,44 @@ function _renderRecipesBrowser() {
 
     box.innerHTML = "";
     sorted.forEach(recipe => {
-        const card = document.createElement("button");
-        card.type = "button";
-        card.className = "recipe-browser-card";
-        card.setAttribute("aria-label", `Ver detalle de ${recipe.name}`);
+        const card = document.createElement("div");
+        card.className = "recipe-browser-card-wrapper";
+        const isFav = isFavorite(recipe.id);
         card.innerHTML = `
-            <div class="rbc-top">
-                <span class="rbc-name">${escapeHtml(recipe.name)}</span>
-                <span class="rbc-arrow material-symbols-outlined" aria-hidden="true">chevron_right</span>
-            </div>
-            <div class="rbc-meta">
-                <span class="rbc-badge">
-                    <span class="material-symbols-outlined" aria-hidden="true">restaurant</span>
-                    ${escapeHtml(FAMILY_LABELS[recipe.family] || capitalize(recipe.family || ""))}
-                </span>
-                <span class="rbc-badge">
-                    <span class="material-symbols-outlined" aria-hidden="true">schedule</span>
-                    ${recipe.timeMin} min
-                </span>
-                <span class="rbc-badge">
-                    <span class="material-symbols-outlined" aria-hidden="true">flatware</span>
-                    ${escapeHtml(recipe.format || "")}
-                </span>
-                ${recipe.lowFriction ? `<span class="rbc-badge"><span class="material-symbols-outlined" aria-hidden="true">bolt</span>Fácil</span>` : ""}
-            </div>
-            <p class="rbc-desc">${escapeHtml(recipe.description || "")}</p>
+            <button class="recipe-browser-card" type="button" aria-label="Ver detalle de ${recipe.name}">
+                <div class="rbc-top">
+                    <span class="rbc-name">${escapeHtml(recipe.name)}</span>
+                    <span class="rbc-arrow material-symbols-outlined" aria-hidden="true">chevron_right</span>
+                </div>
+                <div class="rbc-meta">
+                    <span class="rbc-badge">
+                        <span class="material-symbols-outlined" aria-hidden="true">restaurant</span>
+                        ${escapeHtml(FAMILY_LABELS[recipe.family] || capitalize(recipe.family || ""))}
+                    </span>
+                    <span class="rbc-badge">
+                        <span class="material-symbols-outlined" aria-hidden="true">schedule</span>
+                        ${recipe.timeMin} min
+                    </span>
+                    <span class="rbc-badge">
+                        <span class="material-symbols-outlined" aria-hidden="true">flatware</span>
+                        ${escapeHtml(recipe.format || "")}
+                    </span>
+                    ${recipe.lowFriction ? `<span class="rbc-badge"><span class="material-symbols-outlined" aria-hidden="true">bolt</span>Fácil</span>` : ""}
+                </div>
+                <p class="rbc-desc">${escapeHtml(recipe.description || "")}</p>
+            </button>
+            <button id="fav-btn-${recipe.id}" class="recipe-fav-btn ${isFav ? 'is-favorite' : ''}" type="button" aria-label="Agregar a favoritos" aria-pressed="${isFav}">
+                <span class="material-symbols-outlined" aria-hidden="true">${isFav ? 'favorite' : 'favorite_border'}</span>
+            </button>
         `;
-        card.addEventListener("click", () => openRecipeDetail(recipe.id));
+        const mainBtn = card.querySelector(".recipe-browser-card");
+        const favBtn = card.querySelector(".recipe-fav-btn");
+        mainBtn.addEventListener("click", () => openRecipeDetail(recipe.id));
+        favBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            toggleFavorite(recipe.id);
+            favBtn.innerHTML = isFavorite(recipe.id) ? '<span class="material-symbols-outlined" aria-hidden="true">favorite</span>' : '<span class="material-symbols-outlined" aria-hidden="true">favorite_border</span>';
+        });
         box.appendChild(card);
     });
 }
@@ -3426,6 +3549,10 @@ function initSearch() {
 
     // ── Recipe Browser Modal ────────────────────────────────────
     document.getElementById("browseAllRecipesBtn")?.addEventListener("click", openRecipesBrowserModal);
+
+    document.getElementById("importRecipesBtn")?.addEventListener("click", importRecipes);
+    document.getElementById("exportRecipesBtn")?.addEventListener("click", exportRecipes);
+    document.getElementById("favoritesOnlyBtn")?.addEventListener("click", toggleFavoritesOnly);
 
     document.getElementById("closeRecipesBrowser")?.addEventListener("click", closeRecipesBrowserModal);
 
