@@ -3012,7 +3012,7 @@ function _renderRecipesBrowser() {
     filtered.forEach(recipe => {
         const card = document.createElement("button");
         card.type = "button";
-        card.className = "recipe-browser-card";
+        card.className = `recipe-browser-card rbc-f-${recipe.family || 'default'}`;
         card.setAttribute("aria-label", `Ver detalle de ${recipe.name}`);
         card.innerHTML = `
             <div class="rbc-top">
@@ -3177,12 +3177,14 @@ function openRecipeDetail(recipeId) {
     document.getElementById("rdAddToPlanBtn")?.addEventListener("click", () => {
         openDayPicker(recipe.id);
     });
-
+    
+    document.getElementById("recipesBrowserList").classList.add("hidden");
     panel.classList.remove("hidden");
 }
 
 function closeRecipeDetail() {
     document.getElementById("recipeDetailPanel").classList.add("hidden");
+    document.getElementById("recipesBrowserList").classList.remove("hidden");
 }
 
 // ── Global Search Modal ───────────────────────────────────────────────────────

@@ -3982,8 +3982,9 @@ body {
 .recipes-browser-title-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding-bottom: 12px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0 16px;
 }
 
 .recipes-browser-title-row .material-symbols-outlined {
@@ -4111,14 +4112,15 @@ body {
 .rbc-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  background: var(--clr-cream);
+  gap: 6px;
+  background: white;
   border: 1.5px solid var(--clr-ink);
-  border-radius: 8px;
-  padding: 2px 8px;
-  font-size: 0.75rem;
-  font-weight: 700;
+  border-radius: 10px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  font-weight: 800;
   color: var(--clr-ink);
+  box-shadow: 1px 1px 0px var(--clr-ink);
 }
 
 .rbc-badge .material-symbols-outlined {
