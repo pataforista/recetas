@@ -3929,14 +3929,15 @@ body {
 .recipes-browser-modal {
   position: fixed;
   inset: 0;
-  z-index: 2000;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  z-index: 10000; /* Force it above absolutely everything else */
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: stretch;
   justify-content: center;
   animation: fadeIn 0.18s ease-out;
+  pointer-events: auto; /* Ensure it captures clicks */
 }
 
 .recipes-browser-modal.hidden {
@@ -4027,37 +4028,38 @@ body {
 .recipes-browser-results {
   flex: 1;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
   overscroll-behavior: contain;
-  padding: 12px 16px 24px;
+  padding: 16px 16px 160px; /* Massive bottom padding to clear nav bar */
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px; /* More breathing room between cards */
 }
 
 /* Recipe browser list card (Fichas) */
 .recipe-browser-card {
   background: white;
-  border-radius: var(--scarry-radius);
-  padding: 16px;
-  box-shadow: 2px 2px 0px var(--clr-ink);
   border: 2px solid var(--clr-ink);
+  border-radius: var(--scarry-radius);
+  padding: 20px;
+  box-shadow: 4px 4px 0px var(--clr-ink);
   cursor: pointer;
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  transition: all 0.1s ease;
   text-align: left;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
+  pointer-events: auto;
 }
 
-.recipe-browser-card:hover,
-.recipe-browser-card:focus {
-  box-shadow: var(--md-sys-elevation-2);
-  border-color: var(--md-sys-color-primary);
-  outline: none;
+.recipe-browser-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px var(--clr-ink);
 }
 
 .recipe-browser-card:active {
-  transform: scale(0.99);
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px var(--clr-ink);
 }
 
 .rbc-top {

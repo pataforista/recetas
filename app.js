@@ -3042,7 +3042,7 @@ function _renderRecipesBrowser() {
 }
 
 function openRecipeDetail(recipeId) {
-    const recipe = RECIPES.find(r => r.id === recipeId);
+    const recipe = RECIPES.find(r => String(r.id) === String(recipeId));
     if (!recipe) return;
 
     const panel = document.getElementById("recipeDetailPanel");
