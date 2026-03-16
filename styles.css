@@ -240,24 +240,26 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   background: none;
   border: none;
-  padding: 4px;
+  padding: 8px 12px;
   cursor: pointer;
-  opacity: 0.4;
+  opacity: 0.5;
   transition: all 0.2s ease;
   flex: 1;
-  color: var(--clr-ink);
+  color: var(--clr-ink) !important;
+  border-radius: 999px;
 }
 
 .flow-step.active {
   opacity: 1;
+  background: rgba(229, 91, 60, 0.08); /* subtle tomato pill background */
   transform: scale(1.05) translateY(-2px);
 }
 
 .flow-step.done {
-  opacity: 0.8;
+  opacity: 1;
 }
 
 .flow-step-num {
@@ -288,34 +290,18 @@ body {
 }
 
 .flow-step-label {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    color: var(--clr-ink) !important;
 }
 
 .flow-step-divider {
     height: 2px;
     background: var(--clr-pencil);
-    flex: 0.3;
-    opacity: 0.3;
-}
-
-.flow-step.done .flow-step-num {
-  background: var(--clr-gold);
-  color: white;
-}
-
-.flow-step-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.5);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.flow-step.active .flow-step-label {
-  color: white;
+    flex: 0.1;
+    opacity: 0.15;
 }
 
 /* â”€â”€â”€ Wizard Transitions â”€â”€â”€ */
