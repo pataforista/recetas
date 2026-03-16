@@ -1,87 +1,70 @@
 :root {
-  /* Modern "Calm" Palette: Sage, Slate, and Desaturated Warmth */
-  --clr-sage: #8DA399;
-  --clr-slate: #2C3E50;
-  --clr-sand: #F2E8DF;
-  --clr-white: #FFFFFF;
-  --clr-accent: #D98C72; /* Subtle terracotta */
+  /* Richard Scarry "Busytown" Palette */
+  --clr-tomato: #E55B3C;
+  --clr-grass: #7CB342;
+  --clr-sky: #4FC3F7;
+  --clr-gold: #FFB300;
+  --clr-paper: #FDFBF7;
+  --clr-ink: #332211;
+  --clr-pencil: rgba(51, 34, 17, 0.7);
 
-  /* Glassmorphism Refined */
-  --glass-bg: rgba(255, 255, 255, 0.85);
-  --glass-border: 1px solid rgba(255, 255, 255, 0.5);
-  --glass-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
-
-  /* Bento 2.0 Tokens */
-  --bento-radius: 32px;
-  --bento-padding: 24px;
-  --bento-gap: 24px;
-  --bento-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-  --bento-border: 1px solid rgba(0, 0, 0, 0.06);
-  --bento-card-bg: var(--clr-white);
-
-  /* M3 Mapping (Modernized) */
-  --md-sys-color-primary: #5D7A6D; /* Sage Deep */
+  /* Whimsical Borders & Shadows */
+  --scarry-border: 2.5px solid var(--clr-ink);
+  --scarry-shadow: 4px 4px 0px var(--clr-ink);
+  --scarry-radius: 12px;
+  
+  /* M3 Mapping Override */
+  --md-sys-color-primary: var(--clr-tomato);
   --md-sys-color-on-primary: #FFFFFF;
-  --md-sys-color-primary-container: #E2E8E6;
-  --md-sys-color-on-primary-container: #2C3E50;
+  --md-sys-color-primary-container: #FFE0D9;
+  --md-sys-color-on-primary-container: #4A1100;
 
-  --md-sys-color-background: #F9F7F5; /* Neutral Calm */
-  --md-sys-color-surface: var(--clr-white);
-  --md-sys-color-on-surface: var(--clr-slate);
+  --md-sys-color-background: var(--clr-paper);
+  --md-sys-color-surface: var(--clr-paper);
+  --md-sys-color-on-surface: var(--clr-ink);
   
   --nav-height: 84px;
 }
-
-
 
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
 }
 
-button,
-[role="button"],
-.chip,
-.option-chip,
-.menu-toggle,
-.flow-step {
-  touch-action: manipulation;
-}
-
-/* â”€â”€â”€ Icon Font Constraints â”€â”€â”€ */
-.material-symbols-outlined {
-  font-family: 'Material Symbols Outlined';
-  font-style: normal;
-  font-weight: normal;
-  font-size: 24px;
-  line-height: 1;
-  letter-spacing: normal;
-  text-transform: none;
-  display: inline-block;
-  white-space: nowrap;
-  word-wrap: normal;
-  direction: ltr;
-  -webkit-font-feature-settings: 'liga';
-  font-feature-settings: 'liga';
-  -webkit-font-smoothing: antialiased;
-  width: 1em;
-  overflow: hidden;
-  flex-shrink: 0;
-  vertical-align: middle;
-}
-
 body {
   margin: 0;
-  font-family: 'Outfit', system-ui, sans-serif;
+  font-family: 'Outfit', system-ui, sans-serif; /* Keep Outfit but will style it more organic */
   background-color: var(--md-sys-color-background);
+  /* Paper Texture Overlay */
   background-image: 
-    radial-gradient(circle at 10% 20%, rgba(141, 163, 153, 0.05) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, rgba(217, 140, 114, 0.03) 0%, transparent 40%);
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"),
+    radial-gradient(circle at 10% 20%, rgba(229, 91, 60, 0.03) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(124, 179, 66, 0.03) 0%, transparent 40%);
   background-attachment: fixed;
   color: var(--md-sys-color-on-surface);
   line-height: 1.6;
   padding-bottom: calc(var(--nav-height) + 16px + env(safe-area-inset-bottom, 0px));
   -webkit-font-smoothing: antialiased;
+}
+
+/* "Sketchy" Border Utility */
+.sketchy-block {
+    border: var(--scarry-border);
+    box-shadow: var(--scarry-shadow);
+    background: white;
+    position: relative;
+    /* Organic irregular corners */
+    border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+}
+
+.sketchy-block:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 6px 6px 0px var(--clr-ink);
+}
+
+.sketchy-block:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px var(--clr-ink);
 }
 
 /* Utility */
@@ -121,118 +104,58 @@ body {
   gap: 6px;
 }
 
-/* â”€â”€â”€ Header â”€â”€â”€ */
+/* ─── Header ─── */
 .app-header {
-  padding: 24px 24px 20px;
-  background: color-mix(in srgb, var(--md-sys-color-primary-container) 70%, transparent 30%);
-  color: var(--md-sys-color-on-primary-container);
+  padding: 32px 24px;
+  background: var(--clr-gold);
+  color: var(--clr-ink);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom-left-radius: var(--md-sys-shape-corner-extra-large);
-  border-bottom-right-radius: var(--md-sys-shape-corner-extra-large);
-  position: relative;
-  overflow: hidden;
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  max-width: 1000px;
-  margin: 0 auto;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-/* Milpa geometric decoration - Adjusted for M3 */
-.app-header::before {
-  content: '';
-  position: absolute;
-  top: -60px;
-  right: -60px;
-  width: 220px;
-  height: 220px;
-  border-radius: 50%;
-  border: 40px solid var(--md-sys-color-primary);
-  opacity: 0.1;
-  pointer-events: none;
-}
-
-.app-header {
-  padding: 32px var(--bento-gap);
-  background: rgba(255, 255, 255, 0.03);
-  color: white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-radius: var(--bento-radius);
-  margin: var(--bento-gap) auto 0;
+  border: var(--scarry-border);
+  box-shadow: var(--scarry-shadow);
+  border-radius: 255px 15px 225px 15px/15px 225px 15px 255px; /* Sketchy corners */
+  margin: 16px auto;
   max-width: 1000px;
   position: relative;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px);
+  overflow: visible; /* Allow icons to pop out */
 }
 
-.app-header h1 {
-  color: var(--clr-ochre); /* Luxury Branding concept */
-  text-shadow: 0 4px 12px rgba(0,0,0,0.4);
-}
-
-.subtitle {
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
-  letter-spacing: 0.03em;
-}
-
-/* Redesigning background decorations for Bento */
+/* Scarry illustrative decorations */
 .app-header::before {
-  content: '';
+  content: '🍏';
   position: absolute;
-  top: -100px;
-  right: -50px;
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(circle, rgba(74, 93, 35, 0.08) 0%, transparent 70%);
-  pointer-events: none;
+  top: -15px;
+  right: 20px;
+  font-size: 2rem;
+  transform: rotate(15deg);
 }
 
 .app-header::after {
-  content: '';
+  content: '🚗';
   position: absolute;
-  bottom: -50px;
-  left: -50px;
-  width: 150px;
-  height: 150px;
-  background: radial-gradient(circle, rgba(166, 90, 42, 0.05) 0%, transparent 70%);
-  border-radius: 50%;
-  pointer-events: none;
-}
-
-.app-header-text {
-  position: relative;
-  z-index: 1;
+  bottom: -15px;
+  left: 20px;
+  font-size: 1.5rem;
+  transform: rotate(-5deg);
 }
 
 .app-header h1 {
   margin: 0;
-  font-size: 1.85rem;
-  font-weight: 700;
-  letter-spacing: -0.5px;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--clr-ink);
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-
-.app-header h1 .header-icon {
-  font-size: 1.6rem;
-  display: inline-flex;
-  align-items: center;
+  gap: 12px;
 }
 
 .subtitle {
-  margin: 3px 0 0;
-  opacity: 0.65;
-  font-weight: 500;
-  font-size: 0.82rem;
-  letter-spacing: 0.2px;
+  margin: 4px 0 0;
+  color: var(--clr-pencil);
+  font-weight: 700;
+  font-size: 0.9rem;
+  font-style: italic;
 }
 
 /* ─── Layout: Bento Grid System ─── */
@@ -254,29 +177,27 @@ body {
 
 .panel {
   grid-column: 1 / -1;
-  background: var(--glass-bg);
-  border: var(--glass-border);
-  border-radius: var(--bento-radius);
-  padding: var(--bento-padding);
-  box-shadow: var(--glass-shadow);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  margin-bottom: 0;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  overflow: hidden;
+  background: white;
+  border: var(--scarry-border);
+  border-radius: var(--scarry-radius);
+  padding: 24px;
+  box-shadow: var(--scarry-shadow);
+  margin-bottom: 24px;
   position: relative;
-  color: var(--clr-slate);
+  color: var(--clr-ink);
+  /* Slightly irregular corners for panel */
+  border-radius: 12px 100px 12px 100px/100px 12px 100px 12px;
 }
 
 .panel:hover {
-  transform: scale(1.005);
+  transform: rotate(0.2deg);
 }
 
 .panel h2 {
-  color: var(--clr-ochre); /* Mid-Century highlight */
+  color: var(--clr-tomato);
   margin-top: 0;
-  font-size: 1.5rem;
-  font-weight: 800;
+  font-size: 1.6rem;
+  font-weight: 900;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -515,36 +436,37 @@ body {
 }
 
 .chip {
-  background: var(--bento-card-bg);
-  color: var(--md-sys-color-on-surface);
-  border: var(--bento-border);
-  border-radius: 14px; /* Slightly more rounded for Bento chips */
-  padding: 10px 18px;
+  background: white;
+  color: var(--clr-ink);
+  border: 2px solid var(--clr-ink);
+  border-radius: 40px 10px 40px 10px/10px 40px 10px 40px;
+  padding: 8px 16px;
   cursor: pointer;
-  font-size: 0.82rem;
-  font-weight: 600;
-  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+  font-size: 0.9rem;
+  font-weight: 700;
+  transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   min-height: 44px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  box-shadow: 2px 2px 0px var(--clr-ink);
 }
 
 .chip.active {
-  background: var(--clr-teal);
-  color: white;
-  border-color: transparent;
-  box-shadow: 0 4px 12px rgba(3, 104, 115, 0.3);
+  background: var(--clr-gold);
+  color: var(--clr-ink);
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px var(--clr-ink);
 }
 
 .chip:active {
-  scale: 0.97;
+  scale: 0.98;
 }
 
 .chip:hover:not(.active) {
-  background: var(--md-sys-color-surface-variant);
-  border-color: var(--md-sys-color-outline);
+  background: var(--clr-paper);
+  transform: translateY(-1px);
+  box-shadow: 3px 3px 0px var(--clr-ink);
 }
 
 /* â”€â”€â”€ Craving Menu â”€â”€â”€ */
@@ -1069,19 +991,23 @@ button.error-btn:hover {
   flex-shrink: 0;
 }
 
-/* â”€â”€â”€ Recipe Cards â”€â”€â”€ */
+/* ─── Recipe Cards ─── */
 .recipe-card {
-  background: var(--bento-card-bg);
-  border: var(--bento-border);
-  border-radius: var(--bento-radius);
-  padding: 0;
-  margin-bottom: var(--bento-gap);
+  background: white;
+  border: var(--scarry-border);
+  border-radius: var(--scarry-radius);
+  margin-bottom: 32px;
   overflow: hidden;
   position: relative;
-  box-shadow: var(--bento-shadow);
-  transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.3s ease;
+  box-shadow: var(--scarry-shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   flex-direction: column;
+}
+
+.recipe-card:hover {
+  transform: rotate(-0.5deg) scale(1.01);
+  box-shadow: 8px 8px 0px var(--clr-ink);
 }
 
 .recipe-card-inner {
@@ -1093,80 +1019,92 @@ button.error-btn:hover {
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .recipe-title {
   margin: 0;
-  font-size: 1.4rem;
-  font-weight: 800;
-  color: var(--md-sys-color-on-surface);
-  line-height: 1.2;
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--clr-ink);
+  line-height: 1.1;
+  letter-spacing: -0.5px;
 }
 
 .score-badge {
-  background: var(--md-sys-color-primary-container);
-  color: var(--md-sys-color-primary);
-  padding: 6px 14px;
-  border-radius: 14px;
-  font-weight: 800;
-  font-size: 1rem;
-  white-space: nowrap;
+  background: var(--clr-grass);
+  color: white;
+  padding: 4px 12px;
+  border: 2px solid var(--clr-ink);
+  border-radius: 50% 50% 50% 50%/20% 20% 80% 80%;
+  font-weight: 900;
+  font-size: 1.1rem;
+  transform: rotate(5deg);
 }
 
 .recipe-meta {
-  color: var(--md-sys-color-on-surface-variant);
-  font-weight: 500;
-  font-size: 0.85rem;
-  margin: 4px 0 12px;
-}
-
-.recipe-description {
-  margin: 0 0 16px;
-  font-size: 1rem;
-  color: var(--md-sys-color-on-surface);
-  line-height: 1.5;
-  opacity: 0.9;
-}
-
-.recipe-simple-stats {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.simple-stat {
+  color: var(--clr-pencil);
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin: 4px 0 16px;
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--md-sys-color-on-surface-variant);
 }
 
-.simple-stat .material-symbols-outlined {
-  font-size: 18px;
+.recipe-description {
+  margin: 0 0 20px;
+  font-size: 1.05rem;
+  color: var(--clr-ink);
+  line-height: 1.4;
+  font-weight: 500;
 }
 
-.recipe-expand-btn {
-  background: none;
-  border: none;
-  color: var(--md-sys-color-primary);
-  font-weight: 700;
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 8px 0;
-  cursor: pointer;
+.recipe-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1.5px dashed var(--clr-pencil);
+}
+
+.section-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: var(--clr-tomato);
+    margin-bottom: 6px;
+    font-weight: 800;
+}
+
+.section-label .material-symbols-outlined {
+    font-size: 18px;
+}
+
+.profile-text, .mealprep-text {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    font-weight: 600;
+    color: var(--clr-ink);
+}
+
+.why-list {
+    margin: 4px 0 0;
+    padding-left: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--clr-pencil);
+}
+
+.why-list li {
+    margin-bottom: 4px;
 }
 
 .recipe-actions {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   padding: 16px 24px 20px;
-  background: #fdfdfd;
-  border-top: 1px solid rgba(0, 0, 0, 0.03);
+  background: var(--clr-paper);
+  border-top: var(--scarry-border);
 }
 
 .action-btn {
@@ -1175,21 +1113,31 @@ button.error-btn:hover {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px;
-  border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  background: var(--clr-white);
-  color: var(--md-sys-color-on-surface);
-  font-weight: 700;
+  padding: 10px;
+  border-radius: 8px;
+  border: 2px solid var(--clr-ink);
+  background: white;
+  color: var(--clr-ink);
+  font-weight: 800;
   font-size: 0.9rem;
   cursor: pointer;
+  box-shadow: 2px 2px 0px var(--clr-ink);
+  transition: all 0.2s ease;
 }
 
 .action-btn.primary-action {
-  background: var(--md-sys-color-primary);
+  background: var(--clr-tomato);
   color: white;
-  border: none;
-  box-shadow: 0 4px 12px rgba(93, 122, 109, 0.3);
+}
+
+.action-btn:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0px var(--clr-ink);
+}
+
+.action-btn:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0px var(--clr-ink);
 }
 
 /* Cooking Mode Overlay */
@@ -1406,113 +1354,74 @@ button.error-btn:hover {
   }
 }
 
-/* â”€â”€â”€ Bottom Nav â”€â”€â”€ */
+/* ─── Bottom Nav ─── */
 .bottom-nav {
   position: fixed;
   bottom: 24px;
-  left: var(--bento-gap);
-  right: var(--bento-gap);
-  background: var(--clr-violet);
+  left: 16px;
+  right: 16px;
+  background: var(--clr-paper);
   display: flex;
   justify-content: space-around;
   align-items: center;
   height: 80px;
-  border-radius: 36px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
+  border-radius: 40px 10px 40px 10px/10px 40px 10px 40px;
+  border: var(--scarry-border);
+  box-shadow: var(--scarry-shadow);
   z-index: 1001;
   max-width: 800px;
   margin: 0 auto;
-  backdrop-filter: blur(20px);
 }
 
 .nav-item {
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--clr-pencil);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 10px 14px;
-  transition: color 0.3s ease, transform 0.2s ease;
+  gap: 4px;
+  padding: 8px;
+  transition: all 0.2s ease;
   flex: 1;
   cursor: pointer;
-  min-width: 0;
-  border-radius: 12px;
 }
 
 .nav-item:hover {
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--clr-tomato);
   transform: translateY(-2px);
-}
-
-.nav-item span:last-child {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-}
-
-/* Icon wrapper for badge positioning */
-.nav-icon-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Pill indicator (Material 3 / iOS style) */
-.nav-item > .material-symbols-outlined {
-  padding: 6px 18px;
-  border-radius: 16px;
-  font-size: 28px;
-  transition: background 0.3s ease, transform 0.2s ease;
-}
-
-.nav-item .nav-icon-wrap .material-symbols-outlined {
-  padding: 6px 18px;
-  border-radius: 16px;
-  font-size: 28px;
-  transition: background 0.3s ease, transform 0.2s ease;
 }
 
 .nav-item.active {
-  color: var(--clr-ochre);
+  color: var(--clr-tomato);
 }
 
-.nav-item.active > .material-symbols-outlined,
-.nav-item.active .nav-icon-wrap .material-symbols-outlined {
-  background: rgba(210, 157, 26, 0.22);
-  transform: translateY(-2px);
+.nav-item .material-symbols-outlined {
+  font-size: 28px;
+  padding: 8px 20px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
 }
 
-/* Grocery badge */
-.nav-badge {
-  position: absolute;
-  top: -4px;
-  right: -8px;
-  background: var(--clr-brick);
-  color: #fff;
-  font-size: 0.6rem;
-  font-weight: 700;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
-  border-radius: 8px;
+.nav-item.active .material-symbols-outlined {
+  background: var(--md-sys-color-primary-container);
+  transform: rotate(-3deg);
+}
+
+/* ─── Toast Notifications ─── */
+.toast {
+  background: white;
+  color: var(--clr-ink);
+  padding: 12px 24px;
+  border: var(--scarry-border);
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  box-shadow: var(--scarry-shadow);
+  animation: toastIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
   display: flex;
   align-items: center;
-  justify-content: center;
-  line-height: 1;
-  border: 1.5px solid var(--clr-violet);
-  pointer-events: none;
-}
-
-/* FAB hidden state */
-.fab-hidden {
-  opacity: 0;
-  pointer-events: none;
-  transform: scale(0.8);
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  gap: 12px;
 }
 
 
@@ -3484,27 +3393,27 @@ body {
     display: none;
 }
 
+/* %%% Global Search Modal (Ctrl+K) %%% */
 .search-modal-box {
-    background: var(--md-sys-color-surface);
+    background: white;
     width: 100%;
     max-width: 600px;
-    border-radius: var(--md-sys-shape-corner-extra-large);
-    box-shadow: var(--md-sys-elevation-4);
+    border: var(--scarry-border);
+    border-radius: 20px 40px 20px 40px/40px 20px 40px 20px;
+    box-shadow: 10px 10px 0px var(--clr-pencil);
     overflow: hidden;
     display: flex;
     flex-direction: column;
     max-height: 80vh;
-    animation: slideUp 0.3s cubic-bezier(0.2, 0, 0, 1);
-    border: 1px solid var(--md-sys-color-outline-variant);
 }
 
 .search-modal-header {
     display: flex;
     align-items: center;
     padding: 16px 20px;
-    border-bottom: 1px solid var(--md-sys-color-surface-variant);
+    border-bottom: var(--scarry-border);
     gap: 12px;
-    background: var(--md-sys-color-surface);
+    background: var(--clr-gold);
 }
 
 .search-modal-input {
@@ -3642,40 +3551,35 @@ body {
   display: flex;
   gap: 12px;
   padding: 16px;
-  background: var(--md-sys-color-surface);
-  border: 1.5px solid rgba(0, 0, 0, 0.06);
+  background: white;
+  border: 2px solid var(--clr-ink);
   border-radius: 18px;
   align-items: flex-start;
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
   cursor: pointer;
+  box-shadow: 2px 2px 0px var(--clr-ink);
   min-width: 0; /* Critical for grid wrapping */
 }
 
 .category-card-inner:hover {
-  background: var(--md-sys-color-surface-container-low);
-  border-color: var(--md-sys-color-outline);
-  box-shadow: var(--md-sys-elevation-1);
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px var(--clr-ink);
 }
 
 .category-card-inner.active {
-  background: var(--md-sys-color-secondary-container);
-  border-color: var(--md-sys-color-secondary);
-  box-shadow: var(--md-sys-elevation-2);
+  background: var(--clr-sky);
+  border-color: var(--clr-ink);
 }
 
 .category-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 40px;
-  height: 40px;
-  font-size: 1.5rem;
-  color: var(--md-sys-color-primary);
+  min-width: 44px;
+  height: 44px;
+  font-size: 1.8rem;
+  color: var(--clr-ink);
   flex-shrink: 0;
-}
-
-.category-card-inner.active .category-icon {
-  color: var(--md-sys-color-on-secondary-container);
 }
 
 .category-info {
@@ -3768,21 +3672,22 @@ body {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: var(--md-sys-color-surface-container-low);
-  border: 1px solid var(--md-sys-color-outline-variant);
-  border-radius: var(--md-sys-shape-corner-medium);
-  color: var(--md-sys-color-on-surface);
+  background: white;
+  border: 1.5px solid var(--clr-ink);
+  border-radius: var(--scarry-radius);
+  color: var(--clr-ink);
   font-size: 0.85rem;
-  font-weight: 500;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
+  box-shadow: 1px 1px 0px var(--clr-ink);
 }
 
 .subcategory-btn:hover {
-  background: var(--md-sys-color-surface-container);
-  border-color: var(--md-sys-color-outline);
-  box-shadow: var(--md-sys-elevation-1);
+  background: var(--clr-paper);
+  transform: translateY(-1px);
+  box-shadow: 2px 2px 0px var(--clr-ink);
 }
 
 .subcategory-btn:active {
