@@ -2277,7 +2277,7 @@ export const RECIPES = [
         pro_tip: "Espolvorea el gofio sobre el arroz y frijoles al final como si fuera queso. Aporta un sabor a cereal tostado único que conecta las raíces africanas de ambos platos.",
         profile: { fiber: "muy alta", protein: "alta", satFat: "baja", glyLoad: "media", vegetableVolume: "bajo", energyDensity: "media" },
         mealPrep: { usesBases: ["frijoles_olla"], leavesBases: [], derivatives: [] }
-    }
+    },
     {
         id: "arroz_leche_nime",
         name: "Arroz con Leche NiME",
