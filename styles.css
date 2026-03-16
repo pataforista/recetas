@@ -4041,7 +4041,7 @@ body {
   background: white;
   border: 2px solid var(--clr-ink);
   border-radius: var(--scarry-radius);
-  padding: 20px;
+  padding: 16px 20px;
   box-shadow: 4px 4px 0px var(--clr-ink);
   cursor: pointer;
   transition: all 0.1s ease;
@@ -4050,7 +4050,28 @@ body {
   flex-direction: column;
   gap: 12px;
   pointer-events: auto;
+  position: relative;
+  overflow: hidden;
 }
+
+/* Family-based color stamping */
+.recipe-browser-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 100%;
+  background: var(--clr-ink);
+}
+
+.rbc-f-verduras::before, .rbc-f-nopal::before { background: var(--clr-grass); }
+.rbc-f-pollo::before, .rbc-f-res::before, .rbc-f-cerdo::before { background: var(--clr-tomato); }
+.rbc-f-pescado::before, .rbc-f-atun::before, .rbc-f-atun_fresco::before { background: var(--clr-sky); }
+.rbc-f-postres::before { background: #FF4081; }
+.rbc-f-desayuno::before { background: var(--clr-gold); }
+.rbc-f-frijol::before, .rbc-f-leguminosas::before { background: #795548; }
+.rbc-f-queso::before, .rbc-f-basicos::before { background: #607D8B; }
 
 .recipe-browser-card:hover {
   transform: translate(-2px, -2px);
