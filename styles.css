@@ -24,6 +24,14 @@
   --md-sys-color-on-surface: var(--clr-ink);
   
   --nav-height: 84px;
+
+  /* Legacy Tokens Compatibility (Busytown Mappings) */
+  --clr-stone: #EFE9E1;
+  --clr-violet: var(--clr-ink);
+  --clr-teal: var(--clr-grass);
+  --clr-brick: var(--clr-tomato);
+  --clr-deep: var(--clr-ink);
+  --clr-ochre: var(--clr-gold);
 }
 
 * {
@@ -437,19 +445,19 @@ body {
 
 .chip {
   background: white;
-  color: var(--clr-ink);
-  border: 2px solid var(--clr-ink);
+  color: var(--clr-ink) !important;
+  border: 2.5px solid var(--clr-ink);
   border-radius: 40px 10px 40px 10px/10px 40px 10px 40px;
-  padding: 8px 16px;
+  padding: 10px 20px;
   cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 700;
+  font-size: 0.95rem;
+  font-weight: 800;
   transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
-  box-shadow: 2px 2px 0px var(--clr-ink);
+  min-height: 48px;
+  box-shadow: 3px 3px 0px var(--clr-ink);
 }
 
 .chip.active {
@@ -1107,6 +1115,26 @@ button.error-btn:hover {
   border-top: var(--scarry-border);
 }
 
+/* Expansion Logic */
+.recipe-collapsible {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
+    padding: 0 24px;
+    overflow: hidden;
+}
+
+.recipe-collapsible.expanded {
+    grid-template-rows: 1fr;
+    padding: 16px 24px 24px;
+    background: rgba(255, 255, 255, 0.5);
+    border-top: 1.5px dashed var(--clr-pencil);
+}
+
+.recipe-collapsible > div {
+    min-height: 0;
+}
+
 .action-btn {
   flex: 1;
   display: flex;
@@ -1404,7 +1432,8 @@ button.error-btn:hover {
 }
 
 .nav-item.active .material-symbols-outlined {
-  background: var(--md-sys-color-primary-container);
+  background: var(--clr-gold);
+  border: 2px solid var(--clr-ink);
   transform: rotate(-3deg);
 }
 
@@ -1434,28 +1463,26 @@ button.error-btn:hover {
 }
 
 .planner-day {
-  background: var(--bento-card-bg);
-  border: var(--bento-border);
-  border-radius: 20px;
+  background: white;
+  border: var(--scarry-border);
+  border-radius: var(--scarry-radius);
   padding: 16px;
   min-height: 120px;
-  transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  box-shadow: var(--scarry-shadow);
   display: flex;
   flex-direction: column;
 }
 
 .planner-day.is-today {
-  border-color: var(--md-sys-color-primary);
-  background: var(--md-sys-color-primary-container);
-  box-shadow: 0 4px 20px rgba(74, 93, 35, 0.1);
+  background: var(--clr-sky);
+  transform: rotate(1deg);
 }
 
 .planner-day h3 {
   margin: 0 0 10px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--md-sys-color-primary);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--clr-ink);
   text-transform: capitalize;
   display: flex;
   align-items: center;
@@ -1885,83 +1912,40 @@ button.error-btn:hover {
   opacity: 0.9;
 }
 
-/* Recent Lists Section */
-.recent-lists-section {
-  margin-bottom: 16px;
-}
-
-.recent-lists-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.recent-lists-buttons button {
-  padding: 8px 12px;
-  background: var(--clr-stone);
-  border: 1px solid rgba(53, 37, 84, 0.1);
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--clr-violet);
-  transition: all 0.2s ease;
-}
-
-.recent-lists-buttons button:hover {
-  background: var(--bento-card-bg);
-  border-color: var(--clr-teal);
-  color: var(--clr-teal);
-}
-
 /* --- Grouped Grocery UI --- */
-.grouped-list-container {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
 .grocery-group-card {
-  background: var(--bento-card-bg);
-  border: var(--bento-border);
-  border-radius: 20px;
+  background: white;
+  border: var(--scarry-border);
+  border-radius: var(--scarry-radius);
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  box-shadow: var(--scarry-shadow);
+  margin-bottom: 24px;
 }
 
 .grocery-group-header {
   padding: 14px 18px;
-  background: var(--md-sys-color-primary-container);
-  color: var(--md-sys-color-on-primary-container);
+  background: var(--clr-sky);
+  color: var(--clr-ink);
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.grocery-group-header .material-symbols-outlined {
-  font-size: 20px;
-  opacity: 0.8;
+  border-bottom: var(--scarry-border);
 }
 
 .grocery-group-header h3 {
   margin: 0;
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-size: 1.1rem;
+  font-weight: 900;
   flex: 1;
-  text-transform: capitalize;
 }
 
 .item-count-badge {
-  background: var(--md-sys-color-primary);
-  color: var(--md-sys-color-on-primary);
-  padding: 2px 8px;
+  background: var(--clr-ink);
+  color: white;
+  padding: 2px 10px;
   border-radius: 99px;
   font-size: 0.75rem;
-  font-weight: 700;
-}
-
-.grocery-group-items {
-  padding: 6px 0;
+  font-weight: 900;
 }
 
 .grocery-row {
@@ -1969,40 +1953,40 @@ button.error-btn:hover {
   align-items: center;
   padding: 12px 18px;
   gap: 14px;
-  cursor: pointer;
+  border-bottom: 1.5px dashed var(--clr-pencil);
+  color: var(--clr-ink);
+  font-weight: 700;
   transition: background 0.2s ease;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
 }
 
 .grocery-row:last-child {
   border-bottom: none;
 }
 
-.grocery-row:active {
-  background: rgba(0, 0, 0, 0.03);
+.grocery-row.checked {
+  background: var(--clr-paper);
 }
 
-.grocery-check .material-symbols-outlined {
-  font-size: 24px;
-  color: var(--md-sys-color-on-surface-variant);
-  transition: color 0.2s ease;
-}
-
-.grocery-row.checked .grocery-check .material-symbols-outlined {
-  color: var(--md-sys-color-primary);
-}
-
-.grocery-main {
-  flex: 1;
+.grocery-check {
+  width: 28px;
+  height: 28px;
+  border: 2.5px solid var(--clr-ink);
+  border-radius: 6px;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  flex-shrink: 0;
+}
+
+.grocery-row.checked .grocery-check {
+  background: var(--clr-grass);
 }
 
 .grocery-name {
   font-size: 1rem;
-  font-weight: 600;
-  color: var(--md-sys-color-on-surface);
-  transition: all 0.2s ease;
+  font-weight: 800;
+  color: var(--clr-ink);
 }
 
 .grocery-row.checked .grocery-name {
@@ -2011,13 +1995,10 @@ button.error-btn:hover {
 }
 
 .grocery-qty {
-  font-size: 0.82rem;
-  color: var(--md-sys-color-on-surface-variant);
-  font-weight: 500;
-}
-
-.grocery-row.checked .grocery-qty {
-  opacity: 0.4;
+  font-size: 0.85rem;
+  color: var(--clr-pencil);
+  font-weight: 700;
+  margin-left: auto;
 }
 
 .custom-list-item-actions button {
@@ -2042,20 +2023,21 @@ button.error-btn:hover {
 }
 
 .toast {
-  background: color-mix(in srgb, var(--md-sys-color-on-background) 92%, var(--md-sys-color-primary) 8%);
-  color: var(--md-sys-color-background);
-  padding: 11px 20px;
+  background: white;
+  color: var(--clr-ink);
+  padding: 14px 24px;
+  border: var(--scarry-border);
   border-radius: 999px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  box-shadow: var(--md-sys-elevation-3);
-  animation: toastIn 0.3s ease-out forwards;
+  font-size: 1rem;
+  font-weight: 900;
+  box-shadow: var(--scarry-shadow);
+  animation: toastIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
   pointer-events: auto;
   text-align: center;
   max-width: 100%;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
 .toast.exit {
@@ -3736,11 +3718,12 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
-  margin-bottom: 16px;
-  background: rgba(159, 62, 34, 0.08); /* Light brick tint */
-  border: 1px solid rgba(159, 62, 34, 0.25);
-  border-radius: var(--bento-radius);
+  padding: 16px;
+  margin-bottom: 24px;
+  background: white;
+  border: 2.5px solid var(--clr-tomato);
+  border-radius: var(--scarry-radius);
+  box-shadow: 4px 4px 0px var(--clr-tomato);
   animation: slideDown 0.3s cubic-bezier(0.2, 0, 0, 1);
 }
 
@@ -3924,9 +3907,15 @@ body {
 .template-chip {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 0.82rem;
-  padding: 5px 10px;
+  gap: 6px;
+  font-size: 0.85rem;
+  padding: 8px 16px;
+  background: white;
+  border: 2px solid var(--clr-ink);
+  color: var(--clr-ink);
+  font-weight: 800;
+  border-radius: var(--scarry-radius);
+  box-shadow: 2px 2px 0px var(--clr-ink);
 }
 
 .template-chip .material-symbols-outlined {
