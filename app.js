@@ -2927,6 +2927,23 @@ function openRecipesBrowserModal() {
     if (detail) detail.classList.add("hidden");
 
     modal.classList.remove("hidden");
+
+    // Reset internal state
+    _browserState.search = "";
+    _browserState.family = "";
+    _browserState.maxTime = 0;
+
+    // Clear search and rebuild family filters to ensure clean state
+    const searchInput = document.getElementById("recipesBrowserSearch");
+    if (searchInput) {
+        searchInput.value = "";
+        const clearBtn = document.getElementById("recipesBrowserSearchClear");
+        if (clearBtn) clearBtn.classList.add("hidden");
+    }
+
+    const familyContainer = document.getElementById("recipesFamilyFilter");
+    if (familyContainer) familyContainer.innerHTML = "";
+
     _buildFamilyFilterChips();
 
     // Reset filter buttons to default state
@@ -2963,9 +2980,6 @@ function closeRecipesBrowserModal() {
 function _buildFamilyFilterChips() {
     const container = document.getElementById("recipesFamilyFilter");
     if (!container) return;
-
-    // Only build if not already built (check for "Todas" button)
-    if (container.querySelector('[data-family=""]')) return;
 
     const families = [...new Set(RECIPES.map(r => r.family))].sort();
     const allBtn = document.createElement("button");
