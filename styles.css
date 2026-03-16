@@ -1,47 +1,29 @@
 :root {
-  /* Refined Mid-Century Modern Palette */
-  --clr-ochre: #D29D1A;
-  --clr-teal: #0A7E8C;
-  --clr-brick: #9F3E22;
-  --clr-violet: #352554;
-  --clr-stone: #F2F1ED;
+  /* Refined Premium Palette: Deep Emerald & Gold */
+  --clr-gold: #D4AF37;
+  --clr-emerald: #064E3B;
+  --clr-clay: #B45309;
+  --clr-slate: #1E293B;
+  --clr-cream: #F8FAFC;
 
-  /* Bento UI Redesign Tokens */
-  --bento-bg: var(--clr-violet);
-  --bento-card-bg: #FFFFFF;
-  --bento-gap: 16px;
-  --bento-radius: 24px;
+  /* Bento & Glassmorphism Tokens */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.4);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  --bento-radius: 28px;
   --bento-padding: 24px;
-  --bento-shadow: 0 12px 48px rgba(0, 0, 0, 0.25);
-  --bento-border: 1px solid rgba(255, 255, 255, 0.08);
+  --bento-gap: 20px;
 
   /* M3 Mapping */
-  --md-sys-color-primary: var(--clr-teal); 
+  --md-sys-color-primary: #059669; 
   --md-sys-color-on-primary: #FFFFFF;
-  --md-sys-color-primary-container: #E0F5F6;
-  --md-sys-color-on-primary-container: #00363D;
+  --md-sys-color-primary-container: #D1FAE5;
+  --md-sys-color-on-primary-container: #064E3B;
 
-  --md-sys-color-secondary: var(--clr-ochre);
-  --md-sys-color-on-secondary: #FFFFFF;
+  --md-sys-color-background: var(--clr-slate);
+  --md-sys-color-surface: var(--glass-bg);
+  --md-sys-color-on-surface: var(--clr-slate);
   
-  --md-sys-color-tertiary: var(--clr-brick);
-  --md-sys-color-on-tertiary: #FFFFFF;
-
-  --md-sys-color-background: var(--bento-bg);
-  --md-sys-color-on-background: #FFFFFF;
-  
-  --md-sys-color-surface: var(--bento-card-bg);
-  --md-sys-color-on-surface: var(--clr-violet);
-  --md-sys-color-surface-variant: var(--clr-stone);
-  --md-sys-color-on-surface-variant: #5A5A5A;
-  
-  /* Shapes */
-  --md-sys-shape-corner-extra-large: var(--bento-radius);
-  --md-sys-shape-corner-large: 18px;
-  --md-sys-shape-corner-medium: 12px;
-  --md-sys-shape-corner-small: 8px;
-
-  /* Nav */
   --nav-height: 84px;
 }
 
@@ -267,16 +249,22 @@ body {
 
 .panel {
   grid-column: 1 / -1;
-  background: white;
-  border: 1px solid rgba(0, 0, 0, 0.04);
+  background: var(--glass-bg);
+  border: var(--glass-border);
   border-radius: var(--bento-radius);
   padding: var(--bento-padding);
-  box-shadow: var(--bento-shadow);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   margin-bottom: 0;
-  transition: transform 0.25s ease;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   overflow: hidden;
   position: relative;
-  color: var(--clr-violet); /* Dark text on white card */
+  color: var(--clr-slate);
+}
+
+.panel:hover {
+  transform: scale(1.005);
 }
 
 .panel h2 {
@@ -4036,6 +4024,7 @@ body {
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -4274,4 +4263,26 @@ body {
 .rd-actions button {
   flex: 1;
 }
+}
+
+/* --- Highlight Owned --- */
+.ing-owned {
+  background: #d1fae5;
+  color: #065f46;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-weight: 700;
+  font-size: 0.85em;
+  border: 1px solid #10b981;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.1);
+}
+
+.recipe-collapsible.expanded {
+  background: rgba(255,255,255,0.4);
+  padding: 16px;
+  border-radius: 12px;
+  margin-top: 10px;
 }

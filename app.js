@@ -1482,7 +1482,7 @@ function createRecipeCard(item) {
         ...recipe.ingredientsRequired,
         ...recipe.ingredientsOptional
     ];
-    node.querySelector(".ingredients-text").textContent = prettyIngredients(allIngredients);
+    node.querySelector(".ingredients-text").innerHTML = prettyIngredients(allIngredients);
     node.querySelector(".profile-text").innerHTML = buildProfileText(recipe.profile);
     node.querySelector(".mealprep-text").textContent = buildMealPrepText(recipe.mealPrep);
 
@@ -1525,7 +1525,65 @@ function createRecipeCard(item) {
         });
     }
 
+    const cookBtn = node.querySelector(".cook-recipe-btn");
+    if (cookBtn) {
+        cookBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            handleCook(recipe.id);
+        });
+    }
+
     return node;
+}
+
+function handleCook(recipeId) {
+    const recipe = RECIPES.find(r => r.id === recipeId);
+    if (!recipe) return;
+
+    showChoice(`¿Confirmas que cocinaste "${recipe.name}"?`, [
+        { text: "Sí, ¡delicioso!", cb: () => {
+            // 1. Consume ingredients
+            const consumed = [];
+            recipe.ingredientsRequired.forEach(ingId => {
+                if (state.inventory[ingId]?.has) {
+                    state.inventory[ingId].has = false;
+                    state.inventory[ingId].urgency = "normal";
+                    consumed.push(ingId);
+                    logWaste(ingId, INGREDIENTS.find(i => i.id === ingId)?.name || ingId, "consumed");
+                }
+            });
+
+            // 2. Add bases or derivatives if any
+            if (recipe.mealPrep?.leavesBases) {
+                recipe.mealPrep.leavesBases.forEach(baseId => {
+                    // Find if it's a known base in MEALPREP_BASES
+                    const base = MEALPREP_BASES.find(b => b.id === baseId);
+                    if (base) {
+                        // Mark ingredients of the base as "has" (the prepared base itself)
+                        // Actually, bases usually represent a new state.
+                        // For now, let's just toast it.
+                    }
+                });
+            }
+
+            persistInventory();
+            updateInventoryBadge();
+            renderInventory(); // Refresh view if open
+            renderExpiringBanner();
+            
+            showToast(`¡Buen provecho! Se actualizaron ${consumed.length} ingredientes en tu alacena.`);
+            
+            // 3. Narrative injection (optional)
+            if (confetti) {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+        }},
+        { text: "Aún no", cb: () => {} }
+    ]);
 }
 
 function buildProfileText(profile) {
@@ -2105,19 +2163,26 @@ function handleReset() {
 function prettyIngredients(ingredients) {
     if (!ingredients || !ingredients.length) return "Sin ingredientes";
     return ingredients.map((item) => {
+        let id, name, amount, unit;
         if (typeof item === "string") {
+            id = item;
             const ing = INGREDIENTS.find((i) => i.id === item);
-            return ing ? ing.name : item;
+            name = ing ? ing.name : item;
         } else if (typeof item === "object") {
+            id = item.id;
             const ing = INGREDIENTS.find((i) => i.id === item.id);
-            const name = ing ? ing.name : item.id;
-            const alt = ing?.mexican_alt ? ` (Alt MX: ${ing.mexican_alt})` : "";
-            if (item.amount && item.unit) {
-                return `${item.amount}${item.unit} de ${name}${alt}`;
-            }
-            return `${name}${alt}`;
+            name = ing ? ing.name : item.id;
+            amount = item.amount;
+            unit = item.unit;
         }
-        return item;
+
+        const hasIt = state.inventory[id]?.has;
+        const alt = INGREDIENTS.find(i => i.id === id)?.mexican_alt ? ` (o ${INGREDIENTS.find(i => i.id === id).mexican_alt})` : "";
+        
+        let text = amount && unit ? `${amount}${unit} de ${name}` : name;
+        if (alt) text += alt;
+
+        return hasIt ? `<span class="ing-owned" title="Lo tienes">${text} ✅</span>` : text;
     }).join(", ");
 }
 

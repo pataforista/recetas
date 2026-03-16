@@ -178,6 +178,9 @@ export const INGREDIENTS = [
     { id: "queso_cotija", name: "Queso Cotija", category: "lacteos", aliases: ["cotija cheese"], seasonal: false, frequency: "alta" },
     { id: "crema_acida", name: "Crema ácida", category: "lacteos", aliases: ["sour cream"], seasonal: false, frequency: "alta" },
     { id: "queso_manchego", name: "Queso Manchego", category: "lacteos", seasonal: false, frequency: "media" },
+    { id: "queso_crema", name: "Queso crema", category: "lacteos", seasonal: false, frequency: "alta" },
+    { id: "leche_condensada", name: "Leche condensada", category: "lacteos", seasonal: false, frequency: "media" },
+    { id: "leche_evaporada", name: "Leche evaporada", category: "lacteos", seasonal: false, frequency: "media" },
 
     // ─── GRASAS Y FRUTOS SECOS ────────────────────────────────────────────
     // Aguacate: 2do producto más exportado de MX y altamente consumido internamente
@@ -268,6 +271,17 @@ export const INGREDIENTS = [
     { id: "piloncillo", name: "Piloncillo", category: "basicos", aliases: ["panela", "raw cane sugar"], seasonal: false, frequency: "media" },
     { id: "nescafe", name: "Café / Nescafé", category: "basicos", aliases: ["coffee"], seasonal: false, frequency: "alta" },
     { id: "chile_chipotle_lata", name: "Chipotle en adobo (lata)", category: "basicos", aliases: ["chipotle in adobo"], seasonal: false, frequency: "alta" },
+    { id: "vainilla", name: "Esencia de vainilla", category: "basicos", seasonal: false, frequency: "alta" },
+    { id: "canela_molida", name: "Canela molida", category: "basicos", seasonal: false, frequency: "alta" },
+    { id: "polvo_hornear", name: "Polvo para hornear", category: "basicos", aliases: ["royal"], seasonal: false, frequency: "media" },
+    { id: "levadura", name: "Levadura seca", category: "basicos", seasonal: false, frequency: "media" },
+    { id: "pan_molido", name: "Pan molido", category: "basicos", seasonal: false, frequency: "alta" },
+    { id: "pan_caja", name: "Pan de caja", category: "basicos", aliases: ["pan blanco slice"], seasonal: false, frequency: "alta" },
+    { id: "harina_trigo", name: "Harina de trigo", category: "basicos", seasonal: false, frequency: "alta" },
+    { id: "azucar", name: "Azúcar", category: "basicos", seasonal: false, frequency: "alta" },
+    { id: "miel_maple", name: "Miel de maple", category: "basicos", seasonal: false, frequency: "media" },
+    { id: "salsa_inglesa", name: "Salsa inglesa", category: "basicos", seasonal: false, frequency: "media" },
+    { id: "jugo_maggi", name: "Jugo Maggi", category: "basicos", seasonal: false, frequency: "media" },
 
     // ─── FRUTAS ─────────────────────────────────────────────────────────
     // ENSANUT: plátano, naranja y mango entre las más consumidas
