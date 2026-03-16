@@ -2774,6 +2774,11 @@ function highlight(text, query) {
     return escaped.replace(re, "<mark>$1</mark>");
 }
 
+function normalizeString(str) {
+    if (!str) return "";
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+}
+
 function escapeHtml(str) {
     return String(str)
         .replace(/&/g, "&amp;")
@@ -2788,24 +2793,24 @@ function escapeRegExp(str) {
 
 /** Returns true if `query` matches an ingredient by name, alias, or category */
 function ingredientMatches(ing, query) {
-    const q = query.toLowerCase().trim();
+    const q = normalizeString(query);
     if (!q) return true;
-    if (ing.name.toLowerCase().includes(q)) return true;
-    if (ing.category.toLowerCase().includes(q)) return true;
-    if (ing.aliases?.some(a => a.toLowerCase().includes(q))) return true;
+    if (normalizeString(ing.name).includes(q)) return true;
+    if (normalizeString(ing.category).includes(q)) return true;
+    if (ing.aliases?.some(a => normalizeString(a).includes(q))) return true;
     return false;
 }
 
 /** Returns true if `query` matches a recipe by name, description, or ingredients */
 function recipeMatches(recipe, query) {
-    const q = query.toLowerCase().trim();
+    const q = normalizeString(query);
     if (!q) return true;
-    if (recipe.name.toLowerCase().includes(q)) return true;
-    if (recipe.description?.toLowerCase().includes(q)) return true;
+    if (normalizeString(recipe.name).includes(q)) return true;
+    if (normalizeString(recipe.description || "").includes(q)) return true;
     const allIds = [...(recipe.ingredientsRequired || []), ...(recipe.ingredientsOptional || [])];
     return allIds.some(id => {
         const ing = INGREDIENTS.find(i => i.id === id);
-        return ing?.name.toLowerCase().includes(q);
+        return ing && normalizeString(ing.name).includes(q);
     });
 }
 
@@ -2986,9 +2991,9 @@ function _renderRecipesBrowser() {
         if (fam && r.family !== fam) return false;
         if (maxT && r.timeMin > maxT) return false;
         if (q) {
-            return r.name.toLowerCase().includes(q) ||
-                   r.description?.toLowerCase().includes(q) ||
-                   r.family?.toLowerCase().includes(q);
+            return normalizeString(r.name).includes(q) ||
+                   normalizeString(r.description || "").includes(q) ||
+                   normalizeString(r.family || "").includes(q);
         }
         return true;
     });

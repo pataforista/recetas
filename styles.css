@@ -224,16 +224,16 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px var(--bento-gap);
-  background: var(--bento-card-bg);
-  border-radius: var(--bento-radius);
-  border: var(--bento-border);
-  box-shadow: var(--bento-shadow);
+  padding: 12px 16px;
+  background: white;
+  border-radius: var(--scarry-radius);
+  border: var(--scarry-border);
+  box-shadow: var(--scarry-shadow);
   position: sticky;
-  top: var(--bento-gap);
+  top: 12px;
   z-index: 100;
-  max-width: 1000px;
-  margin: var(--bento-gap) auto;
+  max-width: 800px;
+  margin: 16px auto 24px;
 }
 
 .flow-step {
@@ -243,17 +243,17 @@ body {
   gap: 4px;
   background: none;
   border: none;
-  padding: 0;
+  padding: 4px;
   cursor: pointer;
-  opacity: 0.5;
-  transition: opacity 0.3s ease, transform 0.2s ease;
+  opacity: 0.4;
+  transition: all 0.2s ease;
   flex: 1;
+  color: var(--clr-ink);
 }
 
 .flow-step.active {
   opacity: 1;
-  font-weight: 700;
-  transform: scale(1.05);
+  transform: scale(1.05) translateY(-2px);
 }
 
 .flow-step.done {
@@ -261,23 +261,44 @@ body {
 }
 
 .flow-step-num {
-  width: 32px;
-  height: 32px;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  width: 28px;
+  height: 28px;
+  background: #EFE9E1;
+  color: var(--clr-ink);
+  border: 2px solid var(--clr-ink);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.9rem;
-  font-weight: 700;
-  transition: all 0.3s ease;
+  font-size: 0.85rem;
+  font-weight: 900;
+  transition: all 0.2s ease;
 }
 
 .flow-step.active .flow-step-num {
-  background: var(--clr-teal);
+  background: var(--clr-tomato);
   color: white;
-  box-shadow: 0 0 15px rgba(3, 104, 115, 0.4);
+  transform: rotate(-10deg);
+  box-shadow: 3px 3px 0px var(--clr-ink);
+}
+
+.flow-step.done .flow-step-num {
+  background: var(--clr-grass);
+  color: white;
+}
+
+.flow-step-label {
+    font-size: 0.7rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.flow-step-divider {
+    height: 2px;
+    background: var(--clr-pencil);
+    flex: 0.3;
+    opacity: 0.3;
 }
 
 .flow-step.done .flow-step-num {
