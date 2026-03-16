@@ -3947,6 +3947,7 @@ body {
   position: relative;
   width: 100%;
   max-width: 680px;
+  height: 100%; /* Full height on mobile to enable internal scrolling */
   background: var(--md-sys-color-background);
   display: flex;
   flex-direction: column;
@@ -3958,6 +3959,7 @@ body {
   .recipes-browser-box {
     margin: 20px;
     border-radius: var(--md-sys-shape-corner-extra-large);
+    height: auto;
     max-height: calc(100vh - 40px);
   }
 }
@@ -4032,15 +4034,19 @@ body {
   gap: 10px;
 }
 
-/* Recipe browser list card */
+/* Recipe browser list card (Fichas) */
 .recipe-browser-card {
-  background: var(--md-sys-color-surface);
-  border-radius: var(--md-sys-shape-corner-large);
-  padding: 14px 16px;
-  box-shadow: var(--md-sys-elevation-1);
-  border: 1.5px solid var(--md-sys-color-outline-variant);
+  background: white;
+  border-radius: var(--scarry-radius);
+  padding: 16px;
+  box-shadow: 2px 2px 0px var(--clr-ink);
+  border: 2px solid var(--clr-ink);
   cursor: pointer;
-  transition: box-shadow 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .recipe-browser-card:hover,
@@ -4063,46 +4069,47 @@ body {
 }
 
 .rbc-name {
-  font-size: 0.975rem;
-  font-weight: 700;
-  color: var(--md-sys-color-on-surface);
-  line-height: 1.3;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--clr-ink);
+  line-height: 1.2;
   flex: 1;
 }
 
 .rbc-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
   align-items: center;
-  margin-bottom: 6px;
-  font-size: 0.8rem;
-  color: var(--md-sys-color-on-surface-variant);
+  font-family: 'Inter', sans-serif;
 }
 
 .rbc-badge {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  background: var(--md-sys-color-surface-variant);
-  border-radius: 100px;
+  gap: 4px;
+  background: var(--clr-cream);
+  border: 1.5px solid var(--clr-ink);
+  border-radius: 8px;
   padding: 2px 8px;
   font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--md-sys-color-on-surface-variant);
+  font-weight: 700;
+  color: var(--clr-ink);
 }
 
 .rbc-badge .material-symbols-outlined {
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .rbc-desc {
-  font-size: 0.82rem;
-  color: var(--md-sys-color-on-surface-variant);
+  font-size: 0.85rem;
+  color: var(--clr-ink);
+  opacity: 0.8;
   line-height: 1.4;
+  margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
-  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
