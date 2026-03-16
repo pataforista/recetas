@@ -1511,14 +1511,6 @@ function createRecipeCard(item) {
         });
     }
 
-    const saveBtn = node.querySelector(".save-recipe-btn");
-    if (saveBtn) {
-        saveBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            showToast(`"${recipe.name}" guardada ⭐`, null, null, 3000);
-        });
-    }
-
     // Wire expand/collapse button
     const expandBtn = node.querySelector('.recipe-expand-btn');
     const collapsible = node.querySelector('.recipe-collapsible');
@@ -1534,7 +1526,7 @@ function createRecipeCard(item) {
         });
     }
 
-    const cookBtn = node.querySelector(".cook-recipe-btn");
+    const cookBtn = node.querySelector(".start-cooking-btn");
     if (cookBtn) {
         cookBtn.addEventListener("click", (e) => {
             e.stopPropagation();
