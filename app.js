@@ -2922,12 +2922,21 @@ function openRecipesBrowserModal() {
     const modal = document.getElementById("recipesBrowserModal");
     const list = document.getElementById("recipesBrowserList");
     const detail = document.getElementById("recipeDetailPanel");
-    
+
     if (list) list.classList.remove("hidden");
     if (detail) detail.classList.add("hidden");
-    
+
     modal.classList.remove("hidden");
     _buildFamilyFilterChips();
+
+    // Reset filter buttons to default state
+    document.querySelectorAll("#recipesFamilyFilter .option-chip").forEach(b => {
+        b.classList.toggle("active", b.dataset.family === "");
+    });
+    document.querySelectorAll("#recipesTimeFilter .option-chip").forEach(b => {
+        b.classList.toggle("active", b.dataset.time === "0");
+    });
+
     _renderRecipesBrowser();
     requestAnimationFrame(() => {
         document.getElementById("recipesBrowserSearch")?.focus();
@@ -2943,12 +2952,20 @@ function closeRecipesBrowserModal() {
     _browserState.maxTime = 0;
     const input = document.getElementById("recipesBrowserSearch");
     if (input) input.value = "";
+
+    // Reset active states on all filter buttons
+    document.querySelectorAll("#recipesFamilyFilter .option-chip").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll("#recipesTimeFilter .option-chip").forEach(b => b.classList.remove("active"));
+
     document.body.style.overflow = "";
 }
 
 function _buildFamilyFilterChips() {
     const container = document.getElementById("recipesFamilyFilter");
-    if (!container || container.children.length > 0) return;
+    if (!container) return;
+
+    // Only build if not already built (check for "Todas" button)
+    if (container.querySelector('[data-family=""]')) return;
 
     const families = [...new Set(RECIPES.map(r => r.family))].sort();
     const allBtn = document.createElement("button");
