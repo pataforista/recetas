@@ -2920,6 +2920,12 @@ const FAMILY_LABELS = {
 
 function openRecipesBrowserModal() {
     const modal = document.getElementById("recipesBrowserModal");
+    const list = document.getElementById("recipesBrowserList");
+    const detail = document.getElementById("recipeDetailPanel");
+    
+    if (list) list.classList.remove("hidden");
+    if (detail) detail.classList.add("hidden");
+    
     modal.classList.remove("hidden");
     _buildFamilyFilterChips();
     _renderRecipesBrowser();
@@ -3178,8 +3184,14 @@ function openRecipeDetail(recipeId) {
         openDayPicker(recipe.id);
     });
     
-    document.getElementById("recipesBrowserList").classList.add("hidden");
-    panel.classList.remove("hidden");
+    const list = document.getElementById("recipesBrowserList");
+    const detail = document.getElementById("recipeDetailPanel");
+    if (list) list.classList.add("hidden");
+    if (detail) {
+        detail.classList.remove("hidden");
+        const content = detail.querySelector(".recipe-detail-content");
+        if (content) content.scrollTop = 0;
+    }
 }
 
 function closeRecipeDetail() {
