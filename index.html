@@ -308,18 +308,14 @@
         <h2><span class="material-symbols-outlined" aria-hidden="true">shopping_cart</span> Lista de Compra</h2>
         <p class="hint">Crea listas manuales, usa la autogenerada y sincroniza entre dispositivos.</p>
 
-        <div class="grocery-mode-toggle" role="tablist" aria-label="Tipo de lista">
-          <button id="autoListTab" class="mode-tab active" type="button" role="tab" aria-selected="true">Generada del plan</button>
-          <button id="customListTab" class="mode-tab" type="button" role="tab" aria-selected="false">Mis listas</button>
+        <div class="grocery-mode-toggle" role="tablist">
+          <button id="autoListTab" class="mode-tab active" type="button" role="tab">Plan Semanal</button>
+          <button id="customListTab" class="mode-tab" type="button" role="tab">Mis Listas</button>
         </div>
 
         <div id="autoListView" class="grocery-view active">
-          <div id="shoppingListContainer">
-            <div class="empty-state">
-              <span class="empty-icon">🛒</span>
-              <p class="empty-title">Lista vacía</p>
-              <p class="empty-sub">Planifica comidas para la semana y tu lista se generará automáticamente</p>
-            </div>
+          <div id="shoppingListContainer" class="grouped-list-container">
+            <!-- Items grouped by category will be injected here -->
           </div>
         </div>
 
@@ -510,6 +506,30 @@
     </div>
   </div>
 
+  <!-- Cooking Mode Overlay -->
+  <div id="cookingMode" class="cooking-mode hidden">
+    <button id="closeCookingMode" class="cooking-close-btn" aria-label="Cerrar modo cocina">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+    <div id="cookingStepCounter" class="cooking-progress-badge">Paso 1 de 5</div>
+    
+    <div class="cooking-content">
+      <h2 id="cookingRecipeTitle" class="cooking-recipe-title"></h2>
+      <div id="cookingStepText" class="cooking-step-text"></div>
+    </div>
+
+    <div class="cooking-nav">
+      <button id="cookingPrevBtn" class="cooking-nav-btn secondary">
+        <span class="material-symbols-outlined">arrow_back</span>
+        Atrás
+      </button>
+      <button id="cookingNextBtn" class="cooking-nav-btn primary">
+        Siguiente
+        <span class="material-symbols-outlined">arrow_forward</span>
+      </button>
+    </div>
+  </div>
+
   <!-- Modal: Add Recipe Ingredients to List -->
   <div id="addRecipeToListModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="addRecipeToListTitle">
     <div class="modal">
@@ -528,58 +548,52 @@
     <article class="recipe-card">
       <div class="recipe-card-inner">
         <div class="recipe-top">
-          <div>
-            <h3 class="recipe-title"></h3>
-            <p class="recipe-meta"></p>
-          </div>
+          <h3 class="recipe-title"></h3>
           <div class="score-badge" aria-label="Puntuación"></div>
         </div>
-
+        
+        <p class="recipe-meta"></p>
         <p class="recipe-description"></p>
 
+        <div class="recipe-simple-stats">
+          <div class="simple-stat"><span class="material-symbols-outlined">schedule</span> <span class="time-text"></span></div>
+          <div class="simple-stat"><span class="material-symbols-outlined">restaurant</span> <span class="family-text"></span></div>
+        </div>
+
         <div class="recipe-collapsible">
-          <div class="recipe-section collapsible-section">
-            <strong>Por qué salió:</strong>
-            <ul class="why-list"></ul>
+           <!-- Pro Tip Section (Visible when expanded) -->
+           <div class="recipe-section protip-section hidden">
+            <div class="protip-header">
+              <span class="material-symbols-outlined">psychology_alt</span>
+              <strong>PRO TIP</strong>
+            </div>
+            <p class="protip-text"></p>
           </div>
 
           <div class="recipe-section collapsible-section">
-            <strong>Ingredientes clave:</strong>
+            <strong>Ingredientes:</strong>
             <p class="ingredients-text"></p>
-          </div>
-
-          <div class="recipe-section collapsible-section">
-            <strong>Perfil:</strong>
-            <p class="profile-text"></p>
-          </div>
-
-          <div class="recipe-section collapsible-section mealprep-section">
-            <strong>Meal prep:</strong>
-            <p class="mealprep-text"></p>
           </div>
         </div>
 
         <button type="button" class="recipe-expand-btn" aria-expanded="false">
-          <span class="material-symbols-outlined" aria-hidden="true">expand_more</span>
-          <span class="expand-label">Ver detalles</span>
+          <span class="material-symbols-outlined">expand_more</span>
+          Detalles
         </button>
       </div>
 
-        <button type="button" class="action-btn cook-recipe-btn">
-          <span class="material-symbols-outlined" aria-hidden="true">skillet</span>
-          ¡Cociné!
-        </button>
-        <button type="button" class="action-btn add-to-plan-btn">
-          <span class="material-symbols-outlined" aria-hidden="true">calendar_add_on</span>
-          Programar
+      <div class="recipe-actions">
+        <button type="button" class="action-btn start-cooking-btn primary-action">
+          <span class="material-symbols-outlined">local_fire_department</span>
+          Cocinar
         </button>
         <button type="button" class="action-btn add-to-list-btn">
-          <span class="material-symbols-outlined" aria-hidden="true">shopping_cart</span>
-          Comprar
+          <span class="material-symbols-outlined">shopping_cart</span>
+          Súper
         </button>
-        <button type="button" class="action-btn save-recipe-btn">
-          <span class="material-symbols-outlined" aria-hidden="true">bookmark</span>
-          Guardar
+        <button type="button" class="action-btn add-to-plan-btn">
+          <span class="material-symbols-outlined">event</span>
+          Plan
         </button>
       </div>
     </article>

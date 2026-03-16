@@ -72,6 +72,8 @@ export const INGREDIENTS = [
     { id: "watercress", name: "Berros", category: "verduras", aliases: ["watercress"], seasonal: true, frequency: "baja" },
     { id: "hongo_portobello", name: "Portobello", category: "verduras", seasonal: false, frequency: "baja" },
     { id: "hongo_shitake", name: "Shiitake", category: "verduras", seasonal: false, frequency: "baja" },
+    { id: "okra", name: "Okra / Quimbombó", category: "verduras", aliases: ["quimbombó", "gumbo"], seasonal: true, frequency: "baja" },
+    { id: "collard_greens", name: "Breza / Collard Greens", category: "verduras", aliases: ["kale africano"], seasonal: true, frequency: "baja" },
     { id: "daikon", name: "Nabo Daikon", category: "verduras", seasonal: true, frequency: "baja" },
     { id: "burdock_root", name: "Raíz de Bardana", category: "verduras", aliases: ["gobo"], seasonal: true, frequency: "baja" },
     { id: "wakame", name: "Alga Wakame", category: "verduras", seasonal: false, frequency: "baja" },
@@ -130,6 +132,7 @@ export const INGREDIENTS = [
     { id: "haba", name: "Haba", category: "leguminosas", aliases: ["habas", "fava beans"], seasonal: true, frequency: "media" },
     { id: "edamame", name: "Edamame", category: "leguminosas", seasonal: false, frequency: "baja" },
     { id: "hummus", name: "Hummus", category: "leguminosas", seasonal: false, frequency: "baja" },
+    { id: "black_eyed_peas", name: "Frijol de ojo negro", category: "leguminosas", aliases: ["black-eyed peas"], seasonal: false, frequency: "baja" },
     // Nuevo — gap BAM-INSP
     { id: "ayocote", name: "Ayocote / Frijol gordo", category: "leguminosas", seasonal: false, frequency: "baja" },
 
@@ -153,6 +156,7 @@ export const INGREDIENTS = [
     { id: "soba", name: "Fideos soba", category: "cereales", seasonal: false, frequency: "baja" },
     { id: "udon", name: "Fideos udon", category: "cereales", seasonal: false, frequency: "baja" },
     { id: "ramen", name: "Fideos ramen", category: "cereales", seasonal: false, frequency: "baja" },
+    { id: "gofio", name: "Gofio", category: "cereales", aliases: ["harina tostada"], seasonal: false, frequency: "baja" },
     // Nuevos — gap BAM + Kaggle
     { id: "yuca", name: "Yuca / Mandioca", category: "cereales", aliases: ["cassava", "mandioca"], seasonal: false, frequency: "media" },
     { id: "tamal_masa", name: "Masa para tamales", category: "cereales", seasonal: false, frequency: "media" },
@@ -260,6 +264,7 @@ export const INGREDIENTS = [
     { id: "agave", name: "Miel de agave", category: "basicos", aliases: ["agave nectar"], seasonal: false, frequency: "media" },
     { id: "miel", name: "Miel", category: "basicos", aliases: ["honey"], seasonal: false, frequency: "media" },
     { id: "pomegranate_molasses", name: "Melaza de granada", category: "basicos", seasonal: false, frequency: "baja", mexican_alt: "Jarabe de agave con limón" },
+    { id: "yuzu_juice", name: "Jugo de Yuzu", category: "basicos", aliases: ["yuzu"], seasonal: false, frequency: "baja", mexican_alt: "Mezcla limón-mandarina" },
     // Nuevos — gap Kaggle + BAM-INSP
     { id: "limon_amarillo", name: "Limón amarillo", category: "basicos", aliases: ["lemon"], seasonal: false, frequency: "media" },
     { id: "tomatillo_lata", name: "Tomatillo (lata)", category: "basicos", aliases: ["canned tomatillo"], seasonal: false, frequency: "media" },
@@ -306,6 +311,7 @@ export const INGREDIENTS = [
     { id: "tamarindo", name: "Tamarindo", category: "frutas", aliases: ["tamarind"], seasonal: false, frequency: "alta" },
     { id: "ciruela_mexicana", name: "Ciruela mexicana", category: "frutas", aliases: ["jocote"], seasonal: true, frequency: "media" },
     { id: "mamey", name: "Mamey", category: "frutas", seasonal: true, frequency: "media" },
+    { id: "grosella", name: "Grosella", category: "frutas", aliases: ["currant", "gooseberry"], seasonal: true, frequency: "baja" },
 ];
 
 /**

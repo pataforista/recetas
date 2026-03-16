@@ -1486,6 +1486,15 @@ function createRecipeCard(item) {
     node.querySelector(".profile-text").innerHTML = buildProfileText(recipe.profile);
     node.querySelector(".mealprep-text").textContent = buildMealPrepText(recipe.mealPrep);
 
+    // Populate Pro Tip if exists
+    const protipSection = node.querySelector(".protip-section");
+    if (recipe.pro_tip) {
+        protipSection.classList.remove("hidden");
+        protipSection.querySelector(".protip-text").textContent = recipe.pro_tip;
+    } else {
+        protipSection.classList.add("hidden");
+    }
+
     const whyList = node.querySelector(".why-list");
     reasons.slice(0, 5).forEach((reason) => {
         const li = document.createElement("li");
@@ -1832,24 +1841,18 @@ function renderGroceryList() {
     const derivedList = generateGroceryListFromPlan();
 
     if (Object.keys(derivedList).length === 0) {
-        container.innerHTML = "<p class='hint'>Agrega recetas a tu plan semanal para generar la lista de compra.</p>";
+        container.innerHTML = `
+            <div class="empty-state">
+                <span class="empty-icon">🛒</span>
+                <p class="empty-title">Lista vacía</p>
+                <p class="empty-sub">Planifica comidas para la semana y tu lista se generará automáticamente</p>
+            </div>`;
         return;
     }
 
-    container.innerHTML = "";
+    // Grouping by category
+    const grouped = {};
     Object.entries(derivedList).forEach(([ingredientId, data]) => {
-        const item = document.createElement("div");
-        item.className = "grocery-item";
-        const hasIt = !!state.inventory[ingredientId]?.has;
-        const amountText = data.amount ? `${data.amount} ${data.unit} de ` : "";
-
-        item.innerHTML = `
-            <label class="grocery-checkline">
-              <input type="checkbox" ${hasIt ? "checked" : ""} aria-label="${data.name}">
-              <span>${amountText}<strong>${data.name}</strong></span>
-            </label>
-            <small>Ya lo tengo</small>
-        `;
 
         if (hasIt) item.classList.add("checked");
 
@@ -3113,6 +3116,13 @@ function openRecipeDetail(recipeId) {
     if (mp.derivatives?.length) mpParts.push(`<strong>Deriva en:</strong> ${mp.derivatives.join(", ")}`);
     const mpHtml = mpParts.length ? mpParts.join("<br>") : "Sin relaciones de meal prep";
 
+    // Pro Tip
+    const protipHtml = recipe.pro_tip ? `
+        <div class="rd-section rd-protip-section">
+            <p class="rd-section-title"><span class="material-symbols-outlined" aria-hidden="true">psychology_alt</span>Pro Tip Técnico</p>
+            <p class="rd-protip-text">${escapeHtml(recipe.pro_tip)}</p>
+        </div>` : "";
+
     const effortLabel = { bajo: "Esfuerzo bajo", medio: "Esfuerzo medio", alto: "Esfuerzo alto" };
     const mealTypeLabel = { comida: "Comida", desayuno: "Desayuno", cena: "Cena", colacion: "Colación", comida_indulgente: "Comida no tan sana" };
 
@@ -3151,6 +3161,8 @@ function openRecipeDetail(recipeId) {
             <p class="rd-section-title"><span class="material-symbols-outlined" aria-hidden="true">nutrition</span>Perfil nutricional</p>
             <div class="rd-profile-grid">${profileHtml}</div>
         </div>` : ""}
+
+        ${protipHtml}
 
         <div class="rd-section">
             <p class="rd-section-title"><span class="material-symbols-outlined" aria-hidden="true">inventory</span>Meal prep</p>
