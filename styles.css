@@ -2202,12 +2202,10 @@ button.error-btn:hover {
 
 .panel-body {
   margin-top: 16px;
-  overflow: hidden;
-  max-height: 2400px;
+  /* Removed overflow: hidden and max-height to allow scrolling of long content */
   opacity: 1;
   visibility: visible;
   transition:
-    max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
     opacity 0.3s ease,
     margin-top 0.3s ease;
 }
