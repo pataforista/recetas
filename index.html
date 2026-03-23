@@ -404,6 +404,73 @@
         </div>
       </section>
     </div>
+
+    <!-- View: Recetas -->
+    <div id="view-recipes" class="page-view">
+      <section class="panel">
+        <h2><span class="material-symbols-outlined" aria-hidden="true">menu_book</span> Todas las Recetas</h2>
+        <p class="hint">Consulta el catálogo completo de recetas disponibles.</p>
+
+        <!-- Filters Section -->
+        <div class="recipes-filters-section">
+          <div class="filters-group">
+            <div class="form-group">
+              <label for="recipeFilterFamily">Familia de receta</label>
+              <select id="recipeFilterFamily">
+                <option value="">Todas las familias</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="recipeFilterMealType">Tipo de comida</label>
+              <select id="recipeFilterMealType">
+                <option value="">Todos los tipos</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="recipeFilterTime">Tiempo máximo</label>
+              <select id="recipeFilterTime">
+                <option value="">Sin límite</option>
+                <option value="15">15 minutos</option>
+                <option value="30">30 minutos</option>
+                <option value="45">45 minutos</option>
+                <option value="60">1 hora</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="recipeFilterEffort">Esfuerzo</label>
+              <select id="recipeFilterEffort">
+                <option value="">Cualquier esfuerzo</option>
+                <option value="bajo">Bajo</option>
+                <option value="medio">Medio</option>
+                <option value="alto">Alto</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="search-bar-wrap" style="margin-top: 12px;">
+            <span class="search-bar-icon material-symbols-outlined" aria-hidden="true">search</span>
+            <input id="recipeSearchInput" class="search-bar" type="search" placeholder="Buscar receta por nombre…"
+              autocomplete="off" spellcheck="false" />
+          </div>
+        </div>
+
+        <!-- Sort Options -->
+        <div class="sort-controls" style="margin: 12px 0; display: flex; gap: 8px;">
+          <span style="font-size: 12px; color: var(--text-secondary);">Ordenar por:</span>
+          <button id="sortByName" class="sort-btn active" type="button" data-sort="name">Nombre</button>
+          <button id="sortByTime" class="sort-btn" type="button" data-sort="timeMin">Tiempo</button>
+          <button id="sortByEffort" class="sort-btn" type="button" data-sort="effort">Esfuerzo</button>
+        </div>
+
+        <!-- Recipes Stats -->
+        <div id="recipeStats" class="recipe-stats-bar" style="margin: 12px 0; padding: 8px 12px; background: var(--bg-secondary); border-radius: 8px; font-size: 12px; color: var(--text-secondary);">
+          <span id="recipeCount"></span>
+        </div>
+
+        <!-- Recipes Grid/List -->
+        <div id="recipesContainer" class="recipes-container"></div>
+      </section>
+    </div>
   </main>
 
   <!-- Floating Action Button (FAB) -->
@@ -447,6 +514,10 @@
         <span id="groceryNavBadge" class="nav-badge hidden" aria-label="items pendientes"></span>
       </span>
       <span>Compras</span>
+    </button>
+    <button class="nav-item" data-view="recipes" aria-label="Todas las recetas">
+      <span class="material-symbols-outlined" aria-hidden="true">menu_book</span>
+      <span>Recetas</span>
     </button>
   </nav>
 

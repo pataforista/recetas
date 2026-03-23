@@ -3,6 +3,21 @@ import { SEASONALITY_MX } from "./data/seasonality_mx.js";
 import { MEALPREP_BASES } from "./data/mealprep_bases.js";
 import { HEALTH_RULES } from "./data/health_rules.js";
 import { RECIPES } from "./data/recipes.js";
+import {
+    getAllRecipes,
+    getRecipeById,
+    searchRecipesByName,
+    filterRecipesByFamily,
+    filterRecipesByMealType,
+    filterRecipesByTime,
+    filterRecipesByEffort,
+    filterRecipes,
+    sortRecipes,
+    getAllFamilies,
+    getAllMealTypes,
+    getRecipeStats,
+    getIngredientName
+} from "./modules/recipes-module.js";
 
 const STORAGE_KEYS = {
     inventory: "milpa_nime_inventory_v1",
@@ -474,6 +489,7 @@ const VIEW_META = {
     planner:  { subtitle: "Plan de comidas de la semana" },
     mealprep: { subtitle: "Prepara bases para la semana" },
     grocery:  { subtitle: "Lista de compras" },
+    recipes:  { subtitle: "Consulta el catálogo completo de recetas" },
 };
 
 function showView(viewId) {
@@ -499,6 +515,7 @@ function showView(viewId) {
     if (viewId === "planner") renderPlanner();
     if (viewId === "mealprep") renderMealPrepInitial();
     if (viewId === "grocery") { renderGroceryHub(); updateGroceryBadge(); }
+    if (viewId === "recipes") initializeRecipesView();
 }
 
 // ─── Grocery Nav Badge ───
@@ -3515,6 +3532,289 @@ function initSearch() {
                 }
             }
         }
+    });
+}
+
+// ─── Recipes Module Functions ───
+
+let _recipesFilterState = {
+    family: "",
+    mealType: "",
+    maxTime: "",
+    effort: "",
+    search: "",
+    sortBy: "name",
+    sortOrder: "asc"
+};
+
+function initializeRecipesView() {
+    loadRecipeFilters();
+    renderRecipes();
+    setupRecipesEventListeners();
+}
+
+function loadRecipeFilters() {
+    // Load families
+    const familySelect = document.getElementById("recipeFilterFamily");
+    if (familySelect) {
+        const families = getAllFamilies();
+        families.forEach((family) => {
+            const option = document.createElement("option");
+            option.value = family;
+            option.textContent = family.charAt(0).toUpperCase() + family.slice(1);
+            familySelect.appendChild(option);
+        });
+    }
+
+    // Load meal types
+    const mealTypeSelect = document.getElementById("recipeFilterMealType");
+    if (mealTypeSelect) {
+        const mealTypes = getAllMealTypes();
+        mealTypes.forEach((type) => {
+            const option = document.createElement("option");
+            option.value = type;
+            option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+            mealTypeSelect.appendChild(option);
+        });
+    }
+}
+
+function renderRecipes() {
+    // Get all recipes and apply filters
+    let recipes = getAllRecipes();
+
+    // Apply filters
+    if (_recipesFilterState.family) {
+        recipes = recipes.filter((r) => r.family === _recipesFilterState.family);
+    }
+
+    if (_recipesFilterState.mealType) {
+        recipes = recipes.filter((r) => r.mealType === _recipesFilterState.mealType);
+    }
+
+    if (_recipesFilterState.maxTime) {
+        recipes = recipes.filter((r) => r.timeMin <= Number(_recipesFilterState.maxTime));
+    }
+
+    if (_recipesFilterState.effort) {
+        recipes = recipes.filter((r) => r.effort === _recipesFilterState.effort);
+    }
+
+    if (_recipesFilterState.search) {
+        const search = _recipesFilterState.search.toLowerCase();
+        recipes = recipes.filter((r) =>
+            r.name.toLowerCase().includes(search) ||
+            (r.description && r.description.toLowerCase().includes(search))
+        );
+    }
+
+    // Sort recipes
+    recipes = sortRecipes(recipes, _recipesFilterState.sortBy, _recipesFilterState.sortOrder);
+
+    // Update stats
+    const statsEl = document.getElementById("recipeCount");
+    if (statsEl) {
+        const total = getAllRecipes().length;
+        statsEl.textContent = `Mostrando ${recipes.length} de ${total} receta${total !== 1 ? "s" : ""}`;
+    }
+
+    // Render recipes
+    const container = document.getElementById("recipesContainer");
+    if (!container) return;
+
+    if (recipes.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <span class="empty-icon">🍳</span>
+                <p class="empty-title">Sin resultados</p>
+                <p class="empty-sub">Intenta cambiar los filtros de búsqueda</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = recipes.map((recipe) => `
+        <article class="recipe-card" data-recipe-id="${recipe.id}">
+            <div class="recipe-card-header">
+                <h3 class="recipe-card-title">${escapeHtml(recipe.name)}</h3>
+                <span class="recipe-family-badge">${recipe.family}</span>
+            </div>
+            <p class="recipe-card-description">${escapeHtml(recipe.description || "")}</p>
+            <div class="recipe-card-meta">
+                <span class="recipe-meta-item">
+                    <span class="material-symbols-outlined" aria-hidden="true">schedule</span>
+                    ${recipe.timeMin} min
+                </span>
+                <span class="recipe-meta-item">
+                    <span class="material-symbols-outlined" aria-hidden="true">psychology</span>
+                    ${recipe.effort}
+                </span>
+                <span class="recipe-meta-item">
+                    <span class="material-symbols-outlined" aria-hidden="true">restaurant</span>
+                    ${recipe.mealType}
+                </span>
+                ${recipe.lowFriction ? '<span class="recipe-meta-item low-friction-badge">⚡ Rápido</span>' : ""}
+            </div>
+            <div class="recipe-card-cravings">
+                ${(recipe.cravings || []).slice(0, 3).map((craving) =>
+                    `<span class="craving-chip">${craving}</span>`
+                ).join("")}
+            </div>
+            <button class="recipe-card-view-btn" type="button">Ver detalle</button>
+        </article>
+    `).join("");
+
+    // Add event listeners to recipe cards
+    container.querySelectorAll(".recipe-card-view-btn").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+            const card = e.target.closest(".recipe-card");
+            const recipeId = card.dataset.recipeId;
+            showRecipeDetail(recipeId);
+        });
+    });
+}
+
+function showRecipeDetail(recipeId) {
+    const recipe = getRecipeById(recipeId);
+    if (!recipe) return;
+
+    // Create a modal-like detail view
+    const modal = document.createElement("div");
+    modal.className = "recipe-detail-modal";
+    modal.innerHTML = `
+        <div class="recipe-detail-overlay" role="dialog" aria-modal="true">
+            <div class="recipe-detail-content">
+                <div class="recipe-detail-header">
+                    <h2>${escapeHtml(recipe.name)}</h2>
+                    <button class="close-btn" aria-label="Cerrar" type="button">
+                        <span class="material-symbols-outlined" aria-hidden="true">close</span>
+                    </button>
+                </div>
+
+                <div class="recipe-detail-body">
+                    <p class="recipe-detail-description">${escapeHtml(recipe.description || "")}</p>
+
+                    <div class="recipe-detail-info-grid">
+                        <div class="info-card">
+                            <span class="info-label">Familia</span>
+                            <span class="info-value">${recipe.family}</span>
+                        </div>
+                        <div class="info-card">
+                            <span class="info-label">Tiempo</span>
+                            <span class="info-value">${recipe.timeMin} min</span>
+                        </div>
+                        <div class="info-card">
+                            <span class="info-label">Esfuerzo</span>
+                            <span class="info-value">${recipe.effort}</span>
+                        </div>
+                        <div class="info-card">
+                            <span class="info-label">Tipo</span>
+                            <span class="info-value">${recipe.mealType}</span>
+                        </div>
+                    </div>
+
+                    <h3>Ingredientes Requeridos</h3>
+                    <ul class="ingredients-list required">
+                        ${recipe.ingredientsRequired.map((id) =>
+                            `<li><span class="material-symbols-outlined" aria-hidden="true">done</span>${escapeHtml(getIngredientName(id))}</li>`
+                        ).join("")}
+                    </ul>
+
+                    ${recipe.ingredientsOptional && recipe.ingredientsOptional.length > 0 ? `
+                        <h3>Ingredientes Opcionales</h3>
+                        <ul class="ingredients-list optional">
+                            ${recipe.ingredientsOptional.map((id) =>
+                                `<li><span class="material-symbols-outlined" aria-hidden="true">edit</span>${escapeHtml(getIngredientName(id))}</li>`
+                            ).join("")}
+                        </ul>
+                    ` : ""}
+
+                    ${recipe.cravings && recipe.cravings.length > 0 ? `
+                        <h3>Cravings</h3>
+                        <div class="cravings-list">
+                            ${recipe.cravings.map((craving) =>
+                                `<span class="craving-chip">${craving}</span>`
+                            ).join("")}
+                        </div>
+                    ` : ""}
+                </div>
+
+                <div class="recipe-detail-actions">
+                    <button class="primary-btn add-to-plan-btn" type="button" data-recipe-id="${recipe.id}">
+                        <span class="material-symbols-outlined" aria-hidden="true">add</span>
+                        Agregar al plan
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const closeBtn = modal.querySelector(".close-btn");
+    const overlay = modal.querySelector(".recipe-detail-overlay");
+    const addBtn = modal.querySelector(".add-to-plan-btn");
+
+    closeBtn.addEventListener("click", () => modal.remove());
+    overlay.addEventListener("click", (e) => {
+        if (e.target === overlay) modal.remove();
+    });
+
+    addBtn?.addEventListener("click", () => {
+        openDayPicker(recipeId);
+        modal.remove();
+    });
+}
+
+function setupRecipesEventListeners() {
+    // Filter listeners
+    document.getElementById("recipeFilterFamily")?.addEventListener("change", (e) => {
+        _recipesFilterState.family = e.target.value;
+        renderRecipes();
+    });
+
+    document.getElementById("recipeFilterMealType")?.addEventListener("change", (e) => {
+        _recipesFilterState.mealType = e.target.value;
+        renderRecipes();
+    });
+
+    document.getElementById("recipeFilterTime")?.addEventListener("change", (e) => {
+        _recipesFilterState.maxTime = e.target.value;
+        renderRecipes();
+    });
+
+    document.getElementById("recipeFilterEffort")?.addEventListener("change", (e) => {
+        _recipesFilterState.effort = e.target.value;
+        renderRecipes();
+    });
+
+    // Search listener
+    let searchDebounceTimer;
+    document.getElementById("recipeSearchInput")?.addEventListener("input", (e) => {
+        _recipesFilterState.search = e.target.value;
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(() => renderRecipes(), 200);
+    });
+
+    // Sort listeners
+    document.querySelectorAll(".sort-btn").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+            const sortBy = e.currentTarget.dataset.sort;
+
+            // Toggle sort order if same button clicked
+            if (_recipesFilterState.sortBy === sortBy) {
+                _recipesFilterState.sortOrder = _recipesFilterState.sortOrder === "asc" ? "desc" : "asc";
+            } else {
+                _recipesFilterState.sortBy = sortBy;
+                _recipesFilterState.sortOrder = "asc";
+            }
+
+            // Update active button
+            document.querySelectorAll(".sort-btn").forEach((b) => b.classList.remove("active"));
+            e.currentTarget.classList.add("active");
+
+            renderRecipes();
+        });
     });
 }
 
