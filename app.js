@@ -3467,7 +3467,7 @@ function initSearch() {
     }
 
     // ── Recipe Browser Modal ────────────────────────────────────
-    document.getElementById("browseAllRecipesBtn")?.addEventListener("click", openRecipesBrowserModal);
+    document.getElementById("browseAllRecipesBtn")?.addEventListener("click", () => openRecipesBrowserModal());
 
     document.getElementById("closeRecipesBrowser")?.addEventListener("click", closeRecipesBrowserModal);
 
