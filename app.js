@@ -1694,11 +1694,21 @@ function renderPlanner() {
             slot.appendChild(nameSpan);
             slot.appendChild(removeBtn);
         } else {
-            slot.className = "planner-slot";
-            slot.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px;opacity:0.4" aria-hidden="true">add_circle</span><br>Agregar receta`;
+            slot.className = "planner-slot empty";
+            slot.innerHTML = `
+                <div class="planner-slot-empty-content">
+                    <span class="material-symbols-outlined" aria-hidden="true">add_circle</span>
+                    <span>Añadir receta</span>
+                </div>
+            `;
             slot.addEventListener("click", () => {
-                showView("today");
-                showToast("Sugiere recetas y toca 'Asignar' para programarlas");
+                openRecipesBrowserModal(true, (recipeId) => {
+                    state.weeklyPlan[day] = recipeId;
+                    persistWeeklyPlan();
+                    renderPlanner();
+                    const recipeName = RECIPES.find(r => r.id === recipeId)?.name || "Receta";
+                    showToast(`${recipeName} añadida al ${day}`);
+                });
             });
         }
 
@@ -2907,7 +2917,13 @@ function sortResults(criterion) {
 
 // ── Recipe Browser Modal ──────────────────────────────────────────────────────
 
-const _browserState = { search: "", family: "", maxTime: 0 };
+const _browserState = { 
+    search: "", 
+    family: "", 
+    maxTime: 0,
+    selectionMode: false,
+    onSelect: null
+};
 
 const FAMILY_LABELS = {
     pollo: "Pollo", frijol: "Frijol", nopal: "Nopal", huevo: "Huevo",
@@ -2918,10 +2934,13 @@ const FAMILY_LABELS = {
     pescados: "Pescados", queso: "Queso", maiz: "Maíz", miso: "Miso"
 };
 
-function openRecipesBrowserModal() {
+function openRecipesBrowserModal(selectionMode = false, onSelect = null) {
     const modal = document.getElementById("recipesBrowserModal");
     const list = document.getElementById("recipesBrowserList");
     const detail = document.getElementById("recipeDetailPanel");
+
+    _browserState.selectionMode = selectionMode;
+    _browserState.onSelect = onSelect;
 
     if (list) list.classList.remove("hidden");
     if (detail) detail.classList.add("hidden");
@@ -2932,6 +2951,12 @@ function openRecipesBrowserModal() {
     _browserState.search = "";
     _browserState.family = "";
     _browserState.maxTime = 0;
+    
+    // Update title based on mode
+    const titleEl = document.getElementById("recipesBrowserTitle");
+    if (titleEl) {
+        titleEl.textContent = selectionMode ? "Seleccionar receta" : "Explorar recetas";
+    }
 
     // Clear search and rebuild family filters to ensure clean state
     const searchInput = document.getElementById("recipesBrowserSearch");
@@ -2962,11 +2987,18 @@ function openRecipesBrowserModal() {
 }
 
 function closeRecipesBrowserModal() {
-    document.getElementById("recipesBrowserModal").classList.add("hidden");
-    document.getElementById("recipeDetailPanel").classList.add("hidden");
+    const modal = document.getElementById("recipesBrowserModal");
+    if (!modal) return;
+    
+    modal.classList.add("hidden");
+    document.getElementById("recipeDetailPanel")?.classList.add("hidden");
+    
     _browserState.search = "";
     _browserState.family = "";
     _browserState.maxTime = 0;
+    _browserState.selectionMode = false;
+    _browserState.onSelect = null;
+    
     const input = document.getElementById("recipesBrowserSearch");
     if (input) input.value = "";
 
@@ -3028,9 +3060,10 @@ function _renderRecipesBrowser() {
         if (fam && r.family !== fam) return false;
         if (maxT && r.timeMin > maxT) return false;
         if (q) {
-            return normalizeString(r.name).includes(q) ||
-                   normalizeString(r.description || "").includes(q) ||
-                   normalizeString(r.family || "").includes(q);
+            const normalizedQ = normalizeString(q);
+            return normalizeString(r.name).includes(normalizedQ) ||
+                   normalizeString(r.description || "").includes(normalizedQ) ||
+                   normalizeString(r.family || "").includes(normalizedQ);
         }
         return true;
     });
@@ -3049,12 +3082,15 @@ function _renderRecipesBrowser() {
     filtered.forEach(recipe => {
         const card = document.createElement("button");
         card.type = "button";
-        card.className = `recipe-browser-card rbc-f-${recipe.family || 'default'}`;
-        card.setAttribute("aria-label", `Ver detalle de ${recipe.name}`);
+        let cardClass = `recipe-browser-card rbc-f-${recipe.family || 'default'}`;
+        if (_browserState.selectionMode) cardClass += " selection-mode";
+        card.className = cardClass;
+        card.setAttribute("aria-label", _browserState.selectionMode ? `Seleccionar ${recipe.name}` : `Ver detalle de ${recipe.name}`);
+        
         card.innerHTML = `
             <div class="rbc-top">
                 <span class="rbc-name">${escapeHtml(recipe.name)}</span>
-                <span class="rbc-arrow material-symbols-outlined" aria-hidden="true">chevron_right</span>
+                <span class="rbc-arrow material-symbols-outlined" aria-hidden="true">${_browserState.selectionMode ? 'add_circle' : 'chevron_right'}</span>
             </div>
             <div class="rbc-meta">
                 <span class="rbc-badge">
@@ -3065,15 +3101,18 @@ function _renderRecipesBrowser() {
                     <span class="material-symbols-outlined" aria-hidden="true">schedule</span>
                     ${recipe.timeMin} min
                 </span>
-                <span class="rbc-badge">
-                    <span class="material-symbols-outlined" aria-hidden="true">flatware</span>
-                    ${escapeHtml(recipe.format || "")}
-                </span>
-                ${recipe.lowFriction ? `<span class="rbc-badge"><span class="material-symbols-outlined" aria-hidden="true">bolt</span>Fácil</span>` : ""}
             </div>
             <p class="rbc-desc">${escapeHtml(recipe.description || "")}</p>
         `;
-        card.addEventListener("click", () => openRecipeDetail(recipe.id));
+        
+        card.addEventListener("click", () => {
+            if (_browserState.selectionMode && _browserState.onSelect) {
+                _browserState.onSelect(recipe.id);
+                closeRecipesBrowserModal();
+            } else {
+                openRecipeDetail(recipe.id);
+            }
+        });
         box.appendChild(card);
     });
 }
