@@ -1270,7 +1270,7 @@ function rankRecipes(recipes, context) {
 
         return baseScore;
     })
-        .filter((item) => item.score > 10);
+        .filter((item) => item.score > 10 && item.requiredMatches > 0);
 
     // Sort by score first
     scored.sort((a, b) => b.score - a.score);
@@ -1407,7 +1407,7 @@ function scoreRecipe(recipe, context) {
     score += mealPrepScore(recipe, context.mode, reasons);
     score += frequencyScore(recipe, reasons);
 
-    return { recipe, score, reasons };
+    return { recipe, score, reasons, requiredMatches };
 }
 
 /**
@@ -1548,6 +1548,15 @@ function createRecipeCard(item) {
         cookBtn.addEventListener("click", (e) => {
             e.stopPropagation();
             handleCook(recipe.id);
+        });
+    }
+
+    const viewDetailBtn = node.querySelector(".view-detail-btn");
+    if (viewDetailBtn) {
+        viewDetailBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            openRecipesBrowserModal(false);
+            openRecipeDetail(recipe.id);
         });
     }
 
@@ -1869,9 +1878,19 @@ function renderGroceryList() {
         return;
     }
 
-    // Grouping by category
-    const grouped = {};
+    container.innerHTML = "";
     Object.entries(derivedList).forEach(([ingredientId, data]) => {
+        const item = document.createElement("div");
+        item.className = "grocery-item";
+        const hasIt = !!state.inventory[ingredientId]?.has;
+        const amountText = data.amount ? `${data.amount} ${data.unit} de ` : "";
+
+        item.innerHTML = `
+            <label class="grocery-checkline">
+              <input type="checkbox" ${hasIt ? "checked" : ""} aria-label="${data.name}">
+              <span>${amountText}<strong>${escapeHtml(data.name)}</strong></span>
+            </label>
+        `;
 
         if (hasIt) item.classList.add("checked");
 
@@ -1882,7 +1901,7 @@ function renderGroceryList() {
             state.inventory[ingredientId].has = e.target.checked;
             persistInventory();
             updateInventoryBadge();
-            
+
             // Find and selectively update main inventory list DOM node if visible
             const invNode = document.querySelector(`.inventory-item[data-ing-id="${ingredientId}"]`);
             if (invNode) {
