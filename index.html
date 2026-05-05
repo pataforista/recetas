@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="es-MX">
 
 <head>
@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#120A8F" />
   <meta name="description"
-    content="PWA para decidir qué cocinar según ingredientes, antojo, tiempo y meal prep con enfoque NiME/milpa." />
+    content="PWA para decidir quÃ© cocinar segÃºn ingredientes, antojo, tiempo y meal prep con enfoque NiME/milpa." />
 
   <!-- PWA / iOS -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -16,7 +16,7 @@
   
   <!-- Open Graph -->
   <meta property="og:title" content="Milpa NiME" />
-  <meta property="og:description" content="Decide qué cocinar según ingredientes, antojo, tiempo y meal prep con enfoque NiME/milpa." />
+  <meta property="og:description" content="Decide quÃ© cocinar segÃºn ingredientes, antojo, tiempo y meal prep con enfoque NiME/milpa." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://pataforista.github.io/" />
   
@@ -37,12 +37,12 @@
   <!-- Offline Banner -->
   <div id="offlineBanner" class="offline-banner hidden" role="status">
     <span class="material-symbols-outlined" aria-hidden="true">wifi_off</span>
-    Sin conexión — la app funciona igual en modo offline
+    Sin conexiÃ³n â€” la app funciona igual en modo offline
   </div>
 
   <!-- Update Banner -->
   <div id="updateBanner" class="update-banner hidden" role="status">
-    <span><span class="material-symbols-outlined" aria-hidden="true">system_update</span> Nueva versión
+    <span><span class="material-symbols-outlined" aria-hidden="true">system_update</span> Nueva versiÃ³n
       disponible</span>
     <button id="updateBtn" class="secondary" type="button">Actualizar</button>
   </div>
@@ -50,10 +50,10 @@
   <header class="app-header">
     <div class="app-header-text">
       <h1>
-        <span class="header-icon" aria-hidden="true">🌽</span>
+        <span class="header-icon" aria-hidden="true">ðŸŒ½</span>
         Milpa NiME
       </h1>
-      <p class="subtitle">Qué cocinar hoy con lo que hay</p>
+      <p class="subtitle">QuÃ© cocinar hoy con lo que hay</p>
     </div>
     <div class="header-actions">
       <button id="searchBtn" class="icon-btn" type="button" aria-label="Buscar (Ctrl+K)" title="Buscar (Ctrl+K)">
@@ -83,15 +83,15 @@
               <p class="hint">Marca lo que tienes. Usa "urgente" para gastarlo pronto.</p>
               <div class="search-bar-wrap">
                 <span class="search-bar-icon material-symbols-outlined" aria-hidden="true">search</span>
-                <input id="inventorySearch" class="search-bar" type="search" placeholder="Buscar ingrediente…"
+                <input id="inventorySearch" class="search-bar" type="search" placeholder="Buscar ingredienteâ€¦"
                   autocomplete="off" spellcheck="false" />
-                <button id="inventorySearchClear" class="search-clear hidden" type="button" aria-label="Limpiar búsqueda">
+                <button id="inventorySearchClear" class="search-clear hidden" type="button" aria-label="Limpiar bÃºsqueda">
                   <span class="material-symbols-outlined" aria-hidden="true">close</span>
                 </button>
               </div>
               <div class="inventory-menu-wrapper">
                 <div id="inventoryFilters" class="inventory-filters-scroll"></div>
-                <button id="inventoryMenuBtn" class="menu-toggle" type="button" aria-label="Ver todas las categorías" style="display:none;">
+                <button id="inventoryMenuBtn" class="menu-toggle" type="button" aria-label="Ver todas las categorÃ­as" style="display:none;">
                   <span class="material-symbols-outlined" aria-hidden="true">filter_list</span>
                 </button>
               </div>
@@ -112,9 +112,9 @@
               <div id="categoryQuickNav" class="category-quick-nav"></div>
               <div id="inventoryList" class="inventory-grid">
                 <div class="empty-state">
-                  <span class="empty-icon">🫙</span>
-                  <p class="empty-title">Inventario vacío</p>
-                  <p class="empty-sub">Selecciona una categoría para ver tus ingredientes</p>
+                  <span class="empty-icon">ðŸ«™</span>
+                  <p class="empty-title">Inventario vacÃ­o</p>
+                  <p class="empty-sub">Selecciona una categorÃ­a para ver tus ingredientes</p>
                 </div>
               </div>
             </div>
@@ -133,7 +133,7 @@
           <div id="context-body" class="section-content">
             <div class="panel-body">
               <div class="context-grid">
-                <label class="field">
+                <div class="field">
                   <span>Antojo</span>
                   <div class="craving-menu-wrapper">
                     <div id="cravingChips" class="craving-chips-scroll option-chips-group"></div>
@@ -141,9 +141,9 @@
                       <span class="material-symbols-outlined" aria-hidden="true">more_horiz</span>
                     </button>
                   </div>
-                </label>
+                </div>
 
-                <label class="field">
+                <div class="field">
                   <span>Tiempo</span>
                   <div class="option-chips-group" id="timeChips" role="group" aria-label="Tiempo disponible">
                     <button type="button" class="option-chip" data-value="15">15'</button>
@@ -152,16 +152,16 @@
                     <button type="button" class="option-chip" data-value="45">45'</button>
                     <button type="button" class="option-chip" data-value="60">60'+</button>
                   </div>
-                </label>
+                </div>
 
-                <label class="field">
+                <div class="field">
                   <span>Modo</span>
                   <div class="option-chips-group" id="modeChips" role="group" aria-label="Modo de cocina">
                     <button type="button" class="option-chip active" data-value="today">Hoy</button>
                     <button type="button" class="option-chip" data-value="rescue">Rescate</button>
                     <button type="button" class="option-chip" data-value="low_effort">Sin esfuerzo</button>
                   </div>
-                </label>
+                </div>
               </div>
 
               <div class="context-footer">
@@ -188,19 +188,19 @@
               <div class="results-toolbar-main">
                 <span id="resultsCount" class="results-count"></span>
                 <div class="sort-chips">
-                  <button class="sort-chip active" data-sort="score" type="button">Puntuación</button>
+                  <button class="sort-chip active" data-sort="score" type="button">PuntuaciÃ³n</button>
                   <button class="sort-chip" data-sort="time" type="button">Tiempo</button>
                 </div>
                 <label class="toggle-control">
                   <input type="checkbox" id="commonOnlyToggle" />
                   <span>Solo comunes</span>
-                </label>
+                </div>
               </div>
             </div>
             <div id="results" class="results-container">
               <div class="empty-state">
-                <span class="empty-icon">✨</span>
-                <p class="empty-title">Aún sin sugerencias</p>
+                <span class="empty-icon">âœ¨</span>
+                <p class="empty-title">AÃºn sin sugerencias</p>
                 <p class="empty-sub">Ajusta tu inventario y presiona "Sugerir"</p>
               </div>
             </div>
@@ -218,7 +218,7 @@
     <div id="view-planner" class="page-view">
       <section class="panel">
         <h2><span class="material-symbols-outlined" aria-hidden="true">calendar_month</span> Plan Semanal</h2>
-        <p class="hint">Organiza tus comidas de la semana. Los ingredientes se sumarán a tu lista de compra.</p>
+        <p class="hint">Organiza tus comidas de la semana. Los ingredientes se sumarÃ¡n a tu lista de compra.</p>
         <div id="weeklyPlannerGrid" class="planner-grid"></div>
         <div class="actions" style="margin-top: 20px;">
           <button id="clearPlanBtn" class="error-btn" type="button">
@@ -232,12 +232,12 @@
     <div id="view-mealprep" class="page-view">
       <section class="panel">
         <h2><span class="material-symbols-outlined" aria-hidden="true">set_meal</span> Meal Prep</h2>
-        <p class="hint">Prepara bases para ahorrar tiempo después.</p>
+        <p class="hint">Prepara bases para ahorrar tiempo despuÃ©s.</p>
         <div id="mealPrepBox">
           <div class="empty-state">
-            <span class="empty-icon">🥘</span>
+            <span class="empty-icon">ðŸ¥˜</span>
             <p class="empty-title">Sin bases preparadas</p>
-            <p class="empty-sub">Genera sugerencias en la pestaña Hoy para ver opciones de meal prep</p>
+            <p class="empty-sub">Genera sugerencias en la pestaÃ±a Hoy para ver opciones de meal prep</p>
           </div>
         </div>
       </section>
@@ -258,7 +258,7 @@
           <p class="hint">Items del plan semanal y compras manuales agrupados por pasillo.</p>
 
           <form id="unifiedQuickAddForm" class="quick-add-bar sketchy-block">
-            <input id="unifiedQuickAddInput" type="text" placeholder="¿Qué más necesitas?" maxlength="50" required />
+            <input id="unifiedQuickAddInput" type="text" placeholder="Â¿QuÃ© mÃ¡s necesitas?" maxlength="50" required />
             <button type="submit" class="primary-btn" aria-label="Agregar">
               <span class="material-symbols-outlined">add</span>
             </button>
@@ -281,7 +281,7 @@
         <div class="sync-card">
           <div>
             <strong>Sincronizar entre dispositivos</strong>
-            <p class="hint">Genera un enlace con tus datos y ábrelo en otro celular para importar todo.</p>
+            <p class="hint">Genera un enlace con tus datos y Ã¡brelo en otro celular para importar todo.</p>
           </div>
           <div class="data-actions">
             <button id="shareSyncBtn" class="secondary" type="button">
@@ -304,27 +304,27 @@
     <div id="view-recipes" class="page-view">
       <section class="panel">
         <h2><span class="material-symbols-outlined" aria-hidden="true">menu_book</span> Todas las Recetas</h2>
-        <p class="hint">Consulta el catálogo completo de recetas disponibles.</p>
+        <p class="hint">Consulta el catÃ¡logo completo de recetas disponibles.</p>
 
         <!-- Filters Section -->
         <div class="recipes-filters-section">
           <div class="filters-group">
             <div class="form-group">
-              <label for="recipeFilterFamily">Familia de receta</label>
+              <label for="recipeFilterFamily">Familia de receta</div>
               <select id="recipeFilterFamily">
                 <option value="">Todas las familias</option>
               </select>
             </div>
             <div class="form-group">
-              <label for="recipeFilterMealType">Tipo de comida</label>
+              <label for="recipeFilterMealType">Tipo de comida</div>
               <select id="recipeFilterMealType">
                 <option value="">Todos los tipos</option>
               </select>
             </div>
             <div class="form-group">
-              <label for="recipeFilterTime">Tiempo máximo</label>
+              <label for="recipeFilterTime">Tiempo mÃ¡ximo</div>
               <select id="recipeFilterTime">
-                <option value="">Sin límite</option>
+                <option value="">Sin lÃ­mite</option>
                 <option value="15">15 minutos</option>
                 <option value="30">30 minutos</option>
                 <option value="45">45 minutos</option>
@@ -332,7 +332,7 @@
               </select>
             </div>
             <div class="form-group">
-              <label for="recipeFilterEffort">Esfuerzo</label>
+              <label for="recipeFilterEffort">Esfuerzo</div>
               <select id="recipeFilterEffort">
                 <option value="">Cualquier esfuerzo</option>
                 <option value="bajo">Bajo</option>
@@ -344,7 +344,7 @@
 
           <div class="search-bar-wrap" style="margin-top: 12px;">
             <span class="search-bar-icon material-symbols-outlined" aria-hidden="true">search</span>
-            <input id="recipeSearchInput" class="search-bar" type="search" placeholder="Buscar receta por nombre…"
+            <input id="recipeSearchInput" class="search-bar" type="search" placeholder="Buscar receta por nombreâ€¦"
               autocomplete="off" spellcheck="false" />
           </div>
         </div>
@@ -370,7 +370,7 @@
 
   <!-- Floating Action Button (FAB) -->
   <div id="fabContainer" class="fab-container">
-    <button id="fabMainBtn" class="fab-main" aria-label="Menú rápido" aria-expanded="false">
+    <button id="fabMainBtn" class="fab-main" aria-label="MenÃº rÃ¡pido" aria-expanded="false">
       <span class="material-symbols-outlined">add</span>
     </button>
     <div id="fabMenu" class="fab-menu hidden">
@@ -390,7 +390,7 @@
     <div id="fabBackdrop" class="fab-backdrop hidden"></div>
   </div>
 
-  <nav class="bottom-nav" aria-label="Navegación principal">
+  <nav class="bottom-nav" aria-label="NavegaciÃ³n principal">
     <button class="nav-item active" data-view="today" aria-label="Hoy" aria-current="page">
       <span class="material-symbols-outlined" aria-hidden="true">restaurant</span>
       <span>Hoy</span>
@@ -420,11 +420,11 @@
   <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="false"></div>
 
   <!-- Modal: Global Search (Ctrl+K) -->
-  <div id="searchModal" class="search-modal hidden" role="dialog" aria-modal="true" aria-label="Búsqueda global">
+  <div id="searchModal" class="search-modal hidden" role="dialog" aria-modal="true" aria-label="BÃºsqueda global">
     <div class="search-modal-box">
       <div class="search-modal-header">
         <span class="search-bar-icon material-symbols-outlined" aria-hidden="true">search</span>
-        <input id="globalSearch" class="search-modal-input" type="search" placeholder="Buscar ingrediente o receta…"
+        <input id="globalSearch" class="search-modal-input" type="search" placeholder="Buscar ingrediente o recetaâ€¦"
           autocomplete="off" spellcheck="false" />
         <kbd class="search-kbd">Esc</kbd>
       </div>
@@ -438,7 +438,7 @@
   <div id="dayPickerModal" class="modal-overlay hidden" role="dialog" aria-modal="true"
     aria-labelledby="dayPickerTitle">
     <div class="modal">
-      <h3 id="dayPickerTitle">¿A qué día asignar esta receta?</h3>
+      <h3 id="dayPickerTitle">Â¿A quÃ© dÃ­a asignar esta receta?</h3>
       <p id="dayPickerRecipeName" class="hint"></p>
       <div class="day-picker-grid" id="dayPickerGrid"></div>
       <button id="cancelDayPicker" class="secondary" type="button"
@@ -462,8 +462,8 @@
 
   <div id="syncModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="syncModalTitle">
     <div class="modal">
-      <h3 id="syncModalTitle">Importar sincronización</h3>
-      <p class="hint">Pega aquí el enlace o código compartido desde otro dispositivo.</p>
+      <h3 id="syncModalTitle">Importar sincronizaciÃ³n</h3>
+      <p class="hint">Pega aquÃ­ el enlace o cÃ³digo compartido desde otro dispositivo.</p>
       <textarea id="syncPayloadInput" rows="4" placeholder="https://...#sync=..." style="width:100%;"></textarea>
       <div class="actions" style="justify-content: flex-end; margin-top: 8px;">
         <button id="syncCancel" class="secondary" type="button">Cancelar</button>
@@ -487,7 +487,7 @@
     <div class="cooking-nav">
       <button id="cookingPrevBtn" class="cooking-nav-btn secondary">
         <span class="material-symbols-outlined">arrow_back</span>
-        Atrás
+        AtrÃ¡s
       </button>
       <button id="cookingNextBtn" class="cooking-nav-btn primary">
         Siguiente
@@ -501,7 +501,7 @@
     <div class="modal">
       <h3 id="addRecipeToListTitle">Agregar ingredientes a lista</h3>
       <p id="addRecipeToListRecipeName" class="hint"></p>
-      <p class="hint" style="margin-bottom: 12px;">Selecciona a qué lista agregarlos:</p>
+      <p class="hint" style="margin-bottom: 12px;">Selecciona a quÃ© lista agregarlos:</p>
       <div id="addRecipeToListOptions" class="add-recipe-list-options"></div>
       <div class="actions" style="justify-content: flex-end; margin-top: 8px;">
         <button id="cancelAddRecipeToList" class="secondary" type="button">Cancelar</button>
@@ -515,7 +515,7 @@
       <div class="recipe-card-inner">
         <div class="recipe-top">
           <h3 class="recipe-title"></h3>
-          <div class="score-badge" aria-label="Puntuación"></div>
+          <div class="score-badge" aria-label="PuntuaciÃ³n"></div>
         </div>
         
         <p class="recipe-meta"></p>
@@ -554,7 +554,7 @@
           <div class="recipe-section why-section">
             <div class="section-label">
                 <span class="material-symbols-outlined">psychology</span>
-                <strong>¿Por qué esta sugerencia?</strong>
+                <strong>Â¿Por quÃ© esta sugerencia?</strong>
             </div>
             <ul class="why-list"></ul>
           </div>
@@ -578,7 +578,7 @@
         </button>
         <button type="button" class="action-btn add-to-list-btn">
           <span class="material-symbols-outlined">shopping_cart</span>
-          Súper
+          SÃºper
         </button>
         <button type="button" class="action-btn add-to-plan-btn">
           <span class="material-symbols-outlined">event</span>
@@ -609,8 +609,8 @@
           <div class="recipes-browser-filters">
             <div class="search-bar-wrap">
               <span class="search-bar-icon material-symbols-outlined" aria-hidden="true">search</span>
-              <input id="recipesBrowserSearch" class="search-bar" type="search" placeholder="Buscar receta…" autocomplete="off" spellcheck="false" />
-              <button id="recipesBrowserSearchClear" class="search-clear hidden" type="button" aria-label="Limpiar búsqueda">
+              <input id="recipesBrowserSearch" class="search-bar" type="search" placeholder="Buscar recetaâ€¦" autocomplete="off" spellcheck="false" />
+              <button id="recipesBrowserSearchClear" class="search-clear hidden" type="button" aria-label="Limpiar bÃºsqueda">
                 <span class="material-symbols-outlined" aria-hidden="true">close</span>
               </button>
             </div>
@@ -618,9 +618,9 @@
               <div id="recipesFamilyFilter" class="option-chips-group recipes-family-chips" role="group" aria-label="Filtrar por familia"></div>
               <div id="recipesTimeFilter" class="option-chips-group" role="group" aria-label="Filtrar por tiempo">
                 <button type="button" class="option-chip active" data-time="0">Todos</button>
-                <button type="button" class="option-chip" data-time="20">≤ 20 min</button>
-                <button type="button" class="option-chip" data-time="30">≤ 30 min</button>
-                <button type="button" class="option-chip" data-time="45">≤ 45 min</button>
+                <button type="button" class="option-chip" data-time="20">â‰¤ 20 min</button>
+                <button type="button" class="option-chip" data-time="30">â‰¤ 30 min</button>
+                <button type="button" class="option-chip" data-time="45">â‰¤ 45 min</button>
               </div>
             </div>
           </div>
@@ -655,11 +655,11 @@
     </div>
   </div>
 
-  <!-- Modal: Inventory Filter (overflow categorías) -->
+  <!-- Modal: Inventory Filter (overflow categorÃ­as) -->
   <div id="inventoryFilterModal" class="inventory-modal hidden" role="dialog" aria-modal="true" aria-labelledby="inventoryFilterTitle">
     <div class="inventory-modal-content">
       <div class="modal-header">
-        <h3 id="inventoryFilterTitle">Categorías de ingredientes</h3>
+        <h3 id="inventoryFilterTitle">CategorÃ­as de ingredientes</h3>
         <button class="modal-close" type="button" aria-label="Cerrar">
           <span class="material-symbols-outlined" aria-hidden="true">close</span>
         </button>
