@@ -3408,20 +3408,31 @@ body {
   }
 
   .bottom-nav {
-    left: 10px;
-    right: 10px;
-    bottom: 8px;
-    border-radius: 22px;
+    left: 8px;
+    right: 8px;
+    bottom: env(safe-area-inset-bottom, 8px);
+    border-radius: 20px;
     border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 84%, transparent);
     background: color-mix(in srgb, var(--md-sys-color-surface-container) 90%, transparent);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     box-shadow: var(--md-sys-elevation-2);
-    height: calc(var(--nav-height) - 6px);
+    height: 72px; /* More compact on mobile */
+  }
+
+  .nav-item {
+    padding: 4px 2px;
+    gap: 2px;
   }
 
   .nav-item .material-symbols-outlined {
-    padding: 6px 18px;
+    padding: 4px 12px;
+    font-size: 24px;
+  }
+
+  .nav-item span {
+    font-size: 0.7rem;
+    font-weight: 700;
   }
 
   .option-chips-group {

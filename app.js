@@ -225,7 +225,10 @@ const state = {
     shoppingList: loadShoppingList(),
     wasteLog: loadWasteLog(),
     currentMonth: new Date().getMonth() + 1,
-    recentSuggestedRecipes: loadRecentSuggestedRecipes()
+    recentSuggestedRecipes: loadRecentSuggestedRecipes(),
+    customLists: [],
+    activeCustomListId: null,
+    groceryView: "auto"
 };
 
 // ─── Global State & Timers ───
@@ -234,6 +237,72 @@ let _globalSearchDebounceTimer = null;
 let _resultsDebounceTimer = null;
 let _browserDebounceTimer = null;
 let _recipesSearchDebounceTimer = null;
+
+// ─── Missing helper stubs ───
+function persistCustomLists() {
+    localStorage.setItem(STORAGE_KEYS.customLists, JSON.stringify(state.customLists));
+}
+
+function getActiveCustomList() {
+    if (!state.activeCustomListId) return null;
+    return state.customLists.find(l => l.id === state.activeCustomListId) || null;
+}
+
+function trackRecentList(listId) {
+    const recentKey = "milpa_nime_recent_lists_v1";
+    let recent = JSON.parse(localStorage.getItem(recentKey) || "[]");
+    recent = recent.filter(id => id !== listId);
+    recent.unshift(listId);
+    recent = recent.slice(0, 5);
+    localStorage.setItem(recentKey, JSON.stringify(recent));
+}
+
+function maybeImportFromUrl() {
+    // Import sync payload from URL hash if present
+    const hash = window.location.hash;
+    if (!hash.includes("sync=")) return;
+    try {
+        const payload = decodeURIComponent(hash.split("sync=")[1]);
+        const data = JSON.parse(payload);
+        if (data.inventory) {
+            showConfirm(
+                "¿Importar datos del enlace?",
+                "Se importarán tu inventario, plan y lista de compras desde el enlace compartido.",
+                () => {
+                    if (data.inventory) state.inventory = data.inventory;
+                    if (data.weeklyPlan) state.weeklyPlan = data.weeklyPlan;
+                    if (data.shoppingList) state.shoppingList = data.shoppingList;
+                    if (data.selectedCravings) state.selectedCravings = data.selectedCravings;
+                    persistInventory();
+                    persistWeeklyPlan();
+                    persistShoppingList();
+                    persistCravings();
+                    init();
+                    showToast("Datos importados desde enlace");
+                    history.replaceState(null, "", window.location.pathname);
+                }
+            );
+        }
+    } catch { /* silently ignore malformed URLs */ }
+}
+
+function addIngredientsToList(list, ingredientsText, recipeName) {
+    if (!list || !ingredientsText) return;
+    const lines = ingredientsText.split(",").map(s => s.trim()).filter(Boolean);
+    lines.forEach((name, idx) => {
+        list.items.push({
+            id: `itm_${Date.now()}_${idx}`,
+            name,
+            qty: null,
+            unit: "",
+            have: false,
+            bought: false,
+            category: "other"
+        });
+    });
+    persistCustomLists();
+    showToast(`Ingredientes de "${recipeName}" añadidos a "${list.name}"`);
+}
 
 // ─── Helper Functions ───
 
@@ -285,17 +354,17 @@ function getCategoryIcon(category) {
 
 function getCravingIcon(craving) {
     const icons = {
-        rapido: "timer",
+        rapido: "speed",
         casero: "home",
         calientito: "soup_kitchen",
-        reconfortante: "favorite",
+        reconfortante: "volunteer_activism",
         ligero: "leafy_greens",
-        fresco: "eco",
+        fresco: "ac_unit",
         fria: "ac_unit",
         llenador: "restaurant",
-        antojo_mexicano: "celebration",
+        antojo_mexicano: "flag",
         mealprep: "inventory",
-        saludable: "health_and_safety",
+        saludable: "favorite",
         picante: "local_fire_department",
         caldosa: "soup_kitchen",
         cozy: "bed"
@@ -386,6 +455,9 @@ function setupDefaultPurchaseDate() {
 
 // ─── Init ───
 function init() {
+    // Load customLists from storage on every init
+    state.customLists = loadCustomLists();
+    
     initCollapsibles();
     // Critical path - render UI immediately
     renderInventoryFilters();
@@ -432,6 +504,9 @@ function handleShortcutParam() {
 }
 
 function bindEvents() {
+    if (document.body.dataset.eventsWired) return;
+    document.body.dataset.eventsWired = "true";
+
     suggestBtn.addEventListener("click", handleSuggest);
 
     document.getElementById("clearFiltersBtn")?.addEventListener("click", () => {
@@ -477,9 +552,72 @@ function bindEvents() {
         showToast("Modo Rescate activado - encuentra recetas para lo urgente");
     });
 
+
     buildDayPickerButtons();
     setupGroceryEvents();
     initNavigation();
+
+    // ─── Modal: Day Picker ───
+    document.getElementById("cancelDayPicker")?.addEventListener("click", closeDayPicker);
+
+    // ─── Modal: Confirm ───
+    document.getElementById("confirmCancel")?.addEventListener("click", closeConfirmModal);
+
+    // ─── Craving Menu Button ───
+    document.getElementById("cravingMenuBtn")?.addEventListener("click", openCravingModal);
+    document.getElementById("cravingMenuModal")?.addEventListener("click", (e) => {
+        if (e.target === e.currentTarget) closeCravingModal();
+    });
+    document.querySelector("#cravingMenuModal .modal-close")?.addEventListener("click", closeCravingModal);
+
+    // ─── Inventory Menu Button ───
+    document.getElementById("inventoryMenuBtn")?.addEventListener("click", openInventoryModal);
+    document.getElementById("inventoryFilterModal")?.addEventListener("click", (e) => {
+        if (e.target === e.currentTarget) closeInventoryModal();
+    });
+    document.querySelector("#inventoryFilterModal .modal-close")?.addEventListener("click", closeInventoryModal);
+
+    // ─── Sync / Share ───
+    document.getElementById("shareSyncBtn")?.addEventListener("click", handleShareSync);
+    document.getElementById("importSyncBtn")?.addEventListener("click", () => {
+        document.getElementById("syncModal")?.classList.remove("hidden");
+    });
+    document.getElementById("syncCancel")?.addEventListener("click", () => {
+        document.getElementById("syncModal")?.classList.add("hidden");
+    });
+    document.getElementById("syncApply")?.addEventListener("click", () => {
+        const payload = document.getElementById("syncPayloadInput")?.value || "";
+        if (payload) {
+            try {
+                const hashIdx = payload.indexOf("sync=");
+                const rawData = hashIdx >= 0 ? decodeURIComponent(payload.slice(hashIdx + 5)) : payload;
+                const data = JSON.parse(rawData);
+                if (data.inventory) {
+                    state.inventory = data.inventory;
+                    if (data.weeklyPlan) state.weeklyPlan = data.weeklyPlan;
+                    if (data.shoppingList) state.shoppingList = data.shoppingList;
+                    if (data.selectedCravings) state.selectedCravings = data.selectedCravings;
+                    persistInventory(); persistWeeklyPlan(); persistShoppingList(); persistCravings();
+                    document.getElementById("syncModal")?.classList.add("hidden");
+                    init();
+                    showToast("Datos importados correctamente");
+                } else {
+                    showToast("Error: el enlace no contiene datos válidos");
+                }
+            } catch {
+                showToast("Error: el enlace o código no es válido");
+            }
+        }
+    });
+
+    // ─── Cooking Mode ───
+    document.getElementById("closeCookingMode")?.addEventListener("click", () => {
+        document.getElementById("cookingMode")?.classList.add("hidden");
+        document.body.style.overflow = "";
+    });
+
+    // ─── Add Recipe to List modal ───
+    initAddRecipeToList();
 }
 
 function updateInventoryBadge() {
@@ -491,6 +629,8 @@ function updateInventoryBadge() {
 }
 
 function initNavigation() {
+    if (document.body.dataset.navWired) return;
+    document.body.dataset.navWired = "true";
     document.querySelectorAll(".nav-item").forEach((btn) => {
         btn.addEventListener("click", () => {
             const viewId = btn.getAttribute("data-view");
@@ -1082,21 +1222,7 @@ function renderCravings() {
     }
 }
 
-function getCravingIcon(craving) {
-    const icons = {
-        rapido: "speed",
-        casero: "home",
-        calientito: "local_fire_department",
-        reconfortante: "volunteer_activism",
-        ligero: "air",
-        fresco: "ac_unit",
-        llenador: "restaurant",
-        antojo_mexicano: "flag",
-        mealprep: "inventory",
-        saludable: "favorite"
-    };
-    return icons[craving] || "star";
-}
+
 
 // ─── Suggest ───
 function handleSuggest() {
@@ -1915,14 +2041,6 @@ function setupGroceryEvents() {
     });
 }
 
-        persistCustomLists();
-        nameInput.value = "";
-        qtyInput.value = "";
-        unitInput.value = "";
-        categoryInput && (categoryInput.value = "");
-        dateInput && (dateInput.value = new Date().toISOString().split('T')[0]);
-        shelfLifeInput && (shelfLifeInput.value = "");
-        renderCustomListItems();
 function renderCustomLists() {
     const container = document.getElementById("customListsContainer");
     const addForm = document.getElementById("addCustomItemForm");
@@ -2450,6 +2568,7 @@ function initQuickAddBar() {
 }
 
 // ─── Recent Lists Tracking ───
+function renderRecentLists() {
     const recentKey = "milpa_nime_recent_lists_v1";
     const recent = JSON.parse(localStorage.getItem(recentKey) || "[]");
     const customLists = loadCustomLists();
@@ -2604,8 +2723,6 @@ function showUpdateBanner(registration) {
 /** Ranked recipes kept in module scope so search/sort can re-render without re-ranking */
 let _lastRanked = [];
 let _sortCriterion = "score";
-let _inventoryDebounceTimer = null;
-let _globalDebounceTimer = null;
 
 /**
  * Wraps every occurrence of `query` inside `text` with <mark> tags.
@@ -3639,6 +3756,31 @@ function setupBackupEvents() {
         document.getElementById("importJsonInput")?.click();
     });
     document.getElementById("importJsonInput")?.addEventListener("change", importDataFromJson);
+}
+
+function handleShareSync() {
+    const data = {
+        inventory: state.inventory,
+        weeklyPlan: state.weeklyPlan,
+        shoppingList: state.shoppingList,
+        selectedCravings: state.selectedCravings,
+        version: "1.0",
+        timestamp: Date.now()
+    };
+    const encoded = encodeURIComponent(JSON.stringify(data));
+    const url = `${location.origin}${location.pathname}#sync=${encoded}`;
+    
+    if (navigator.share) {
+        navigator.share({ title: "Milpa NiME – mis datos", url }).catch(() => {});
+    } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => {
+            showToast("¡Enlace copiado! Ábrelo en otro dispositivo.");
+        }).catch(() => {
+            showToast("No se pudo copiar. Comparte manualmente.");
+        });
+    } else {
+        showToast("Comparte la URL de tu barra de direcciones (incluye #sync=...)");
+    }
 }
 
 function exportDataAsJson() {

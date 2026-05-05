@@ -91,6 +91,9 @@
               </div>
               <div class="inventory-menu-wrapper">
                 <div id="inventoryFilters" class="inventory-filters-scroll"></div>
+                <button id="inventoryMenuBtn" class="menu-toggle" type="button" aria-label="Ver todas las categorías" style="display:none;">
+                  <span class="material-symbols-outlined" aria-hidden="true">filter_list</span>
+                </button>
               </div>
               
               <!-- Feature: Cocinar lo que expira -->
@@ -132,7 +135,12 @@
               <div class="context-grid">
                 <label class="field">
                   <span>Antojo</span>
-                  <div id="cravingChips" class="option-chips-group"></div>
+                  <div class="craving-menu-wrapper">
+                    <div id="cravingChips" class="craving-chips-scroll option-chips-group"></div>
+                    <button id="cravingMenuBtn" class="menu-toggle" type="button" aria-label="Ver todos los antojos" style="display:none;">
+                      <span class="material-symbols-outlined" aria-hidden="true">more_horiz</span>
+                    </button>
+                  </div>
                 </label>
 
                 <label class="field">
@@ -631,8 +639,32 @@
             <span class="material-symbols-outlined" aria-hidden="true">close</span>
           </button>
         </div>
-        <div id="recipeDetailContent" class="recipe-detail-content"></div>
+  </div>
+
+
+  <!-- Modal: Craving Menu (overflow antojos) -->
+  <div id="cravingMenuModal" class="craving-modal hidden" role="dialog" aria-modal="true" aria-labelledby="cravingMenuTitle">
+    <div class="craving-modal-content">
+      <div class="modal-header">
+        <h3 id="cravingMenuTitle">Todos los antojos</h3>
+        <button class="modal-close" type="button" aria-label="Cerrar">
+          <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </button>
       </div>
+      <div id="cravingModalGrid" class="craving-modal-grid"></div>
+    </div>
+  </div>
+
+  <!-- Modal: Inventory Filter (overflow categorías) -->
+  <div id="inventoryFilterModal" class="inventory-modal hidden" role="dialog" aria-modal="true" aria-labelledby="inventoryFilterTitle">
+    <div class="inventory-modal-content">
+      <div class="modal-header">
+        <h3 id="inventoryFilterTitle">Categorías de ingredientes</h3>
+        <button class="modal-close" type="button" aria-label="Cerrar">
+          <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </button>
+      </div>
+      <div id="inventoryFilterGrid" class="inventory-filter-grid"></div>
     </div>
   </div>
 
