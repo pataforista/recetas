@@ -1177,18 +1177,21 @@ function renderCravings() {
     const cravingModalGrid = document.getElementById("cravingModalGrid");
     if (cravingModalGrid) cravingModalGrid.innerHTML = "";
 
-    const createCravingChip = (craving) => {
+    // Normalize CRAVINGS: support both string IDs and {id, label, icon} objects
+    const cravingIds = CRAVINGS.map(c => (typeof c === 'object' && c !== null) ? c.id : c);
+
+    const createCravingChip = (cravingId) => {
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.className = `chip ${state.selectedCravings.includes(craving) ? "active" : ""}`;
-        btn.setAttribute("aria-label", `Seleccionar antojo: ${humanizeCraving(craving)}`);
-        const iconName = getCravingIcon(craving);
-        btn.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">${iconName}</span> ${humanizeCraving(craving)}`;
+        btn.className = `chip ${state.selectedCravings.includes(cravingId) ? "active" : ""}`;
+        btn.setAttribute("aria-label", `Seleccionar antojo: ${humanizeCraving(cravingId)}`);
+        const iconName = getCravingIcon(cravingId);
+        btn.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">${iconName}</span> ${humanizeCraving(cravingId)}`;
         btn.addEventListener("click", () => {
-            if (state.selectedCravings.includes(craving)) {
-                state.selectedCravings = state.selectedCravings.filter((c) => c !== craving);
+            if (state.selectedCravings.includes(cravingId)) {
+                state.selectedCravings = state.selectedCravings.filter((c) => c !== cravingId);
             } else {
-                state.selectedCravings.push(craving);
+                state.selectedCravings.push(cravingId);
             }
             persistCravings();
             renderCravings();
@@ -1199,14 +1202,14 @@ function renderCravings() {
     // Render chips in scrollable container - show first 6 items
     const visibleCount = 6;
     const cravingsFragment = document.createDocumentFragment();
-    CRAVINGS.slice(0, visibleCount).forEach((craving) => {
-        cravingsFragment.appendChild(createCravingChip(craving));
+    cravingIds.slice(0, visibleCount).forEach((cravingId) => {
+        cravingsFragment.appendChild(createCravingChip(cravingId));
     });
     cravingChipsEl.appendChild(cravingsFragment);
 
     // Show menu toggle button if there are more items
     const menuBtn = document.getElementById("cravingMenuBtn");
-    if (CRAVINGS.length > visibleCount) {
+    if (cravingIds.length > visibleCount) {
         menuBtn.style.display = "flex";
     } else {
         menuBtn.style.display = "none";
@@ -1215,8 +1218,8 @@ function renderCravings() {
     // Render all chips in modal
     if (cravingModalGrid) {
         const modalFragment = document.createDocumentFragment();
-        CRAVINGS.forEach((craving) => {
-            modalFragment.appendChild(createCravingChip(craving));
+        cravingIds.forEach((cravingId) => {
+            modalFragment.appendChild(createCravingChip(cravingId));
         });
         cravingModalGrid.appendChild(modalFragment);
     }
