@@ -1,4 +1,4 @@
-const CACHE_NAME = 'milpa-nime-v4';
+const CACHE_NAME = 'milpa-nime-v5';
 const ASSETS = [
   './',
   './index.html',
@@ -6,6 +6,10 @@ const ASSETS = [
   './styles.css',
   './data/recipes.js',
   './data/ingredients.js',
+  './data/seasonality_mx.js',
+  './data/mealprep_bases.js',
+  './data/health_rules.js',
+  './modules/recipes-module.js',
   'https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap',
   'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200'
 ];

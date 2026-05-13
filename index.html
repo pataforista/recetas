@@ -639,6 +639,9 @@
             <span class="material-symbols-outlined" aria-hidden="true">close</span>
           </button>
         </div>
+        <div id="recipeDetailContent" class="recipe-detail-content"></div>
+      </div>
+    </div>
   </div>
 
 
@@ -670,15 +673,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script type="module" src="./app.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('SW Registered', reg))
-          .catch(err => console.log('SW Failed', err));
-      });
-    }
-  </script>
 </body>
 
 </html>

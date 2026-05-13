@@ -419,10 +419,6 @@ const suggestBtn = document.getElementById("suggestBtn");
 const resultsEl = document.getElementById("results");
 const summaryBoxEl = document.getElementById("summaryBox");
 const mealPrepBoxEl = document.getElementById("mealPrepBox");
-const timeSelectEl = document.getElementById("timeSelect");
-const modeSelectEl = document.getElementById("modeSelect");
-const lowEnergyEl = document.getElementById("lowEnergy");
-const seasonBoostEl = document.getElementById("seasonBoost");
 
 // ─── Chip group helper ───
 function getSelectedChipValue(groupId) {
@@ -457,7 +453,7 @@ function setupDefaultPurchaseDate() {
 function init() {
     // Load customLists from storage on every init
     state.customLists = loadCustomLists();
-    
+
     initCollapsibles();
     // Critical path - render UI immediately
     renderInventoryFilters();
@@ -468,6 +464,8 @@ function init() {
 
     updateGroceryBadge();
     setupBackupEvents();
+    setupOfflineDetection();
+    setupPWAInstall();
 
     // FAB starts hidden (default view is "today", FAB only shows in grocery)
     const fabContainer = document.getElementById("fabContainer");
@@ -482,6 +480,7 @@ function init() {
         handleShortcutParam();
         maybeImportFromUrl();
         initSearch();
+        registerSW();
     }, { timeout: 2000 });
 }
 
@@ -498,7 +497,7 @@ function initCollapsibles() {
 function handleShortcutParam() {
     const params = new URLSearchParams(window.location.search);
     const view = params.get("view");
-    if (view && ["today", "planner", "mealprep", "grocery"].includes(view)) {
+    if (view && ["today", "planner", "mealprep", "grocery", "recipes"].includes(view)) {
         showView(view);
     }
 }
@@ -1046,7 +1045,7 @@ function renderInventory() {
         header.className = "inventory-section-header";
         header.id = `cat-header-${cat}`;
         header.innerHTML = `
-            <span class="cat-icon">${getCategoryIcon(cat)}</span>
+            <span class="cat-icon material-symbols-outlined" aria-hidden="true">${getCategoryIcon(cat)}</span>
             <h3>${capitalize(cat)} <span class="cat-count">(${selectedCount}/${categoryIngs.length})</span></h3>
         `;
         fragment.appendChild(header);
@@ -1116,11 +1115,11 @@ function renderInventoryQuickNav(categories) {
     const nav = document.getElementById("categoryQuickNav");
     if (!nav) return;
     nav.innerHTML = "";
-    
+
     categories.forEach(cat => {
         const btn = document.createElement("button");
         btn.className = "nav-chip";
-        btn.innerHTML = `${getCategoryIcon(cat)} ${capitalize(cat)}`;
+        btn.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">${getCategoryIcon(cat)}</span> ${capitalize(cat)}`;
         btn.addEventListener("click", () => {
             const el = document.getElementById(`cat-header-${cat}`);
             if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1233,10 +1232,13 @@ function handleSuggest() {
     suggestBtn.disabled = true;
     suggestBtn.innerHTML = `<span class="material-symbols-outlined spinning" aria-hidden="true">sync</span> Pensando...`;
 
+    const mode = getSelectedChipValue('modeChips') || 'today';
     const userContext = {
         cravings: [...state.selectedCravings],
         maxTime: Number(getSelectedChipValue('timeChips') || 30),
-        mode: getSelectedChipValue('modeChips') || 'today',
+        mode,
+        lowEnergy: mode === 'low_effort',
+        seasonBoost: true,
         inventory: state.inventory,
         month: state.currentMonth
     };
@@ -1463,7 +1465,7 @@ function scoreRecipe(recipe, context) {
         score -= Math.min(excess, 15);
     }
 
-    if (context.lowEnergy) {
+    if (context.lowEnergy || context.mode === "low_effort") {
         if (recipe.lowFriction) {
             score += 12;
             reasons.push("Ideal para poca energía (baja fricción)");
@@ -1614,7 +1616,7 @@ function createRecipeCard(item) {
         badgesWrap.className = "recipe-badges";
         if (isMilpa) badgesWrap.innerHTML += `<span class="badge-tag milpa" title="Basado en la milpa">🌽 Milpa</span>`;
         if (isCommon) badgesWrap.innerHTML += `<span class="badge-tag classico" title="Ingredientes comunes">🇲🇽 Clásico</span>`;
-        node.querySelector(".recipe-header").appendChild(badgesWrap);
+        node.querySelector(".recipe-top").appendChild(badgesWrap);
     }
 
     node.querySelector(".recipe-description").textContent = recipe.description;
@@ -1957,21 +1959,38 @@ function renderGroceryList() {
         groups[cat].forEach(item => {
             const row = document.createElement("div");
             row.className = `grocery-row ${item.checked ? "checked" : ""}`;
+
+            const cbWrap = document.createElement("div");
+            cbWrap.className = "checkbox-wrap";
+            const cb = document.createElement("input");
+            cb.type = "checkbox";
+            if (item.checked) cb.checked = true;
+            cbWrap.appendChild(cb);
+
+            const info = document.createElement("div");
+            info.className = "item-info";
+            const nameSpan = document.createElement("span");
+            nameSpan.className = "item-name";
+            nameSpan.textContent = item.name;
+            info.appendChild(nameSpan);
+            if (item.amount) {
+                const qtySpan = document.createElement("span");
+                qtySpan.className = "item-qty";
+                qtySpan.textContent = `${item.amount}${item.unit || ""}`;
+                info.appendChild(qtySpan);
+            }
+
+            row.appendChild(cbWrap);
+            row.appendChild(info);
+
+            if (item.type === 'manual') {
+                const rmBtn = document.createElement("button");
+                rmBtn.className = "remove-btn";
+                rmBtn.title = "Quitar";
+                rmBtn.innerHTML = `<span class="material-symbols-outlined">close</span>`;
+                row.appendChild(rmBtn);
+            }
             
-            const amountText = item.amount ? `<span class="item-qty">${item.amount}${item.unit}</span>` : "";
-            
-            row.innerHTML = `
-                <div class="checkbox-wrap">
-                    <input type="checkbox" ${item.checked ? "checked" : ""} />
-                </div>
-                <div class="item-info">
-                    <span class="item-name">${item.name}</span>
-                    ${amountText}
-                </div>
-                ${item.type === 'manual' ? `<button class="remove-btn" title="Quitar"><span class="material-symbols-outlined">close</span></button>` : ""}
-            `;
-            
-            const cb = row.querySelector("input");
             cb.addEventListener("change", () => {
                 if (item.type === 'plan') {
                     toggleIngredient(item.id);
@@ -1981,7 +2000,7 @@ function renderGroceryList() {
                     renderGroceryList();
                 }
             });
-            
+
             const rm = row.querySelector(".remove-btn");
             if (rm) {
                 rm.addEventListener("click", (e) => {
@@ -2031,7 +2050,10 @@ function setupUnifiedQuickAdd() {
 }
 
 function setupGroceryEvents() {
-    document.getElementById("clearGroceryBtn")?.addEventListener("click", () => {
+    const clearBtn = document.getElementById("clearGroceryBtn");
+    if (!clearBtn || clearBtn.dataset.wired) return;
+    clearBtn.dataset.wired = "true";
+    clearBtn.addEventListener("click", () => {
         showConfirm(
             "¿Limpiar lista?",
             "Se borrarán todos los items manuales. Los del plan se mantendrán hasta que borres el plan.",
@@ -2129,33 +2151,62 @@ function renderCustomListItems() {
             `;
         }
 
-        row.innerHTML = `
-            <label class="grocery-checkline">
-              <input type="checkbox" ${item.bought ? "checked" : ""} aria-label="Comprado ${item.name}">
-              <span>
-                <strong>${item.name}</strong>
-                ${item.qty ? `• ${item.qty}${item.unit ? ` ${item.unit}` : ""}` : ""}
-                ${item.category && item.category !== "other" ? `<small class="category-tag">${item.category}</small>` : ""}
-              </span>
-            </label>
-            <div class="item-urgency">
-              ${urgencyBadge}
-            </div>
-            <label class="mini-toggle">Tengo <input type="checkbox" ${item.have ? "checked" : ""}></label>
-            <button type="button" class="text-btn item-delete-btn" style="display:none;">Eliminar</button>
-        `;
+        const checkLabel = document.createElement("label");
+        checkLabel.className = "grocery-checkline";
+        const boughtCb = document.createElement("input");
+        boughtCb.type = "checkbox";
+        boughtCb.setAttribute("aria-label", `Comprado ${item.name}`);
+        if (item.bought) boughtCb.checked = true;
+        const textSpan = document.createElement("span");
+        const strongEl = document.createElement("strong");
+        strongEl.textContent = item.name;
+        textSpan.appendChild(strongEl);
+        if (item.qty) {
+            const qtyText = document.createTextNode(` • ${item.qty}${item.unit ? ` ${item.unit}` : ""}`);
+            textSpan.appendChild(qtyText);
+        }
+        if (item.category && item.category !== "other") {
+            const catSmall = document.createElement("small");
+            catSmall.className = "category-tag";
+            catSmall.textContent = item.category;
+            textSpan.appendChild(catSmall);
+        }
+        checkLabel.appendChild(boughtCb);
+        checkLabel.appendChild(textSpan);
 
-        const [boughtInput, haveInput] = row.querySelectorAll("input[type='checkbox']");
-        boughtInput.addEventListener("change", (e) => {
+        const urgencyDiv = document.createElement("div");
+        urgencyDiv.className = "item-urgency";
+        urgencyDiv.innerHTML = urgencyBadge;
+
+        const haveLabel = document.createElement("label");
+        haveLabel.className = "mini-toggle";
+        haveLabel.textContent = "Tengo ";
+        const haveCb = document.createElement("input");
+        haveCb.type = "checkbox";
+        if (item.have) haveCb.checked = true;
+        haveLabel.appendChild(haveCb);
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.type = "button";
+        deleteBtn.className = "text-btn item-delete-btn";
+        deleteBtn.style.display = "none";
+        deleteBtn.textContent = "Eliminar";
+
+        row.appendChild(checkLabel);
+        row.appendChild(urgencyDiv);
+        row.appendChild(haveLabel);
+        row.appendChild(deleteBtn);
+
+        boughtCb.addEventListener("change", (e) => {
             item.bought = e.target.checked;
             persistCustomLists();
             row.classList.toggle("checked", item.bought);
         });
-        haveInput.addEventListener("change", (e) => {
+        haveCb.addEventListener("change", (e) => {
             item.have = e.target.checked;
             persistCustomLists();
         });
-        row.querySelector("button").addEventListener("click", () => {
+        deleteBtn.addEventListener("click", () => {
             list.items = list.items.filter((it) => it.id !== item.id);
             persistCustomLists();
             renderCustomLists();
@@ -3489,11 +3540,9 @@ function initializeRecipesView() {
 }
 
 function loadRecipeFilters() {
-    // Load families
     const familySelect = document.getElementById("recipeFilterFamily");
-    if (familySelect) {
-        const families = getAllFamilies();
-        families.forEach((family) => {
+    if (familySelect && familySelect.options.length <= 1) {
+        getAllFamilies().forEach((family) => {
             const option = document.createElement("option");
             option.value = family;
             option.textContent = family.charAt(0).toUpperCase() + family.slice(1);
@@ -3501,11 +3550,9 @@ function loadRecipeFilters() {
         });
     }
 
-    // Load meal types
     const mealTypeSelect = document.getElementById("recipeFilterMealType");
-    if (mealTypeSelect) {
-        const mealTypes = getAllMealTypes();
-        mealTypes.forEach((type) => {
+    if (mealTypeSelect && mealTypeSelect.options.length <= 1) {
+        getAllMealTypes().forEach((type) => {
             const option = document.createElement("option");
             option.value = type;
             option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
