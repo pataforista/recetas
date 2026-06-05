@@ -466,12 +466,6 @@ function bindEvents() {
         }
     });
 
-    // ─── Cooking Mode ───
-    document.getElementById("closeCookingMode")?.addEventListener("click", () => {
-        document.getElementById("cookingMode")?.classList.add("hidden");
-        document.body.style.overflow = "";
-    });
-
     // ─── Add Recipe to List modal ───
     initAddRecipeToList();
 }
@@ -587,74 +581,9 @@ function showToast(message, actionText = null, actionCb = null, duration = 4000)
  * Shows a toast with multiple action buttons (choice toast).
  * choices = [{text, cb}]
  */
-function showChoice(message, choices, duration = 6000) {
-    const container = document.getElementById("toastContainer");
-    const toast = document.createElement("div");
-    toast.className = "toast toast-choice";
-
-    const textSpan = document.createElement("span");
-    textSpan.textContent = message;
-    toast.appendChild(textSpan);
-
-    choices.forEach(({ text, cb }) => {
-        const btn = document.createElement("button");
-        btn.className = "toast-action";
-        btn.textContent = text;
-        btn.addEventListener("click", () => {
-            cb();
-            toast.classList.add("exit");
-            setTimeout(() => toast.remove(), 300);
-        });
-        toast.appendChild(btn);
-    });
-
-    container.appendChild(toast);
-    setTimeout(() => {
-        if (toast.parentElement) {
-            toast.classList.add("exit");
-            toast.addEventListener("animationend", () => toast.remove());
-        }
-    }, duration);
-}
 
 // ─── Shopping List Helpers ───
-function mapIngredientCategoryToListCategory(ingCategory) {
-    const map = {
-        lacteos: "dairy",
-        verduras: "produce",
-        frutas: "produce",
-        proteinas: "meat",
-        milpa: "pantry",
-        leguminosas: "pantry",
-        cereales: "pantry",
-        basicos: "pantry",
-        grasas: "pantry",
-        hierbas: "pantry"
-    };
-    return map[ingCategory] || "other";
-}
 
-function addIngredientToShoppingList(ingredient) {
-    if (!state.shoppingList) state.shoppingList = [];
-
-    if (state.shoppingList.some(i => i.id === ingredient.id || i.name === ingredient.name)) {
-        showToast(`${ingredient.name} ya está en la lista`);
-        return;
-    }
-
-    state.shoppingList.push({
-        id: ingredient.id,
-        name: ingredient.name,
-        category: ingredient.category || "basicos",
-        checked: false,
-        type: "manual"
-    });
-
-    persistShoppingList();
-    showToast(`${ingredient.name} añadido a compras`, "Ver lista", () => {
-        showView("grocery");
-    });
-}
 
 // ─── Confirm Modal ───
 let _confirmCallback = null;
@@ -1017,15 +946,6 @@ function renderExpiringBanner() {
     if (namesEl) namesEl.textContent = urgentItems.slice(0, 3).join(", ") + (urgentItems.length > 3 ? "…" : "");
 }
 
-function updateInventoryItemUrgency(ingredientId, wrapper) {
-    const urgencySelect = wrapper.dataset.urgencySelect || wrapper.querySelector("select");
-    const hasItem = !!state.inventory[ingredientId]?.has;
-    if (urgencySelect) {
-        urgencySelect.disabled = !hasItem;
-        urgencySelect.value = state.inventory[ingredientId]?.urgency || "normal";
-    }
-    wrapper.classList.toggle("has-item", hasItem);
-}
 
 // ─── Cravings ───
 function renderCravings() {
@@ -1166,13 +1086,6 @@ const SUBSTITUTIONS = {
     espinaca: ["acelga", "verdolaga", "quelites", "kale"],
 };
 
-function shuffleArray(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-}
 
 function rankRecipes(recipes, context) {
     // Calculate frequency of each recipe in recent history
@@ -1748,6 +1661,7 @@ function renderGroceryHub() {
     renderGroceryList();
     setupUnifiedQuickAdd();
     setupGroceryEvents();
+    renderWasteStats();
 }
 
 function renderGroceryList() {
@@ -1955,30 +1869,6 @@ function renderInitialMessage() {
 }
 
 // ─── Reset ───
-function handleReset() {
-    showConfirm(
-        "¿Limpiar todo?",
-        "Se borrarán inventario, antojos, plan y listas de compra.",
-        () => {
-            state.inventory = {};
-            state.selectedCravings = [];
-            state.weeklyPlan = {};
-            state.shoppingList = [];
-            state.wasteLog = [];
-            persistInventory();
-            persistCravings();
-            persistWeeklyPlan();
-            persistShoppingList();
-            persistWasteLog();
-            renderInventory();
-            renderCravings();
-            renderInitialMessage();
-            renderGroceryHub();
-            resultsEl.innerHTML = "";
-            showToast("Selecciones limpiadas");
-        }
-    );
-}
 
 // ─── Utilities ───
 function prettyIngredients(ingredients) {
@@ -2007,15 +1897,6 @@ function prettyIngredients(ingredients) {
     }).join(", ");
 }
 
-function ensureInventoryItem(id, category = null) {
-    if (!state.inventory[id]) {
-        state.inventory[id] = {
-            has: false,
-            urgency: "normal",
-            location: category ? getDefaultLocation(category) : "otro"
-        };
-    }
-}
 
 
 // ─── Storage ───
