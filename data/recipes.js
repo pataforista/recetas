@@ -4052,5 +4052,790 @@ export const RECIPES = [
             "leavesBases": [],
             "derivatives": []
         }
+    },
+    {
+        "id": "huevos_a_la_mexicana",
+        "name": "Huevos a la Mexicana",
+        "family": "huevo",
+        "format": "plato",
+        "description": "Huevos revueltos con jitomate, cebolla y chile serrano. Desayuno rápido y clásico.",
+        "ingredientsRequired": [
+            "huevo",
+            "jitomate",
+            "cebolla",
+            "chile_serrano"
+        ],
+        "ingredientsOptional": [
+            "cilantro",
+            "tortilla_maiz"
+        ],
+        "cravings": [
+            "mexicano",
+            "rapido",
+            "reconfortante"
+        ],
+        "timeMin": 10,
+        "effort": "bajo",
+        "mealType": "desayuno",
+        "lowFriction": true,
+        "seasonalBoostIngredients": [
+            "jitomate"
+        ],
+        "profile": {
+            "fiber": "baja",
+            "protein": "alta",
+            "satFat": "media",
+            "glyLoad": "baja",
+            "vegetableVolume": "medio",
+            "energyDensity": "media"
+        },
+        "mealPrep": {
+            "usesBases": [],
+            "leavesBases": [],
+            "derivatives": []
+        }
+    },
+    {
+        "id": "huevos_rancheros_nime",
+        "name": "Huevos Rancheros",
+        "family": "huevo",
+        "format": "plato",
+        "description": "Huevos estrellados sobre tortilla, bañados en salsa roja. Desayuno mexicano por excelencia.",
+        "ingredientsRequired": [
+            "huevo",
+            "tortilla_maiz",
+            "salsa_roja"
+        ],
+        "ingredientsOptional": [
+            "frijol",
+            "aguacate",
+            "queso_fresco"
+        ],
+        "cravings": [
+            "mexicano",
+            "reconfortante",
+            "picante"
+        ],
+        "timeMin": 15,
+        "effort": "bajo",
+        "mealType": "desayuno",
+        "lowFriction": true,
+        "seasonalBoostIngredients": [
+            "jitomate"
+        ],
+        "profile": {
+            "fiber": "media",
+            "protein": "alta",
+            "satFat": "media",
+            "glyLoad": "media",
+            "vegetableVolume": "medio",
+            "energyDensity": "media"
+        },
+        "mealPrep": {
+            "usesBases": [
+                "salsa_roja"
+            ],
+            "leavesBases": [],
+            "derivatives": []
+        }
+    },
+    {
+        "id": "sopa_fideo_jitomate",
+        "name": "Sopa de Fideo",
+        "family": "cereales",
+        "format": "sopa",
+        "description": "Sopa aguada de fideo en caldillo de jitomate. Entrada casera económica y reconfortante.",
+        "ingredientsRequired": [
+            "pasta_seca",
+            "jitomate",
+            "cebolla",
+            "ajo",
+            "caldo_pollo"
+        ],
+        "ingredientsOptional": [
+            "aguacate",
+            "limon"
+        ],
+        "cravings": [
+            "reconfortante",
+            "caldoso",
+            "mexicano"
+        ],
+        "timeMin": 25,
+        "effort": "bajo",
+        "mealType": "comida",
+        "lowFriction": true,
+        "seasonalBoostIngredients": [
+            "jitomate"
+        ],
+        "profile": {
+            "fiber": "baja",
+            "protein": "baja",
+            "satFat": "baja",
+            "glyLoad": "media",
+            "vegetableVolume": "bajo",
+            "energyDensity": "media"
+        },
+        "mealPrep": {
+            "usesBases": [],
+            "leavesBases": [],
+            "derivatives": []
+        }
+    },
+    {
+        "id": "arroz_rojo_mexicano",
+        "name": "Arroz Rojo a la Mexicana",
+        "family": "basicos",
+        "format": "plato",
+        "description": "Arroz frito y guisado en jitomate con zanahoria y chícharo. Guarnición indispensable.",
+        "ingredientsRequired": [
+            "arroz_blanco",
+            "jitomate",
+            "cebolla",
+            "ajo"
+        ],
+        "ingredientsOptional": [
+            "zanahoria",
+            "chícharo",
+            "caldo_pollo"
+        ],
+        "cravings": [
+            "mexicano",
+            "reconfortante",
+            "llenador"
+        ],
+        "timeMin": 30,
+        "effort": "bajo",
+        "mealType": "comida",
+        "lowFriction": true,
+        "seasonalBoostIngredients": [
+            "jitomate",
+            "zanahoria"
+        ],
+        "profile": {
+            "fiber": "baja",
+            "protein": "baja",
+            "satFat": "baja",
+            "glyLoad": "alta",
+            "vegetableVolume": "medio",
+            "energyDensity": "media"
+        },
+        "mealPrep": {
+            "usesBases": [
+                "arroz_blanco"
+            ],
+            "leavesBases": [],
+            "derivatives": []
+        }
+    },
+    {
+        "id": "tinga_pollo_clasica",
+        "name": "Tinga de Pollo",
+        "family": "pollo",
+        "format": "plato",
+        "description": "Pollo deshebrado guisado con cebolla, jitomate y chipotle. Para tacos, tostadas o tortas.",
+        "ingredientsRequired": [
+            "pollo_deshebrado",
+            "jitomate",
+            "cebolla",
+            "chile_chipotle_lata"
+        ],
+        "ingredientsOptional": [
+            "tostada",
+            "aguacate",
+            "crema"
+        ],
+        "cravings": [
+            "mexicano",
+            "picante",
+            "llenador"
+        ],
+        "timeMin": 25,
+        "effort": "bajo",
+        "mealType": "comida",
+        "lowFriction": true,
+        "seasonalBoostIngredients": [
+            "jitomate"
+        ],
+        "profile": {
+            "fiber": "media",
+            "protein": "alta",
+            "satFat": "media",
+            "glyLoad": "baja",
+            "vegetableVolume": "medio",
+            "energyDensity": "media"
+        },
+        "mealPrep": {
+            "usesBases": [
+                "pollo_deshebrado"
+            ],
+            "leavesBases": [],
+            "derivatives": []
+        }
+    },
+    {
+        "id": "picadillo_res_papa",
+        "name": "Picadillo de Res con Papa",
+        "family": "res",
+        "format": "plato",
+        "description": "Carne molida guisada con papa, zanahoria y jitomate. Relleno versátil y rendidor.",
+        "ingredientsRequired": [
+            "res_molida",
+            "papa",
+            "jitomate",
+            "cebolla"
+        ],
+        "ingredientsOptional": [
+            "zanahoria",
+            "chícharo",
+            "chile_serrano"
+        ],
+        "cravings": [
+            "reconfortante",
+            "llenador",
+            "mexicano"
+        ],
+        "timeMin": 30,
+        "effort": "bajo",
+        "mealType": "comida",
+        "lowFriction": true,
+        "seasonalBoostIngredients": [
+            "jitomate",
+            "zanahoria"
+        ],
+        "profile": {
+            "fiber": "media",
+            "protein": "alta",
+            "satFat": "media",
+            "glyLoad": "media",
+            "vegetableVolume": "medio",
+            "energyDensity": "media"
+        },
+        "mealPrep": {
+            "usesBases": [],
+            "leavesBases": [],
+            "derivatives": []
+        }
+    },
+    {
+        "id": "nopales_con_huevo",
+        "name": "Nopales con Huevo",
+        "family": "huevo",
+        "format": "plato",
+        "description": "Nopales asados revueltos con huevo y cebolla. Desayuno ligero, alto en fibra.",
+        "ingredientsRequired": [
+            "nopal",
+            "huevo",
+            "cebolla"
+        ],
+        "ingredientsOptional": [
+            "chile_serrano",
+            "jitomate",
+            "queso_fresco"
+        ],
+        "cravings": [
+            "saludable",
+            "ligero",
+            "mexicano"
+        ],
+        "timeMin": 15,
+        "effort": "bajo",
+        "mealType": "desayuno",
+        "lowFriction": true,
+        "seasonalBoostIngredients": [
+            "nopal"
+        ],
+        "profile": {
+            "fiber": "alta",
+            "protein": "alta",
+            "satFat": "baja",
+            "glyLoad": "baja",
+            "vegetableVolume": "alto",
+            "energyDensity": "baja"
+        },
+        "mealPrep": {
+            "usesBases": [
+                "nopales_cocidos"
+            ],
+            "leavesBases": [],
+            "derivatives": []
+        }
+    },
+    {
+        "id": "calabacitas_a_la_mexicana",
+        "name": "Calabacitas a la Mexicana",
+        "family": "verduras",
+        "format": "plato",
+        "description": "Calabacita guisada con elote, jitomate y cebolla. Plato de verdura ligero y colorido.",
+        "ingredientsRequired": [
+            "calabacita",
+            "elote",
+            "jitomate",
+            "cebolla"
+        ],
+        "ingredientsOptional": [
+            "chile_serrano",
+            "queso_fresco",
+            "epazote"
+        ],
+        "cravings": [
+            "saludable",
+            "ligero",
+            "fresco"
+        ],
+        "timeMin": 20,
+        "effort": "bajo",
+        "mealType": "comida",
+        "lowFriction": true,
+        "seasonalBoostIngredients": [
+            "calabacita",
+            "elote",
+            "jitomate"
+        ],
+        "profile": {
+            "fiber": "alta",
+            "protein": "baja",
+            "satFat": "baja",
+            "glyLoad": "baja",
+            "vegetableVolume": "muy alto",
+            "energyDensity": "baja"
+        },
+        "mealPrep": {
+            "usesBases": [],
+            "leavesBases": [],
+            "derivatives": []
+        }
+    },
+    {
+        "id": "caldo_pollo_verduras",
+        "name": "Caldo de Pollo con Verduras",
+        "family": "pollo",
+        "format": "caldo",
+        "description": "Caldo casero de pollo con zanahoria, calabacita y papa. Reconfortante y nutritivo.",
+        "ingredientsRequired": [
+            "pollo_muslo",
+            "zanahoria",
+            "calabacita",
+            "papa"
+        ],
+        "ingredientsOptional": [
+            "elote",
+            "cilantro",
+            "limon",
+            "arroz_blanco"
+        ],
+        "cravings": [
+            "reconfortante",
+            "caldoso",
+            "saludable"
+        ],
+        "timeMin": 40,
+        "effort": "bajo",
+        "mealType": "comida",
+        "lowFriction": true,
+        "seasonalBoostIngredients": [
+            "zanahoria",
+            "calabacita"
+        ],
+        "profile": {
+            "fiber": "media",
+            "protein": "alta",
+            "satFat": "baja",
+            "glyLoad": "baja",
+            "vegetableVolume": "alto",
+            "energyDensity": "baja"
+        },
+        "mealPrep": {
+            "usesBases": [],
+            "leavesBases": [],
+            "derivatives": [
+                "pollo_deshebrado"
+            ]
+        }
+    },
+    {
+        "id": "tacos_chorizo_papa",
+        "name": "Tacos de Chorizo con Papa",
+        "family": "cerdo",
+        "format": "taco",
+        "description": "Chorizo dorado con papa en cubos, servido en tortilla de maíz. Taquería de cazo en casa.",
+        "ingredientsRequired": [
+            "chorizo",
+            "papa",
+            "tortilla_maiz"
+        ],
+        "ingredientsOptional": [
+            "cebolla",
+            "cilantro",
+            "salsa_verde"
+        ],
+        "cravings": [
+            "mexicano",
+            "antojo",
+            "llenador"
+        ],
+        "timeMin": 25,
+        "effort": "bajo",
+        "mealType": "comida",
+        "lowFriction": true,
+        "seasonalBoostIngredients": [],
+        "profile": {
+            "fiber": "baja",
+            "protein": "media",
+            "satFat": "alta",
+            "glyLoad": "media",
+            "vegetableVolume": "bajo",
+            "energyDensity": "alta"
+        },
+        "mealPrep": {
+            "usesBases": [],
+            "leavesBases": [],
+            "derivatives": []
+        }
+    },
+    {
+        "id": "pollo_entomatado",
+        "name": "Pollo Entomatado",
+        "family": "pollo",
+        "format": "plato",
+        "description": "Piezas de pollo guisadas en salsa de jitomate con cebolla y ajo. Comida sencilla de diario.",
+        "ingredientsRequired": [
+            "pollo_muslo",
+            "jitomate",
+            "cebolla",
+            "ajo"
+        ],
+        "ingredientsOptional": [
+            "chile_serrano",
+            "arroz_blanco"
+        ],
+        "cravings": [
+            "reconfortante",
+            "mexicano",
+            "llenador"
+        ],
+        "timeMin": 35,
+        "effort": "bajo",
+        "mealType": "comida",
+        "lowFriction": true,
+        "seasonalBoostIngredients": [
+            "jitomate"
+        ],
+        "profile": {
+            "fiber": "baja",
+            "protein": "alta",
+            "satFat": "media",
+            "glyLoad": "baja",
+            "vegetableVolume": "medio",
+            "energyDensity": "media"
+        },
+        "mealPrep": {
+            "usesBases": [],
+            "leavesBases": [],
+            "derivatives": [
+                "pollo_deshebrado"
+            ]
+        }
+    },
+    {
+        "id": "quesadillas_champinon",
+        "name": "Quesadillas de Champiñón",
+        "family": "maiz",
+        "format": "tortilla",
+        "description": "Quesadillas de champiñón salteado con epazote y queso Oaxaca. Antojo vegetariano rápido.",
+        "ingredientsRequired": [
+            "tortilla_maiz",
+            "champiñon",
+            "queso_oaxaca"
+        ],
+        "ingredientsOptional": [
+            "epazote",
+            "cebolla",
+            "salsa_verde"
+        ],
+        "cravings": [
+            "mexicano",
+            "rapido",
+            "cremoso"
+        ],
+        "timeMin": 15,
+        "effort": "bajo",
+        "mealType": "comida",
+        "lowFriction": true,
+        "seasonalBoostIngredients": [],
+        "profile": {
+            "fiber": "media",
+            "protein": "media",
+            "satFat": "media",
+            "glyLoad": "media",
+            "vegetableVolume": "medio",
+            "energyDensity": "media"
+        },
+        "mealPrep": {
+            "usesBases": [],
+            "leavesBases": [],
+            "derivatives": []
+        }
+    },
+    {
+        "id": "ensalada_nopales_clasica",
+        "name": "Ensalada de Nopales",
+        "family": "verduras",
+        "format": "lechuga",
+        "description": "Nopales cocidos con jitomate, cebolla, cilantro y queso fresco. Fresca y muy mexicana.",
+        "ingredientsRequired": [
+            "nopales_cocidos",
+            "jitomate",
+            "cebolla",
+            "cilantro"
+        ],
+        "ingredientsOptional": [
+            "queso_fresco",
+            "aguacate",
+            "oregano",
+            "limon"
+        ],
+        "cravings": [
+            "fresco",
+            "saludable",
+            "ligero"
+        ],
+        "timeMin": 15,
+        "effort": "bajo",
+        "mealType": "comida",
+        "lowFriction": true,
+        "seasonalBoostIngredients": [
+            "nopal",
+            "jitomate"
+        ],
+        "profile": {
+            "fiber": "alta",
+            "protein": "baja",
+            "satFat": "baja",
+            "glyLoad": "baja",
+            "vegetableVolume": "muy alto",
+            "energyDensity": "baja"
+        },
+        "mealPrep": {
+            "usesBases": [
+                "nopales_cocidos"
+            ],
+            "leavesBases": [],
+            "derivatives": []
+        }
+    },
+    {
+        "id": "pescado_veracruzana",
+        "name": "Pescado a la Veracruzana",
+        "family": "pescados",
+        "format": "plato",
+        "description": "Filete de pescado blanco en salsa de jitomate con cebolla, ajo y hierbas. Ligero y festivo.",
+        "ingredientsRequired": [
+            "pescado_blanco",
+            "jitomate",
+            "cebolla",
+            "ajo"
+        ],
+        "ingredientsOptional": [
+            "chile_serrano",
+            "laurel",
+            "limon"
+        ],
+        "cravings": [
+            "saludable",
+            "ligero",
+            "elegante"
+        ],
+        "timeMin": 30,
+        "effort": "medio",
+        "mealType": "comida",
+        "lowFriction": false,
+        "seasonalBoostIngredients": [
+            "jitomate"
+        ],
+        "profile": {
+            "fiber": "baja",
+            "protein": "alta",
+            "satFat": "baja",
+            "glyLoad": "baja",
+            "vegetableVolume": "medio",
+            "energyDensity": "baja"
+        },
+        "mealPrep": {
+            "usesBases": [],
+            "leavesBases": [],
+            "derivatives": []
+        }
+    },
+    {
+        "id": "rajas_con_crema",
+        "name": "Rajas con Crema",
+        "family": "verduras",
+        "format": "plato",
+        "description": "Rajas de chile poblano con cebolla, elote y crema. Guiso cremoso para tacos o guarnición.",
+        "ingredientsRequired": [
+            "rajas_poblano",
+            "cebolla",
+            "crema",
+            "elote"
+        ],
+        "ingredientsOptional": [
+            "queso_oaxaca",
+            "tortilla_maiz"
+        ],
+        "cravings": [
+            "cremoso",
+            "reconfortante",
+            "mexicano"
+        ],
+        "timeMin": 20,
+        "effort": "bajo",
+        "mealType": "comida",
+        "lowFriction": true,
+        "seasonalBoostIngredients": [
+            "chile_poblano",
+            "elote"
+        ],
+        "profile": {
+            "fiber": "media",
+            "protein": "baja",
+            "satFat": "alta",
+            "glyLoad": "media",
+            "vegetableVolume": "alto",
+            "energyDensity": "media"
+        },
+        "mealPrep": {
+            "usesBases": [],
+            "leavesBases": [],
+            "derivatives": []
+        }
+    },
+    {
+        "id": "chiles_rellenos_queso",
+        "name": "Chiles Rellenos de Queso",
+        "family": "verduras",
+        "format": "plato",
+        "description": "Chile poblano relleno de queso en caldillo de jitomate. Clásico de domingo, versión al horno.",
+        "ingredientsRequired": [
+            "chile_poblano",
+            "queso_oaxaca",
+            "jitomate",
+            "huevo"
+        ],
+        "ingredientsOptional": [
+            "cebolla",
+            "harina_trigo",
+            "arroz_blanco"
+        ],
+        "cravings": [
+            "mexicano",
+            "reconfortante",
+            "elegante"
+        ],
+        "timeMin": 45,
+        "effort": "medio",
+        "mealType": "comida",
+        "lowFriction": false,
+        "seasonalBoostIngredients": [
+            "chile_poblano",
+            "jitomate"
+        ],
+        "profile": {
+            "fiber": "media",
+            "protein": "media",
+            "satFat": "alta",
+            "glyLoad": "media",
+            "vegetableVolume": "alto",
+            "energyDensity": "media"
+        },
+        "mealPrep": {
+            "usesBases": [],
+            "leavesBases": [],
+            "derivatives": []
+        }
+    },
+    {
+        "id": "albondigas_chipotle",
+        "name": "Albóndigas al Chipotle",
+        "family": "res",
+        "format": "caldo",
+        "description": "Albóndigas de res en caldillo de jitomate y chipotle. Reconfortantes y llenadoras.",
+        "ingredientsRequired": [
+            "res_molida",
+            "arroz_blanco",
+            "huevo",
+            "jitomate",
+            "chile_chipotle_lata"
+        ],
+        "ingredientsOptional": [
+            "cebolla",
+            "zanahoria",
+            "hierba_buena"
+        ],
+        "cravings": [
+            "reconfortante",
+            "caldoso",
+            "picante"
+        ],
+        "timeMin": 40,
+        "effort": "medio",
+        "mealType": "comida",
+        "lowFriction": false,
+        "seasonalBoostIngredients": [
+            "jitomate",
+            "zanahoria"
+        ],
+        "profile": {
+            "fiber": "media",
+            "protein": "alta",
+            "satFat": "media",
+            "glyLoad": "media",
+            "vegetableVolume": "medio",
+            "energyDensity": "media"
+        },
+        "mealPrep": {
+            "usesBases": [],
+            "leavesBases": [],
+            "derivatives": []
+        }
+    },
+    {
+        "id": "platanos_machos_fritos",
+        "name": "Plátanos Machos Fritos con Crema",
+        "family": "postres",
+        "format": "postre",
+        "description": "Plátano macho dorado en sartén, servido con crema y queso. Postre o cena dulce de toda la vida.",
+        "ingredientsRequired": [
+            "platano_macho",
+            "crema"
+        ],
+        "ingredientsOptional": [
+            "queso_fresco",
+            "azucar",
+            "canela_molida"
+        ],
+        "cravings": [
+            "dulce",
+            "reconfortante",
+            "antojo"
+        ],
+        "timeMin": 15,
+        "effort": "bajo",
+        "mealType": "postre",
+        "lowFriction": true,
+        "seasonalBoostIngredients": [],
+        "profile": {
+            "fiber": "media",
+            "protein": "baja",
+            "satFat": "media",
+            "glyLoad": "alta",
+            "vegetableVolume": "bajo",
+            "energyDensity": "alta"
+        },
+        "mealPrep": {
+            "usesBases": [],
+            "leavesBases": [],
+            "derivatives": []
+        }
     }
 ];
