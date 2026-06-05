@@ -5,9 +5,9 @@ export const MEALPREP_BASES = [
         ingredients: ["frijol", "cebolla", "ajo", "epazote"],
         derivatives: [
             "enfrijoladas_verdes_nopales",
-            "tacos_frijol_nopal",
-            "ensalada_tibia_frijol_nopal",
-            "sopa_frijol_verduras"
+            "frijoles_charros_atun",
+            "molletes_manchego_nime",
+            "tinga_zanahoria_tostadas"
         ]
     },
     {
@@ -15,9 +15,10 @@ export const MEALPREP_BASES = [
         name: "Nopales cocidos",
         ingredients: ["nopal", "cebolla"],
         derivatives: [
-            "tacos_frijol_nopal",
             "enfrijoladas_verdes_nopales",
-            "ensalada_tibia_frijol_nopal"
+            "nopales_vinagreta_atun",
+            "ensalada_tibia_nopales_frijol_queso",
+            "sopa_nopales_pollo_maiz"
         ]
     },
     {
@@ -26,8 +27,9 @@ export const MEALPREP_BASES = [
         ingredients: ["tomate_verde", "cebolla", "ajo", "cilantro", "chile_serrano"],
         derivatives: [
             "enfrijoladas_verdes_nopales",
-            "pollo_salsa_verde_calabacita",
-            "tacos_pollo_salsa_verde"
+            "chilaquiles_bisonte_nime",
+            "enchiladas_verdes_queso_nata",
+            "enchiladas_suizas_manchego"
         ]
     },
     {
@@ -35,19 +37,10 @@ export const MEALPREP_BASES = [
         name: "Pollo deshebrado",
         ingredients: ["pollo"],
         derivatives: [
-            "pollo_salsa_verde_calabacita",
-            "tacos_pollo_salsa_verde",
-            "bowl_pollo_arroz_milpa"
-        ]
-    },
-    {
-        id: "verduras_milpa_asadas",
-        name: "Verduras de la milpa asadas",
-        ingredients: ["calabacita", "chayote", "cebolla", "chile_poblano"],
-        derivatives: [
-            "bowl_pollo_arroz_milpa",
-            "pasta_integral_milpa_atun",
-            "salmon_nopal_calabacita"
+            "sopa_nopales_pollo_maiz",
+            "enmoladas_nime",
+            "tacos_dorados_pollo",
+            "pozole_pollo_nime"
         ]
     },
     {

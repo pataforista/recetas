@@ -149,7 +149,6 @@ const state = {
 // ─── Global State & Timers ───
 let _inventoryDebounceTimer = null;
 let _globalSearchDebounceTimer = null;
-let _resultsDebounceTimer = null;
 let _browserDebounceTimer = null;
 let _recipesSearchDebounceTimer = null;
 
@@ -1124,8 +1123,6 @@ function handleSuggest() {
         _sortCriterion = "score";
         document.querySelectorAll(".sort-chip").forEach(c => c.classList.toggle("active", c.dataset.sort === "score"));
         document.getElementById("resultsToolbar")?.classList.remove("hidden");
-        const resSearch = document.getElementById("resultsSearch");
-        if (resSearch) resSearch.value = "";
 
         summaryBoxEl.textContent = buildSummary(userContext, ranked);
         renderRankedResults(ranked);
@@ -2420,13 +2417,7 @@ function renderRankedResults(ranked, query = "") {
 }
 
 function applySortAndFilter() {
-    const query = document.getElementById("resultsSearch")?.value || "";
     let working = [..._lastRanked];
-
-    // Filter
-    if (query.trim()) {
-        working = working.filter(item => recipeMatches(item.recipe, query));
-    }
 
     // "Solo comunes" Toggle
     const commonOnly = document.getElementById("commonOnlyToggle")?.checked;
@@ -2448,7 +2439,7 @@ function applySortAndFilter() {
     }
     // default: score (already sorted from rankRecipes)
 
-    renderRankedResults(working, query.trim());
+    renderRankedResults(working);
     const countEl = document.getElementById("resultsCount");
     if (countEl) countEl.textContent = `${working.length} receta${working.length !== 1 ? "s" : ""}`;
 }
@@ -2992,29 +2983,9 @@ function initSearch() {
         chip.addEventListener("click", () => sortResults(chip.dataset.sort));
     });
 
-    const resSearch = document.getElementById("resultsSearch");
-    const resClear = document.getElementById("resultsSearchClear");
-
-    if (resSearch) {
-        resSearch.addEventListener("input", () => {
-            resClear?.classList.toggle("hidden", !resSearch.value);
-            clearTimeout(_resultsDebounceTimer);
-            _resultsDebounceTimer = setTimeout(() => applySortAndFilter(), 150);
-        });
-    }
-
     document.getElementById("commonOnlyToggle")?.addEventListener("change", () => {
         applySortAndFilter();
     });
-
-    if (resClear) {
-        resClear.addEventListener("click", () => {
-            resSearch.value = "";
-            resClear.classList.add("hidden");
-            applySortAndFilter();
-            resSearch.focus();
-        });
-    }
 
     // ── Recipe Browser Modal ────────────────────────────────────
     document.getElementById("browseAllRecipesBtn")?.addEventListener("click", () => openRecipesBrowserModal());
