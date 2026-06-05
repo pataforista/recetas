@@ -1,7 +1,7 @@
 /**
  * RECIPES – Milpa NiME
- * 
- * Base de datos de recetas optimizada para cocina mexicana cotidiana, 
+ *
+ * Base de datos de recetas optimizada para cocina mexicana cotidiana,
  * enfocada en accesibilidad, nutrición (NiME) y productos de temporada.
  */
 
@@ -9,7 +9,7 @@ export const RECIPES = [
     {
         "id": "enfrijoladas_verdes_nopales",
         "name": "Enfrijoladas verdes con nopales",
-        "family": "frijol",
+        "family": "leguminosas",
         "format": "tortilla",
         "description": "Plato casero y reconfortante con base de frijol, tortilla de maíz y nopales.",
         "ingredientsRequired": [
@@ -24,10 +24,8 @@ export const RECIPES = [
             "cilantro"
         ],
         "cravings": [
-            "casero",
-            "calientito",
             "reconfortante",
-            "antojo_mexicano",
+            "mexicano",
             "picante"
         ],
         "timeMin": 20,
@@ -63,7 +61,7 @@ export const RECIPES = [
     {
         "id": "nopales_vinagreta_atun",
         "name": "Nopales a la vinagreta con atún fresco cocido",
-        "family": "nopal",
+        "family": "verduras",
         "format": "plato",
         "description": "Nopales asados, vinagre casero y atún desmenuzado. Alto en fibra y proteína magra.",
         "ingredientsRequired": [
@@ -78,8 +76,7 @@ export const RECIPES = [
         "cravings": [
             "ligero",
             "saludable",
-            "fresco",
-            "fria"
+            "fresco"
         ],
         "timeMin": 20,
         "effort": "bajo",
@@ -109,7 +106,7 @@ export const RECIPES = [
     {
         "id": "ensalada_tibia_nopales_frijol_queso",
         "name": "Ensalada tibia de nopales, frijol negro y queso fresco",
-        "family": "frijol",
+        "family": "leguminosas",
         "format": "lechuga",
         "description": "Nopales cocidos, frijol de olla y queso freso. Equilibrio NiME perfecto.",
         "ingredientsRequired": [
@@ -165,10 +162,8 @@ export const RECIPES = [
             "cilantro"
         ],
         "cravings": [
-            "calientito",
             "reconfortante",
-            "casero",
-            "caldosa"
+            "caldoso"
         ],
         "timeMin": 30,
         "effort": "bajo",
@@ -208,10 +203,9 @@ export const RECIPES = [
             "cilantro"
         ],
         "cravings": [
-            "casero",
+            "reconfortante",
             "llenador",
-            "calientito",
-            "caldosa"
+            "caldoso"
         ],
         "timeMin": 60,
         "effort": "medio",
@@ -236,7 +230,7 @@ export const RECIPES = [
     {
         "id": "spaghetti_nopales_jengibre_tomate",
         "name": "Spaghetti de nopales con salsa de jengibre-tomate",
-        "family": "nopal",
+        "family": "verduras",
         "format": "pasta",
         "description": "Nopales en tiras finas como pasta, salsa de tomate fresco y jengibre rallado.",
         "ingredientsRequired": [
@@ -276,7 +270,7 @@ export const RECIPES = [
     {
         "id": "frijoles_charros_atun",
         "name": "Frijoles charros con atún",
-        "family": "frijol",
+        "family": "leguminosas",
         "format": "plato",
         "description": "Frijol pinto, jalapeño y atún fresco para una proteína completa y fibra.",
         "ingredientsRequired": [
@@ -291,8 +285,8 @@ export const RECIPES = [
         ],
         "cravings": [
             "llenador",
-            "casero",
-            "antojo_mexicano"
+            "reconfortante",
+            "mexicano"
         ],
         "timeMin": 30,
         "effort": "bajo",
@@ -317,7 +311,7 @@ export const RECIPES = [
     {
         "id": "pan_frances_nime",
         "name": "Pan Francés NiME",
-        "family": "desayuno",
+        "family": "cereales",
         "format": "plato",
         "description": "Clásico desayuno con pan de caja integral, huevo y canela. Endulzado naturalmente.",
         "ingredientsRequired": [
@@ -329,16 +323,15 @@ export const RECIPES = [
         "ingredientsOptional": [
             "vainilla",
             "platano_dulce",
-            "miel_maple"
+            "miel"
         ],
         "cravings": [
             "dulce",
-            "casero",
             "reconfortante"
         ],
         "timeMin": 15,
         "effort": "bajo",
-        "mealType": "comida",
+        "mealType": "desayuno",
         "lowFriction": true,
         "profile": {
             "fiber": "media",
@@ -371,7 +364,7 @@ export const RECIPES = [
         ],
         "cravings": [
             "crujiente",
-            "casero",
+            "reconfortante",
             "llenador"
         ],
         "timeMin": 30,
@@ -409,7 +402,7 @@ export const RECIPES = [
             "ajonjoli"
         ],
         "cravings": [
-            "antojo_mexicano",
+            "mexicano",
             "reconfortante",
             "picante"
         ],
@@ -451,8 +444,8 @@ export const RECIPES = [
         ],
         "cravings": [
             "crujiente",
-            "casero",
-            "antojo_mexicano"
+            "reconfortante",
+            "mexicano"
         ],
         "timeMin": 25,
         "effort": "bajo",
@@ -492,8 +485,8 @@ export const RECIPES = [
         ],
         "cravings": [
             "ligero",
-            "casero",
-            "antojo_mexicano"
+            "reconfortante",
+            "mexicano"
         ],
         "timeMin": 15,
         "effort": "bajo",
@@ -533,7 +526,7 @@ export const RECIPES = [
         "cravings": [
             "cremoso",
             "elegante",
-            "sabroso"
+            "antojo"
         ],
         "timeMin": 30,
         "effort": "medio",
@@ -556,7 +549,7 @@ export const RECIPES = [
     {
         "id": "pancakes_clasicos_nime",
         "name": "Pancakes de Avena y Plátano",
-        "family": "desayuno",
+        "family": "cereales",
         "format": "plato",
         "description": "Pancakes saludables sin harina procesada. Solo avena, plátano y huevo.",
         "ingredientsRequired": [
@@ -566,8 +559,7 @@ export const RECIPES = [
         ],
         "ingredientsOptional": [
             "vainilla",
-            "canela_molida",
-            "platano_dulce"
+            "canela_molida"
         ],
         "cravings": [
             "dulce",
@@ -576,7 +568,7 @@ export const RECIPES = [
         ],
         "timeMin": 15,
         "effort": "bajo",
-        "mealType": "comida",
+        "mealType": "desayuno",
         "lowFriction": true,
         "profile": {
             "fiber": "media",
@@ -610,13 +602,13 @@ export const RECIPES = [
             "queso_fresco"
         ],
         "cravings": [
-            "calientito",
+            "reconfortante",
             "saludable",
             "fresco"
         ],
         "timeMin": 25,
         "effort": "bajo",
-        "mealType": "comida",
+        "mealType": "desayuno",
         "lowFriction": true,
         "profile": {
             "fiber": "alta",
@@ -650,7 +642,7 @@ export const RECIPES = [
         ],
         "cravings": [
             "rapido",
-            "italiano",
+            "internacional",
             "ligero"
         ],
         "timeMin": 10,
@@ -690,8 +682,8 @@ export const RECIPES = [
         ],
         "cravings": [
             "llenador",
-            "divertido",
-            "casero"
+            "antojo",
+            "reconfortante"
         ],
         "timeMin": 25,
         "effort": "medio",
@@ -728,9 +720,9 @@ export const RECIPES = [
             "cebollin"
         ],
         "cravings": [
-            "caldosa",
+            "caldoso",
             "rapido",
-            "calientito"
+            "reconfortante"
         ],
         "timeMin": 15,
         "effort": "bajo",
@@ -772,7 +764,7 @@ export const RECIPES = [
         "cravings": [
             "reconfortante",
             "llenador",
-            "italiano"
+            "internacional"
         ],
         "timeMin": 35,
         "effort": "medio",
@@ -815,7 +807,6 @@ export const RECIPES = [
         ],
         "cravings": [
             "reconfortante",
-            "familia",
             "llenador"
         ],
         "timeMin": 60,
@@ -857,8 +848,8 @@ export const RECIPES = [
             "chile_seco_molido"
         ],
         "cravings": [
-            "exotico",
-            "sabroso",
+            "internacional",
+            "antojo",
             "fresco"
         ],
         "timeMin": 30,
@@ -898,7 +889,7 @@ export const RECIPES = [
             "cilantro"
         ],
         "cravings": [
-            "caldosa",
+            "caldoso",
             "ligero",
             "reconfortante"
         ],
@@ -978,9 +969,8 @@ export const RECIPES = [
             "ajo"
         ],
         "cravings": [
-            "calientito",
-            "llenador",
-            "casero"
+            "reconfortante",
+            "llenador"
         ],
         "timeMin": 90,
         "effort": "medio",
@@ -1005,7 +995,7 @@ export const RECIPES = [
     {
         "id": "frijoles_jengibre_ajo_asado",
         "name": "Frijoles con jengibre y ajo asado",
-        "family": "frijol",
+        "family": "leguminosas",
         "format": "plato",
         "description": "Sabor profundo y antiinflamatorio con ajo asado dulce y jengibre.",
         "ingredientsRequired": [
@@ -1056,8 +1046,8 @@ export const RECIPES = [
             "cebolla"
         ],
         "cravings": [
-            "antojo_mexicano",
-            "casero",
+            "mexicano",
+            "reconfortante",
             "saludable",
             "picante"
         ],
@@ -1096,8 +1086,8 @@ export const RECIPES = [
             "queso_fresco"
         ],
         "cravings": [
-            "antojo_mexicano",
-            "casero",
+            "mexicano",
+            "reconfortante",
             "llenador"
         ],
         "timeMin": 40,
@@ -1121,7 +1111,7 @@ export const RECIPES = [
     {
         "id": "atun_parrilla_jengibre_tomate",
         "name": "Atún a la parrilla con salsa de jengibre-tomate",
-        "family": "atun",
+        "family": "pescados",
         "format": "plato",
         "description": "Filete de atún con salsa fresca de tomate y jengibre rallado.",
         "ingredientsRequired": [
@@ -1135,7 +1125,7 @@ export const RECIPES = [
         ],
         "cravings": [
             "saludable",
-            "calientito",
+            "reconfortante",
             "fresco"
         ],
         "timeMin": 20,
@@ -1159,7 +1149,7 @@ export const RECIPES = [
     {
         "id": "sushi_roll_masa_maiz",
         "name": "Sushi roll sin arroz (con pasta de maíz)",
-        "family": "atun",
+        "family": "pescados",
         "format": "bowl",
         "description": "Adaptación creativa con base de masa, atún cocido, nopales y aguacate.",
         "ingredientsRequired": [
@@ -1212,9 +1202,8 @@ export const RECIPES = [
             "cilantro"
         ],
         "cravings": [
-            "casero",
-            "saludable",
-            "calientito"
+            "reconfortante",
+            "saludable"
         ],
         "timeMin": 25,
         "effort": "bajo",
@@ -1239,7 +1228,7 @@ export const RECIPES = [
     {
         "id": "enchiladas_rajas_queso",
         "name": "Enchiladas de rajas con queso",
-        "family": "frijol",
+        "family": "leguminosas",
         "format": "tortilla",
         "description": "Tortilla rellena de queso y rajas, bañada en salsa de frijol.",
         "ingredientsRequired": [
@@ -1252,8 +1241,7 @@ export const RECIPES = [
             "epazote"
         ],
         "cravings": [
-            "antojo_mexicano",
-            "casero",
+            "mexicano",
             "reconfortante",
             "picante"
         ],
@@ -1280,7 +1268,7 @@ export const RECIPES = [
     {
         "id": "tostones_platano_verde_frijoles",
         "name": "Tostones de plátano verde con frijoles",
-        "family": "frijol",
+        "family": "leguminosas",
         "format": "plato",
         "description": "Plátano verde (almidón resistente) con frijoles refritos y queso.",
         "ingredientsRequired": [
@@ -1293,7 +1281,7 @@ export const RECIPES = [
         ],
         "cravings": [
             "llenador",
-            "casero",
+            "reconfortante",
             "saludable"
         ],
         "timeMin": 30,
@@ -1319,7 +1307,7 @@ export const RECIPES = [
     {
         "id": "tlacoyos_garbanzo_hongos",
         "name": "Tlacoyos de Garbanzo y Hongos",
-        "family": "frijol",
+        "family": "leguminosas",
         "format": "antojito",
         "description": "Masa nixtamalizada rellena de garbanzo con topping de champiñones. Alta en fibra prebiótica.",
         "ingredientsRequired": [
@@ -1336,7 +1324,6 @@ export const RECIPES = [
         ],
         "cravings": [
             "mexicano",
-            "callejero",
             "saludable"
         ],
         "timeMin": 40,
@@ -1377,9 +1364,9 @@ export const RECIPES = [
             "oregano"
         ],
         "cravings": [
-            "antojo_mexicano",
-            "calientito",
-            "caldosa",
+            "mexicano",
+            "reconfortante",
+            "caldoso",
             "picante"
         ],
         "timeMin": 50,
@@ -1405,7 +1392,7 @@ export const RECIPES = [
     {
         "id": "cod_roasted_pepper_beans",
         "name": "Bacalao con Pimientos y Alubias",
-        "family": "pescado_blanco",
+        "family": "pescados",
         "format": "plato",
         "description": "Proteína magra con fibra de legumbres y antioxidantes del pimiento. Estilo mediterráneo.",
         "ingredientsRequired": [
@@ -1421,7 +1408,7 @@ export const RECIPES = [
         ],
         "cravings": [
             "ligero",
-            "mediterraneo"
+            "internacional"
         ],
         "timeMin": 25,
         "effort": "bajo",
@@ -1444,7 +1431,7 @@ export const RECIPES = [
     {
         "id": "lentejas_huevo_poached",
         "name": "Lentejas NiME con Huevo Ponché",
-        "family": "frijol",
+        "family": "leguminosas",
         "format": "bowl",
         "description": "Súper bowl de hierro y fibra. Las lentejas y el huevo crean una proteína completa.",
         "ingredientsRequired": [
@@ -1459,9 +1446,9 @@ export const RECIPES = [
             "aceite_oliva"
         ],
         "cravings": [
-            "confort",
+            "reconfortante",
             "saludable",
-            "hierro"
+            "llenador"
         ],
         "timeMin": 25,
         "effort": "bajo",
@@ -1487,7 +1474,7 @@ export const RECIPES = [
     },
     {
         "id": "pollo_stuffed_espinaca_ricotta",
-        "name": "Pollo relleno de espinaca y ricotta (Diabetes Food Hub)",
+        "name": "Pollo Relleno de Espinaca y Ricotta",
         "family": "pollo",
         "format": "plato",
         "description": "Pechuga magra rellena de espinacas y queso ligero. Alta densidad nutricional.",
@@ -1526,7 +1513,7 @@ export const RECIPES = [
     },
     {
         "id": "thattu_chicken_airfryer",
-        "name": "Pollo Thattu Estilo Indio (Simplificado Joshua Weissman)",
+        "name": "Pollo Estilo Indio en Air Fryer",
         "family": "pollo",
         "format": "plato",
         "description": "Versión NiME-ificada: Pollo marinado en especias indias y cocinado en Air Fryer en lugar de frito.",
@@ -1541,8 +1528,8 @@ export const RECIPES = [
             "cúrcuma"
         ],
         "cravings": [
-            "exotico",
-            "especiado",
+            "internacional",
+            "picante",
             "saludable"
         ],
         "timeMin": 25,
@@ -1583,8 +1570,7 @@ export const RECIPES = [
         ],
         "cravings": [
             "dulce",
-            "fiesta",
-            "chocolate"
+            "antojo"
         ],
         "timeMin": 60,
         "effort": "alto",
@@ -1606,8 +1592,8 @@ export const RECIPES = [
     },
     {
         "id": "chileatole_nime",
-        "name": "Chileatole (Turquía/Puebla)",
-        "family": "elote",
+        "name": "Chileatole",
+        "family": "maiz",
         "format": "sopa",
         "description": "Sopa espesa de elote con epazote y chile. Versión NiME usando harina de maíz integral.",
         "ingredientsRequired": [
@@ -1620,10 +1606,10 @@ export const RECIPES = [
             "limon"
         ],
         "cravings": [
-            "calientito",
-            "caldosa",
+            "reconfortante",
+            "caldoso",
             "picante",
-            "antojo_mexicano"
+            "mexicano"
         ],
         "timeMin": 50,
         "effort": "medio",
@@ -1677,10 +1663,10 @@ export const RECIPES = [
     },
     {
         "id": "joroches_yucatecos_nime",
-        "name": "Joroches Yucatecos (Serbia/Yucatán)",
-        "family": "frijol",
+        "name": "Joroches Yucatecos",
+        "family": "leguminosas",
         "format": "sopa",
-        "description": "Bolitas de masa en caldo de frijol negro. Alta densidad de fibra prebiótica.",
+        "description": "Bolitas de masa en caldo de frijol negro, al estilo yucateco. Alta densidad de fibra prebiótica.",
         "ingredientsRequired": [
             "masa_maiz",
             "frijol",
@@ -1690,13 +1676,12 @@ export const RECIPES = [
         ],
         "ingredientsOptional": [
             "epazote",
-            "beli_sir",
-            "kajmak"
+            "queso_fresco",
+            "crema"
         ],
         "cravings": [
-            "confort",
-            "tradicional",
-            "yucateco"
+            "reconfortante",
+            "mexicano"
         ],
         "timeMin": 80,
         "effort": "medio",
@@ -1720,7 +1705,7 @@ export const RECIPES = [
     },
     {
         "id": "enchiladas_mineras_nime",
-        "name": "Enchiladas Mineras NiME (Chile/Guanajuato)",
+        "name": "Enchiladas Mineras",
         "family": "pollo",
         "format": "tortilla",
         "description": "Enchiladas tradicionales con zanahoria y papa. Versión NiME con menos aceite y más vegetales.",
@@ -1737,9 +1722,9 @@ export const RECIPES = [
             "crema"
         ],
         "cravings": [
-            "casero",
+            "reconfortante",
             "llenador",
-            "antojo_mexicano",
+            "mexicano",
             "picante"
         ],
         "timeMin": 75,
@@ -1764,14 +1749,14 @@ export const RECIPES = [
     },
     {
         "id": "tostadas_vietnamitas_nime",
-        "name": "Tostadas Fusion Vietnam (Vietnam)",
+        "name": "Tostadas Frescas de Pollo y Hierbas",
         "family": "pollo",
         "format": "plato",
-        "description": "Tostadas de frijol and pollo con hierbas frescas vietnamitas. Máxima frescura y fitonutrientes.",
+        "description": "Tostadas de frijol y pollo deshebrado con hierbas frescas (menta, albahaca y cilantro). Máxima frescura.",
         "ingredientsRequired": [
             "frijol",
             "pollo_deshebrado",
-            "perilla",
+            "albahaca",
             "menta",
             "cilantro"
         ],
@@ -1781,8 +1766,8 @@ export const RECIPES = [
         ],
         "cravings": [
             "fresco",
-            "fusion",
-            "exotico"
+            "ligero",
+            "saludable"
         ],
         "timeMin": 15,
         "effort": "bajo",
@@ -1807,13 +1792,13 @@ export const RECIPES = [
     },
     {
         "id": "tamales_vasterbotten_nime",
-        "name": "Tamales de Rajas y Queso Västerbotten (Suecia)",
+        "name": "Tamales de Rajas con Queso",
         "family": "maiz",
         "format": "antojito",
-        "description": "Tamales fusion con queso sueco y chiles. Versión NiME con aceite de oliva en lugar de manteca.",
+        "description": "Tamales de rajas de chile poblano y queso. Versión NiME con aceite de oliva en lugar de manteca.",
         "ingredientsRequired": [
             "masa_maiz",
-            "queso_vasterbotten",
+            "queso_oaxaca",
             "elote",
             "chile_poblano"
         ],
@@ -1823,8 +1808,8 @@ export const RECIPES = [
             "cebolla"
         ],
         "cravings": [
-            "tradicional",
-            "fusion",
+            "mexicano",
+            "internacional",
             "llenador"
         ],
         "timeMin": 120,
@@ -1849,13 +1834,13 @@ export const RECIPES = [
     },
     {
         "id": "chilaquiles_bisonte_nime",
-        "name": "Chilaquiles de Bisonte al Maple (Canadá)",
+        "name": "Chilaquiles Verdes con Res",
         "family": "res",
         "format": "tortilla",
-        "description": "Bisonte magro con totopos horneados en salsa verde. Alta proteína y fibra.",
+        "description": "Res magra deshebrada con totopos horneados en salsa verde. Alta proteína y fibra.",
         "ingredientsRequired": [
             "masa_maiz",
-            "bisonte",
+            "res_magra",
             "tomate_verde",
             "chile_serrano"
         ],
@@ -1865,13 +1850,13 @@ export const RECIPES = [
             "crema"
         ],
         "cravings": [
-            "antojo_mexicano",
+            "mexicano",
             "llenador",
             "picante"
         ],
         "timeMin": 40,
         "effort": "medio",
-        "mealType": "comida",
+        "mealType": "desayuno",
         "lowFriction": false,
         "profile": {
             "fiber": "media",
@@ -1891,7 +1876,7 @@ export const RECIPES = [
     },
     {
         "id": "caldo_res_enchipotlado_nime",
-        "name": "Caldo de Res Enchipotlado (Paraguay)",
+        "name": "Caldo de Res Enchipotlado",
         "family": "res",
         "format": "caldo",
         "description": "Caldo potente con mandioca, chipotle y res magra. Rico en fibra compleja.",
@@ -1907,9 +1892,7 @@ export const RECIPES = [
             "cilantro"
         ],
         "cravings": [
-            "caliente",
-            "reconfortante",
-            "casero"
+            "reconfortante"
         ],
         "timeMin": 60,
         "effort": "medio",
@@ -1931,7 +1914,7 @@ export const RECIPES = [
     },
     {
         "id": "sopa_azteca_masamadre_nime",
-        "name": "Sopa Azteca en Tazón de Masa Madre (Global)",
+        "name": "Sopa Azteca en Tazón de Pan",
         "family": "maiz",
         "format": "sopa",
         "description": "Sopa de tortilla servida en tazón de pan de masa madre. Fusión moderna saludable.",
@@ -1947,8 +1930,8 @@ export const RECIPES = [
         ],
         "cravings": [
             "mexicano",
-            "pan_blanco",
-            "creativo"
+            "reconfortante",
+            "antojo"
         ],
         "timeMin": 45,
         "effort": "medio",
@@ -1970,7 +1953,7 @@ export const RECIPES = [
     },
     {
         "id": "rollitos_chile_nogada_nime",
-        "name": "Rollitos de Chile en Nogada (California)",
+        "name": "Rollitos de Chile en Nogada",
         "family": "res",
         "format": "antojito",
         "description": "Versión ligera sin capeado. Chile poblano relleno de picadillo de frutas y nogada natural.",
@@ -1987,8 +1970,7 @@ export const RECIPES = [
         ],
         "cravings": [
             "mexicano",
-            "elegante",
-            "tradicional"
+            "elegante"
         ],
         "timeMin": 60,
         "effort": "alto",
@@ -2048,12 +2030,12 @@ export const RECIPES = [
     },
     {
         "id": "tortas_ahogadas_nime",
-        "name": "Tortas Ahogadas NiME (Miami/Jalisco)",
+        "name": "Tortas Ahogadas",
         "family": "cerdo",
         "format": "taco",
-        "description": "Carnitas magras en pan marraqueta, ahogadas en salsa de jitomate y chile de árbol.",
+        "description": "Carnitas magras en birote o bolillo, ahogadas en salsa de jitomate y chile de árbol.",
         "ingredientsRequired": [
-            "marraqueta",
+            "pan_bolillo",
             "cerdo_magro",
             "jitomate",
             "chile_seco_molido"
@@ -2064,9 +2046,8 @@ export const RECIPES = [
             "limon"
         ],
         "cravings": [
-            "torta",
-            "picante",
-            "mexicano"
+            "mexicano",
+            "picante"
         ],
         "timeMin": 60,
         "effort": "medio",
@@ -2107,9 +2088,9 @@ export const RECIPES = [
             "pan_integral"
         ],
         "cravings": [
-            "divertido",
-            "agridulce",
-            "mezcla_texturas"
+            "antojo",
+            "dulce",
+            "crujiente"
         ],
         "timeMin": 25,
         "effort": "bajo",
@@ -2147,7 +2128,7 @@ export const RECIPES = [
         "cravings": [
             "reconfortante",
             "saludable",
-            "hierbas"
+            "ligero"
         ],
         "timeMin": 20,
         "effort": "bajo",
@@ -2186,9 +2167,9 @@ export const RECIPES = [
             "pimienta"
         ],
         "cravings": [
-            "desayuno",
+            "reconfortante",
             "rapido",
-            "herbal"
+            "ligero"
         ],
         "timeMin": 10,
         "effort": "bajo",
@@ -2226,8 +2207,8 @@ export const RECIPES = [
         ],
         "cravings": [
             "ligero",
-            "vegano_prep",
-            "textura"
+            "saludable",
+            "crujiente"
         ],
         "timeMin": 50,
         "effort": "medio",
@@ -2264,7 +2245,7 @@ export const RECIPES = [
             "pimienta"
         ],
         "cravings": [
-            "pasta",
+            "internacional",
             "ligero",
             "rapido"
         ],
@@ -2306,7 +2287,7 @@ export const RECIPES = [
         "cravings": [
             "llenador",
             "reconfortante",
-            "picosito"
+            "picante"
         ],
         "timeMin": 30,
         "effort": "bajo",
@@ -2346,8 +2327,8 @@ export const RECIPES = [
         ],
         "cravings": [
             "rapido",
-            "proteina",
-            "jugoso"
+            "llenador",
+            "antojo"
         ],
         "timeMin": 30,
         "effort": "bajo",
@@ -2450,7 +2431,7 @@ export const RECIPES = [
     {
         "id": "tofu_asado_nopal",
         "name": "Tofu Asado con Nopales",
-        "family": "tofu",
+        "family": "verduras",
         "format": "plato",
         "description": "Una opción 100% vegetal: tofu firme a la plancha con nopales asados.",
         "ingredientsRequired": [
@@ -2465,7 +2446,7 @@ export const RECIPES = [
         "cravings": [
             "ligero",
             "saludable",
-            "antojo_mexicano"
+            "mexicano"
         ],
         "timeMin": 15,
         "effort": "bajo",
@@ -2583,9 +2564,9 @@ export const RECIPES = [
             "pan_integral"
         ],
         "cravings": [
-            "divertido",
+            "antojo",
             "saludable",
-            "casero"
+            "reconfortante"
         ],
         "timeMin": 35,
         "effort": "medio",
@@ -2625,8 +2606,6 @@ export const RECIPES = [
             "cilantro"
         ],
         "cravings": [
-            "calientito",
-            "casero",
             "reconfortante"
         ],
         "timeMin": 40,
@@ -2652,7 +2631,7 @@ export const RECIPES = [
     {
         "id": "quesadillas_huitlacoche_tofu",
         "name": "Quesadillas de Huitlacoche y Tofu",
-        "family": "milpa",
+        "family": "verduras",
         "format": "tortilla",
         "description": "Fusión mexicana: huitlacoche con el toque proteico del tofu desmenuzado.",
         "ingredientsRequired": [
@@ -2666,9 +2645,9 @@ export const RECIPES = [
             "salsa_verde"
         ],
         "cravings": [
-            "antojo_mexicano",
-            "casero",
-            "exotico"
+            "mexicano",
+            "reconfortante",
+            "internacional"
         ],
         "timeMin": 20,
         "effort": "bajo",
@@ -2768,7 +2747,7 @@ export const RECIPES = [
     {
         "id": "chilaquiles_tofu_verde",
         "name": "Chilaquiles de Tofu con Salsa Verde",
-        "family": "tofu",
+        "family": "verduras",
         "format": "tortilla",
         "description": "Versión ligera de los chilaquiles usando tofu desmenuzado en lugar de crema.",
         "ingredientsRequired": [
@@ -2783,12 +2762,12 @@ export const RECIPES = [
         ],
         "cravings": [
             "mexicano",
-            "calientito",
+            "reconfortante",
             "saludable"
         ],
         "timeMin": 20,
         "effort": "bajo",
-        "mealType": "comida",
+        "mealType": "desayuno",
         "lowFriction": true,
         "profile": {
             "fiber": "media",
@@ -2823,9 +2802,9 @@ export const RECIPES = [
             "frijol"
         ],
         "cravings": [
-            "casero",
+            "reconfortante",
             "ligero",
-            "antojo_mexicano"
+            "mexicano"
         ],
         "timeMin": 25,
         "effort": "bajo",
@@ -2906,7 +2885,6 @@ export const RECIPES = [
         ],
         "cravings": [
             "fresco",
-            "frutal",
             "ligero"
         ],
         "timeMin": 20,
@@ -2944,7 +2922,7 @@ export const RECIPES = [
             "cilantro"
         ],
         "cravings": [
-            "calientito",
+            "reconfortante",
             "saludable",
             "rapido"
         ],
@@ -2969,7 +2947,7 @@ export const RECIPES = [
     {
         "id": "tacos_papa_epazote",
         "name": "Tacos de Papa al Epazote",
-        "family": "cereales",
+        "family": "verduras",
         "format": "taco",
         "description": "Sencillez pura: papas cocidas y salteadas con epazote fresco en tortilla de maíz.",
         "ingredientsRequired": [
@@ -2983,9 +2961,8 @@ export const RECIPES = [
             "ajo"
         ],
         "cravings": [
-            "casero",
             "reconfortante",
-            "antojo_mexicano"
+            "mexicano"
         ],
         "timeMin": 25,
         "effort": "bajo",
@@ -3022,8 +2999,6 @@ export const RECIPES = [
             "limon"
         ],
         "cravings": [
-            "calientito",
-            "casero",
             "reconfortante"
         ],
         "timeMin": 50,
@@ -3065,7 +3040,7 @@ export const RECIPES = [
         "cravings": [
             "llenador",
             "reconfortante",
-            "exotico"
+            "internacional"
         ],
         "timeMin": 40,
         "effort": "medio",
@@ -3104,9 +3079,8 @@ export const RECIPES = [
             "cebolla"
         ],
         "cravings": [
-            "caliente",
-            "mexicano",
-            "reconfortante"
+            "reconfortante",
+            "mexicano"
         ],
         "timeMin": 15,
         "effort": "medio",
@@ -3129,7 +3103,7 @@ export const RECIPES = [
     {
         "id": "hamburguesa_casera_simple",
         "name": "Hamburguesa Casera Simple",
-        "family": "res_molida",
+        "family": "res",
         "format": "sandwich",
         "description": "Hamburguesa casera con carne molida, pan, queso y los clásicos. Fácil de preparar.",
         "ingredientsRequired": [
@@ -3146,8 +3120,7 @@ export const RECIPES = [
         "cravings": [
             "antojo",
             "rapido",
-            "indulgente",
-            "casero"
+            "reconfortante"
         ],
         "timeMin": 15,
         "effort": "bajo",
@@ -3172,7 +3145,7 @@ export const RECIPES = [
     {
         "id": "quesadillas_queso_jamon",
         "name": "Quesadillas de Queso y Jamón",
-        "family": "tortilla",
+        "family": "maiz",
         "format": "tortilla",
         "description": "Quesadillas fritas rellenas de queso derretido y jamón. Clásico indulgente mexicano.",
         "ingredientsRequired": [
@@ -3188,8 +3161,7 @@ export const RECIPES = [
         "cravings": [
             "antojo",
             "rapido",
-            "indulgente",
-            "frito"
+            "crujiente"
         ],
         "timeMin": 10,
         "effort": "bajo",
@@ -3212,7 +3184,7 @@ export const RECIPES = [
     {
         "id": "tacos_carne_asada_queso",
         "name": "Tacos de Carne Asada con Queso",
-        "family": "carne",
+        "family": "res",
         "format": "tortilla",
         "description": "Tacos rellenos con carne asada, queso derretido y todo lo que se antoje. Indulgencia pura.",
         "ingredientsRequired": [
@@ -3228,7 +3200,6 @@ export const RECIPES = [
         ],
         "cravings": [
             "antojo",
-            "indulgente",
             "rapido",
             "mexicano"
         ],
@@ -3255,7 +3226,7 @@ export const RECIPES = [
     {
         "id": "burritos_queso_frijol",
         "name": "Burritos de Queso y Frijol",
-        "family": "tortilla",
+        "family": "maiz",
         "format": "burrito",
         "description": "Burritos grandes rellenos de frijoles refritos, queso fundido y nata. Muy llenadores.",
         "ingredientsRequired": [
@@ -3271,7 +3242,6 @@ export const RECIPES = [
         "cravings": [
             "llenador",
             "antojo",
-            "indulgente",
             "rapido"
         ],
         "timeMin": 15,
@@ -3297,7 +3267,7 @@ export const RECIPES = [
     {
         "id": "enchiladas_verdes_queso_nata",
         "name": "Enchiladas Verdes con Queso y Nata",
-        "family": "tortilla",
+        "family": "maiz",
         "format": "plato",
         "description": "Enchiladas rellenas de queso y baño de salsa verde con abundante nata. Reconfortante e indulgente.",
         "ingredientsRequired": [
@@ -3312,9 +3282,7 @@ export const RECIPES = [
         ],
         "cravings": [
             "reconfortante",
-            "antojo",
-            "indulgente",
-            "casero"
+            "antojo"
         ],
         "timeMin": 30,
         "effort": "bajo",
@@ -3339,7 +3307,7 @@ export const RECIPES = [
     {
         "id": "pizza_casera_basica",
         "name": "Pizza Casera Básica",
-        "family": "pan_blanco",
+        "family": "cereales",
         "format": "pizza",
         "description": "Pizza hecha en casa con base de pan, salsa de tomate y queso derretido. Rápida y satisfactoria.",
         "ingredientsRequired": [
@@ -3354,8 +3322,7 @@ export const RECIPES = [
         ],
         "cravings": [
             "antojo",
-            "rapido",
-            "indulgente"
+            "rapido"
         ],
         "timeMin": 20,
         "effort": "bajo",
@@ -3378,7 +3345,7 @@ export const RECIPES = [
     {
         "id": "chilaquiles_fritos_queso",
         "name": "Chilaquiles Fritos con Queso y Nata",
-        "family": "tortilla",
+        "family": "maiz",
         "format": "plato",
         "description": "Tortillas fritas crujientes cubiertas con salsa roja, queso derretido, huevo y abundante nata. Desayuno contundente.",
         "ingredientsRequired": [
@@ -3394,13 +3361,12 @@ export const RECIPES = [
         ],
         "cravings": [
             "antojo",
-            "frito",
-            "indulgente",
-            "contundente"
+            "crujiente",
+            "reconfortante"
         ],
         "timeMin": 20,
         "effort": "bajo",
-        "mealType": "comida_indulgente",
+        "mealType": "desayuno",
         "lowFriction": true,
         "profile": {
             "fiber": "media",
@@ -3421,7 +3387,7 @@ export const RECIPES = [
     {
         "id": "torta_mexicana_completa",
         "name": "Torta Mexicana Completa",
-        "family": "pan_blanco",
+        "family": "cereales",
         "format": "sandwich",
         "description": "Pan telera relleno de jamón, queso, aguacate, mayonesa, lechuga y jitomate. Clásico callejero.",
         "ingredientsRequired": [
@@ -3438,8 +3404,8 @@ export const RECIPES = [
         ],
         "cravings": [
             "rapido",
-            "indulgente",
-            "casero",
+            "antojo",
+            "reconfortante",
             "llenador"
         ],
         "timeMin": 10,
@@ -3463,7 +3429,7 @@ export const RECIPES = [
     {
         "id": "taquitos_dorados_papa",
         "name": "Taquitos Dorados de Papa",
-        "family": "tortilla",
+        "family": "maiz",
         "format": "taco",
         "description": "Tortillas enrolladas rellenas de papa cocida y frita hasta doradas, servidas con guacamole y salsa.",
         "ingredientsRequired": [
@@ -3477,10 +3443,9 @@ export const RECIPES = [
             "nata"
         ],
         "cravings": [
-            "frito",
+            "crujiente",
             "antojo",
-            "rapido",
-            "indulgente"
+            "rapido"
         ],
         "timeMin": 20,
         "effort": "bajo",
@@ -3503,7 +3468,7 @@ export const RECIPES = [
     {
         "id": "flautas_carne_queso",
         "name": "Flautas de Carne y Queso",
-        "family": "tortilla",
+        "family": "maiz",
         "format": "tortilla",
         "description": "Tortillas enrolladas crujientes rellenas de carne deshebrada y queso, fritas hasta doradas.",
         "ingredientsRequired": [
@@ -3518,10 +3483,9 @@ export const RECIPES = [
             "jitomate"
         ],
         "cravings": [
-            "frito",
+            "crujiente",
             "antojo",
-            "indulgente",
-            "contundente"
+            "reconfortante"
         ],
         "timeMin": 25,
         "effort": "bajo",
@@ -3546,7 +3510,7 @@ export const RECIPES = [
     {
         "id": "sopa_tortilla_crema",
         "name": "Sopa de Tortilla con Crema y Queso",
-        "family": "sopa",
+        "family": "maiz",
         "format": "sopa",
         "description": "Caldo de pollo con tiras de tortilla frita crujiente, aguacate, queso y nata. Indulgencia pura.",
         "ingredientsRequired": [
@@ -3561,10 +3525,9 @@ export const RECIPES = [
             "cilantro"
         ],
         "cravings": [
-            "caldosa",
-            "indulgente",
-            "reconfortante",
-            "antojo"
+            "caldoso",
+            "antojo",
+            "reconfortante"
         ],
         "timeMin": 30,
         "effort": "bajo",
@@ -3589,7 +3552,7 @@ export const RECIPES = [
     {
         "id": "quesadillas_huitlacoche",
         "name": "Quesadillas de Huitlacoche",
-        "family": "tortilla",
+        "family": "maiz",
         "format": "tortilla",
         "description": "Quesadillas rellenas de huitlacoche, queso derretido y cebolla frita. Gourmet indulgente.",
         "ingredientsRequired": [
@@ -3604,8 +3567,7 @@ export const RECIPES = [
         ],
         "cravings": [
             "antojo",
-            "indulgente",
-            "casero",
+            "reconfortante",
             "mexicano"
         ],
         "timeMin": 15,
@@ -3629,7 +3591,7 @@ export const RECIPES = [
     {
         "id": "tamales_queso_rajas",
         "name": "Tamales de Queso y Rajas",
-        "family": "masa",
+        "family": "maiz",
         "format": "tamal",
         "description": "Tamales de masa de maíz con queso derretido y rajas poblanas. Clásico reconfortante.",
         "ingredientsRequired": [
@@ -3642,10 +3604,8 @@ export const RECIPES = [
             "cilantro"
         ],
         "cravings": [
-            "caliente",
-            "indulgente",
             "reconfortante",
-            "casero"
+            "antojo"
         ],
         "timeMin": 40,
         "effort": "medio",
@@ -3668,7 +3628,7 @@ export const RECIPES = [
     {
         "id": "chimichangas_carne",
         "name": "Chimichangas de Carne",
-        "family": "tortilla",
+        "family": "maiz",
         "format": "burrito",
         "description": "Burritos grandes de carne deshebrada y queso, fritos hasta crujientes y dorados.",
         "ingredientsRequired": [
@@ -3682,8 +3642,8 @@ export const RECIPES = [
             "cebolla"
         ],
         "cravings": [
-            "frito",
-            "indulgente",
+            "crujiente",
+            "antojo",
             "rapido",
             "llenador"
         ],
@@ -3710,7 +3670,7 @@ export const RECIPES = [
     {
         "id": "elote_mayo_queso",
         "name": "Elote con Mayo y Queso",
-        "family": "verdura",
+        "family": "verduras",
         "format": "plato",
         "description": "Elote asado o cocido cubierto de mayonesa, queso fresco desmenuzado y pimentón. Antojo callejero.",
         "ingredientsRequired": [
@@ -3725,8 +3685,7 @@ export const RECIPES = [
         "cravings": [
             "rapido",
             "antojo",
-            "callejero",
-            "indulgente"
+            "mexicano"
         ],
         "timeMin": 10,
         "effort": "bajo",
@@ -3749,7 +3708,7 @@ export const RECIPES = [
     {
         "id": "churros_chocolate",
         "name": "Churros con Chocolate",
-        "family": "postre",
+        "family": "postres",
         "format": "postre",
         "description": "Churros caseros fritos crujientes, servidos con chocolate caliente espeso para acompañar.",
         "ingredientsRequired": [
@@ -3763,9 +3722,7 @@ export const RECIPES = [
         ],
         "cravings": [
             "dulce",
-            "antojo",
-            "indulgente",
-            "postre"
+            "antojo"
         ],
         "timeMin": 25,
         "effort": "medio",
@@ -3803,7 +3760,6 @@ export const RECIPES = [
         ],
         "cravings": [
             "dulce",
-            "casero",
             "reconfortante"
         ],
         "timeMin": 40,
@@ -3840,7 +3796,7 @@ export const RECIPES = [
         ],
         "cravings": [
             "dulce",
-            "calientito",
+            "reconfortante",
             "ligero"
         ],
         "timeMin": 25,
@@ -3877,8 +3833,7 @@ export const RECIPES = [
         ],
         "cravings": [
             "fresco",
-            "dulce",
-            "frutal"
+            "dulce"
         ],
         "timeMin": 10,
         "effort": "bajo",
@@ -3916,13 +3871,13 @@ export const RECIPES = [
             "aguacate"
         ],
         "cravings": [
-            "casero",
-            "quesoso",
-            "antojo_mexicano"
+            "reconfortante",
+            "cremoso",
+            "mexicano"
         ],
         "timeMin": 15,
         "effort": "bajo",
-        "mealType": "comida",
+        "mealType": "desayuno",
         "lowFriction": true,
         "profile": {
             "fiber": "media",
@@ -3957,8 +3912,8 @@ export const RECIPES = [
         ],
         "cravings": [
             "crujiente",
-            "quesoso",
-            "sabroso"
+            "cremoso",
+            "antojo"
         ],
         "timeMin": 15,
         "effort": "bajo",
@@ -3995,9 +3950,9 @@ export const RECIPES = [
             "elote"
         ],
         "cravings": [
-            "colorido",
+            "fresco",
             "llenador",
-            "casero"
+            "reconfortante"
         ],
         "timeMin": 35,
         "effort": "medio",
@@ -4036,7 +3991,6 @@ export const RECIPES = [
         ],
         "cravings": [
             "cremoso",
-            "quesoso",
             "picante"
         ],
         "timeMin": 25,
@@ -4077,7 +4031,7 @@ export const RECIPES = [
             "limon"
         ],
         "cravings": [
-            "sabroso",
+            "antojo",
             "picante",
             "ligero"
         ],

@@ -232,19 +232,20 @@ function getCategoryIcon(category) {
 function getCravingIcon(craving) {
     const icons = {
         rapido: "speed",
-        casero: "home",
-        calientito: "soup_kitchen",
         reconfortante: "volunteer_activism",
-        ligero: "leafy_greens",
-        fresco: "ac_unit",
-        fria: "ac_unit",
-        llenador: "restaurant",
-        antojo_mexicano: "flag",
-        mealprep: "inventory",
-        saludable: "favorite",
+        mexicano: "flag",
         picante: "local_fire_department",
-        caldosa: "soup_kitchen",
-        cozy: "bed"
+        ligero: "leafy_greens",
+        saludable: "favorite",
+        fresco: "ac_unit",
+        caldoso: "ramen_dining",
+        llenador: "restaurant",
+        dulce: "cake",
+        crujiente: "bakery_dining",
+        cremoso: "icecream",
+        elegante: "wine_bar",
+        antojo: "fastfood",
+        internacional: "public"
     };
     return icons[craving] || "mood";
 }
@@ -252,19 +253,20 @@ function getCravingIcon(craving) {
 function humanizeCraving(value) {
     const table = {
         rapido: "Rápido",
-        casero: "Casero",
-        calientito: "Calientito",
         reconfortante: "Reconfortante",
-        ligero: "Ligero",
-        fresco: "Fresco",
-        fria: "Fría",
-        llenador: "Llenador",
-        antojo_mexicano: "Antojo mexicano",
-        mealprep: "Meal prep",
-        saludable: "Saludable",
+        mexicano: "Mexicano",
         picante: "Picante 🌶️",
-        caldosa: "Caldosa",
-        cozy: "Acogedor"
+        ligero: "Ligero",
+        saludable: "Saludable",
+        fresco: "Fresco",
+        caldoso: "Caldoso",
+        llenador: "Llenador",
+        dulce: "Dulce",
+        crujiente: "Crujiente",
+        cremoso: "Cremoso",
+        elegante: "Elegante",
+        antojo: "Antojo",
+        internacional: "Internacional"
     };
     return table[value] || value.split("_").map(capitalize).join(" ");
 }
@@ -2367,12 +2369,9 @@ const _browserState = {
 };
 
 const FAMILY_LABELS = {
-    pollo: "Pollo", frijol: "Frijol", nopal: "Nopal", huevo: "Huevo",
-    verduras: "Verduras", pescado: "Pescado", res: "Res", cerdo: "Cerdo",
-    tofu: "Tofu", elote: "Elote", pasta: "Pasta", postres: "Postres",
-    leguminosas: "Leguminosas", cereales: "Cereales", milpa: "Milpa",
-    atun: "Atún", atun_fresco: "Atún fresco", pescado_blanco: "Pez blanco",
-    pescados: "Pescados", queso: "Queso", maiz: "Maíz", miso: "Miso"
+    leguminosas: "Leguminosas", pollo: "Pollo", res: "Res", cerdo: "Cerdo",
+    pescados: "Pescados", huevo: "Huevo", queso: "Queso", verduras: "Verduras",
+    maiz: "Maíz", cereales: "Cereales", postres: "Postres", basicos: "Básicos"
 };
 
 function openRecipesBrowserModal(selectionMode = false, onSelect = null) {
@@ -2974,10 +2973,11 @@ function loadRecipeFilters() {
 
     const mealTypeSelect = document.getElementById("recipeFilterMealType");
     if (mealTypeSelect && mealTypeSelect.options.length <= 1) {
+        const mealTypeLabels = { comida: "Comida", desayuno: "Desayuno", cena: "Cena", colacion: "Colación", comida_indulgente: "Comida no tan sana", postre: "Postre" };
         getAllMealTypes().forEach((type) => {
             const option = document.createElement("option");
             option.value = type;
-            option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+            option.textContent = mealTypeLabels[type] || (type.charAt(0).toUpperCase() + type.slice(1));
             mealTypeSelect.appendChild(option);
         });
     }
