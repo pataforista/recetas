@@ -861,6 +861,7 @@ function renderInventory() {
                         <option value="fridge" ${state.inventory[item.id]?.location === "fridge" ? "selected" : ""}>Refri</option>
                         <option value="freezer" ${state.inventory[item.id]?.location === "freezer" ? "selected" : ""}>Congela</option>
                     </select>
+                    ${isOwned ? `<button type="button" class="spoiled-btn" title="Se echó a perder" aria-label="Marcar ${item.name} como desperdiciado"><span class="material-symbols-outlined" aria-hidden="true">delete</span></button>` : ""}
                 </div>
             `;
 
@@ -881,6 +882,14 @@ function renderInventory() {
                 e.stopPropagation();
                 updateLocation(item.id, e.target.value);
             });
+
+            const spoiledBtn = row.querySelector('.spoiled-btn');
+            if (spoiledBtn) {
+                spoiledBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    markSpoiled(item.id);
+                });
+            }
 
             row.addEventListener('click', (e) => {
                 if (e.target.tagName !== "SELECT" && e.target.tagName !== "INPUT") {
@@ -1963,6 +1972,20 @@ function logWaste(ingredientId, ingredientName, action) {
         date: now.getTime()
     });
     persistWasteLog();
+}
+
+function markSpoiled(ingredientId) {
+    const entry = state.inventory[ingredientId];
+    if (!entry?.has) return;
+    const name = INGREDIENTS.find(i => i.id === ingredientId)?.name || ingredientId;
+    entry.has = false;
+    entry.urgency = "normal";
+    delete entry.dateAdded;
+    logWaste(ingredientId, name, "wasted");
+    persistInventory();
+    renderInventory();
+    renderWasteStats();
+    showToast(`"${name}" marcado como desperdiciado`);
 }
 
 // ─── Waste Stats Rendering ───
