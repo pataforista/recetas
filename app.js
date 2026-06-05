@@ -56,66 +56,6 @@ function getDefaultLocation(category) {
     return "otro";
 }
 
-// ─── List Templates ───
-const LIST_TEMPLATES = [
-    {
-        id: "asado",
-        name: "Asado dominical",
-        icon: "outdoor_grill",
-        items: [
-            { name: "Carne para asar", category: "meat" },
-            { name: "Chorizos", category: "meat" },
-            { name: "Chiles para asar", category: "produce" },
-            { name: "Cebolla cambray", category: "produce" },
-            { name: "Tortillas de maíz", category: "pantry" },
-            { name: "Limones", category: "produce" },
-            { name: "Aguacate", category: "produce" },
-            { name: "Carbón", category: "other" }
-        ]
-    },
-    {
-        id: "limpieza",
-        name: "Limpieza mensual",
-        icon: "cleaning_services",
-        items: [
-            { name: "Jabón trastes", category: "other" },
-            { name: "Jabón lavatrastes", category: "other" },
-            { name: "Limpiador multiusos", category: "other" },
-            { name: "Papel de baño", category: "other" },
-            { name: "Cloro", category: "other" },
-            { name: "Esponja de cocina", category: "other" }
-        ]
-    },
-    {
-        id: "desayunos",
-        name: "Desayunos semanales",
-        icon: "breakfast_dining",
-        items: [
-            { name: "Huevos", category: "dairy" },
-            { name: "Leche", category: "dairy" },
-            { name: "Pan de caja", category: "pantry" },
-            { name: "Tortillas", category: "pantry" },
-            { name: "Frijoles", category: "pantry" },
-            { name: "Fruta de temporada", category: "produce" },
-            { name: "Queso fresco", category: "dairy" }
-        ]
-    },
-    {
-        id: "calditos",
-        name: "Semana de caldos",
-        icon: "soup_kitchen",
-        items: [
-            { name: "Pollo entero o piezas", category: "meat" },
-            { name: "Verduras para caldo", category: "produce" },
-            { name: "Pasta seca o arroz", category: "pantry" },
-            { name: "Jitomate", category: "produce" },
-            { name: "Cebolla", category: "produce" },
-            { name: "Chile serrano", category: "produce" },
-            { name: "Cilantro", category: "produce" }
-        ]
-    }
-];
-
 const CATEGORY_DESCRIPTIONS = {
     all: { name: "Todos", description: "Ver todos los ingredientes" },
     milpa: { name: "Milpa", description: "Base de la cocina mexicana 🌽" },
@@ -177,31 +117,6 @@ function calculateUrgency(purchaseDate, estimatedShelfLife) {
 }
 
 /**
- * Obtiene la clase CSS para el estado de urgencia
- */
-function getUrgencyClass(urgencyStatus) {
-    const map = {
-        fresh: "urgency-fresh",
-        aging: "urgency-aging",
-        urgent: "urgency-urgent",
-        expired: "urgency-expired"
-    };
-    return map[urgencyStatus] || "urgency-fresh";
-}
-
-/**
- * Formatea mensaje de días restantes/expirado
- */
-function formatDaysRemaining(daysRemaining, urgencyStatus) {
-    if (urgencyStatus === "expired") {
-        return `Expirado hace ${Math.abs(daysRemaining)} ${Math.abs(daysRemaining) === 1 ? "día" : "días"}`;
-    }
-    if (daysRemaining === 0) return "Expira hoy";
-    if (daysRemaining === 1) return "Expira mañana";
-    return `Expira en ${daysRemaining} ${daysRemaining === 1 ? "día" : "días"}`;
-}
-
-/**
  * Obtiene la vida útil estimada para un ingrediente
  */
 function getDefaultShelfLife(ingredientId, category) {
@@ -238,25 +153,6 @@ let _resultsDebounceTimer = null;
 let _browserDebounceTimer = null;
 let _recipesSearchDebounceTimer = null;
 
-// ─── Missing helper stubs ───
-function persistCustomLists() {
-    localStorage.setItem(STORAGE_KEYS.customLists, JSON.stringify(state.customLists));
-}
-
-function getActiveCustomList() {
-    if (!state.activeCustomListId) return null;
-    return state.customLists.find(l => l.id === state.activeCustomListId) || null;
-}
-
-function trackRecentList(listId) {
-    const recentKey = "milpa_nime_recent_lists_v1";
-    let recent = JSON.parse(localStorage.getItem(recentKey) || "[]");
-    recent = recent.filter(id => id !== listId);
-    recent.unshift(listId);
-    recent = recent.slice(0, 5);
-    localStorage.setItem(recentKey, JSON.stringify(recent));
-}
-
 function maybeImportFromUrl() {
     // Import sync payload from URL hash if present
     const hash = window.location.hash;
@@ -284,24 +180,6 @@ function maybeImportFromUrl() {
             );
         }
     } catch { /* silently ignore malformed URLs */ }
-}
-
-function addIngredientsToList(list, ingredientsText, recipeName) {
-    if (!list || !ingredientsText) return;
-    const lines = ingredientsText.split(",").map(s => s.trim()).filter(Boolean);
-    lines.forEach((name, idx) => {
-        list.items.push({
-            id: `itm_${Date.now()}_${idx}`,
-            name,
-            qty: null,
-            unit: "",
-            have: false,
-            bought: false,
-            category: "other"
-        });
-    });
-    persistCustomLists();
-    showToast(`Ingredientes de "${recipeName}" añadidos a "${list.name}"`);
 }
 
 // ─── Helper Functions ───
@@ -430,25 +308,6 @@ let activeCategoryFilter = "all";
 // Pending day assignment state for day picker modal
 let _pendingRecipeId = null;
 
-/**
- * Inicializa la fecha de compra al valor de hoy en el formulario
- */
-function setupDefaultPurchaseDate() {
-    const dateInput = document.getElementById("customItemDate");
-    if (dateInput && !dateInput.value) {
-        const today = new Date().toISOString().split('T')[0];
-        dateInput.value = today;
-    }
-
-    // Initialize shelf life with default value
-    const categoryInput = document.getElementById("customItemCategory");
-    const shelfLifeInput = document.getElementById("customItemShelfLife");
-    if (shelfLifeInput && !shelfLifeInput.value) {
-        const category = categoryInput?.value || "other";
-        shelfLifeInput.value = getDefaultShelfLife(null, category);
-    }
-}
-
 // ─── Init ───
 function init() {
     // Load customLists from storage on every init
@@ -473,7 +332,6 @@ function init() {
 
     // Initialize FAB immediately (needed for quick navigation)
     initFAB();
-    initQuickAddBar();
 
     // Defer non-critical initialization to avoid blocking
     requestIdleCallback(() => {
@@ -2066,157 +1924,6 @@ function setupGroceryEvents() {
     });
 }
 
-function renderCustomLists() {
-    const container = document.getElementById("customListsContainer");
-    const addForm = document.getElementById("addCustomItemForm");
-    container.innerHTML = "";
-
-    if (!state.customLists.length) {
-        addForm?.classList.add("hidden");
-        container.innerHTML = "<p class='hint'>Crea tu primera lista para organizar tus compras.</p>";
-        return;
-    }
-
-    addForm?.classList.remove("hidden");
-    state.customLists.forEach((list) => {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = `chip ${list.id === state.activeCustomListId ? "active" : ""}`;
-        btn.textContent = `${list.name} (${list.items.length})`;
-        btn.addEventListener("click", () => {
-            state.activeCustomListId = list.id;
-            trackRecentList(list.id);
-            renderCustomLists();
-            renderCustomListItems();
-        });
-        container.appendChild(btn);
-    });
-}
-
-function renderCustomListItems() {
-    const list = getActiveCustomList();
-    const title = document.getElementById("activeCustomListTitle");
-    const container = document.getElementById("customListItems");
-    container.innerHTML = "";
-
-    if (!list) {
-        title.textContent = "Nueva compra";
-        return;
-    }
-
-    title.textContent = `Agregar a: ${list.name}`;
-
-    if (!list.items.length) {
-        container.innerHTML = "<p class='hint'>Tu lista está vacía. Agrega elementos arriba.</p>";
-        return;
-    }
-
-    // Sort items by urgency: expired → urgent → aging → fresh → no date
-    const sortedItems = [...list.items].sort((a, b) => {
-        // Items without purchaseDate go to the end
-        if (!a.purchaseDate && !b.purchaseDate) return 0;
-        if (!a.purchaseDate) return 1;
-        if (!b.purchaseDate) return -1;
-
-        // Calculate urgency for both items
-        const urgencyA = calculateUrgency(a.purchaseDate, a.estimatedShelfLife || 14);
-        const urgencyB = calculateUrgency(b.purchaseDate, b.estimatedShelfLife || 14);
-
-        // Order by urgency: expired > urgent > aging > fresh
-        const urgencyOrder = { expired: 0, urgent: 1, aging: 2, fresh: 3 };
-        if (urgencyOrder[urgencyA.status] !== urgencyOrder[urgencyB.status]) {
-            return urgencyOrder[urgencyA.status] - urgencyOrder[urgencyB.status];
-        }
-
-        // If same urgency level, show more urgent first (less days remaining)
-        return urgencyA.daysRemaining - urgencyB.daysRemaining;
-    });
-
-    sortedItems.forEach((item) => {
-        const row = document.createElement("div");
-        row.className = `grocery-item custom-list-item-row ${item.bought ? "checked" : ""}`;
-
-        // Calculate urgency if item has purchaseDate
-        let urgencyBadge = "";
-        if (item.purchaseDate) {
-            const urgency = calculateUrgency(item.purchaseDate, item.estimatedShelfLife || 14);
-            const urgencyClass = getUrgencyClass(urgency.status);
-            const daysText = formatDaysRemaining(urgency.daysRemaining, urgency.status);
-            urgencyBadge = `
-                <span class="urgency-badge ${urgencyClass}">
-                    <span class="urgency-dot"></span>
-                    <span class="urgency-label">${urgency.status.toUpperCase()}</span>
-                </span>
-                <span class="days-remaining">${daysText}</span>
-            `;
-        }
-
-        const checkLabel = document.createElement("label");
-        checkLabel.className = "grocery-checkline";
-        const boughtCb = document.createElement("input");
-        boughtCb.type = "checkbox";
-        boughtCb.setAttribute("aria-label", `Comprado ${item.name}`);
-        if (item.bought) boughtCb.checked = true;
-        const textSpan = document.createElement("span");
-        const strongEl = document.createElement("strong");
-        strongEl.textContent = item.name;
-        textSpan.appendChild(strongEl);
-        if (item.qty) {
-            const qtyText = document.createTextNode(` • ${item.qty}${item.unit ? ` ${item.unit}` : ""}`);
-            textSpan.appendChild(qtyText);
-        }
-        if (item.category && item.category !== "other") {
-            const catSmall = document.createElement("small");
-            catSmall.className = "category-tag";
-            catSmall.textContent = item.category;
-            textSpan.appendChild(catSmall);
-        }
-        checkLabel.appendChild(boughtCb);
-        checkLabel.appendChild(textSpan);
-
-        const urgencyDiv = document.createElement("div");
-        urgencyDiv.className = "item-urgency";
-        urgencyDiv.innerHTML = urgencyBadge;
-
-        const haveLabel = document.createElement("label");
-        haveLabel.className = "mini-toggle";
-        haveLabel.textContent = "Tengo ";
-        const haveCb = document.createElement("input");
-        haveCb.type = "checkbox";
-        if (item.have) haveCb.checked = true;
-        haveLabel.appendChild(haveCb);
-
-        const deleteBtn = document.createElement("button");
-        deleteBtn.type = "button";
-        deleteBtn.className = "text-btn item-delete-btn";
-        deleteBtn.style.display = "none";
-        deleteBtn.textContent = "Eliminar";
-
-        row.appendChild(checkLabel);
-        row.appendChild(urgencyDiv);
-        row.appendChild(haveLabel);
-        row.appendChild(deleteBtn);
-
-        boughtCb.addEventListener("change", (e) => {
-            item.bought = e.target.checked;
-            persistCustomLists();
-            row.classList.toggle("checked", item.bought);
-        });
-        haveCb.addEventListener("change", (e) => {
-            item.have = e.target.checked;
-            persistCustomLists();
-        });
-        deleteBtn.addEventListener("click", () => {
-            list.items = list.items.filter((it) => it.id !== item.id);
-            persistCustomLists();
-            renderCustomLists();
-            renderCustomListItems();
-        });
-
-        container.appendChild(row);
-    });
-}
-
 function generateGroceryListFromPlan() {
     const list = {};
     Object.values(state.weeklyPlan).forEach((recipeId) => {
@@ -2420,45 +2127,6 @@ function renderWasteStats() {
     `;
 }
 
-// ─── List Templates Rendering ───
-function renderListTemplates() {
-    const chips = document.getElementById("templateChips");
-    if (!chips) return;
-    chips.innerHTML = "";
-
-    LIST_TEMPLATES.forEach(template => {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "chip template-chip";
-        btn.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">${template.icon}</span> ${template.name}`;
-        btn.addEventListener("click", () => {
-            const list = {
-                id: `lst_${Date.now()}`,
-                name: template.name,
-                items: template.items.map((item, idx) => ({
-                    id: `itm_${Date.now()}_${idx}`,
-                    name: item.name,
-                    qty: null,
-                    unit: "",
-                    have: false,
-                    bought: false,
-                    purchaseDate: Date.now(),
-                    estimatedShelfLife: getDefaultShelfLife(null, item.category === "produce" ? "dairy" : item.category === "meat" ? "meat" : "pantry"),
-                    category: item.category,
-                    ingredientId: null
-                }))
-            };
-            state.customLists.unshift(list);
-            state.activeCustomListId = list.id;
-            state.groceryView = "custom";
-            persistCustomLists();
-            renderGroceryHub();
-            showToast(`Lista "${template.name}" creada con ${template.items.length} productos`);
-        });
-        chips.appendChild(btn);
-    });
-}
-
 function loadRecentSuggestedRecipes() {
     try {
         const data = JSON.parse(localStorage.getItem(STORAGE_KEYS.recentSuggestedRecipes)) || [];
@@ -2519,7 +2187,6 @@ function initFAB() {
     const fabMainBtn = document.getElementById("fabMainBtn");
     const fabMenu = document.getElementById("fabMenu");
     const fabBackdrop = document.getElementById("fabBackdrop");
-    const fabNewList = document.getElementById("fabNewList");
     const fabQuickAdd = document.getElementById("fabQuickAdd");
     const fabGoToGrocery = document.getElementById("fabGoToGrocery");
 
@@ -2541,20 +2208,12 @@ function initFAB() {
     });
 
     // FAB actions
-    fabNewList?.addEventListener("click", () => {
-        showView("grocery");
-        const input = document.getElementById("customListName");
-        setTimeout(() => {
-            input?.focus();
-            input?.scrollIntoView({ behavior: "smooth", block: "center" });
-        }, 300);
-        closeFABMenu();
-    });
-
     fabQuickAdd?.addEventListener("click", () => {
         showView("grocery");
         setTimeout(() => {
-            document.getElementById("quickAddInput")?.focus();
+            const input = document.getElementById("unifiedQuickAddInput");
+            input?.focus();
+            input?.scrollIntoView({ behavior: "smooth", block: "center" });
         }, 300);
         closeFABMenu();
     });
@@ -2571,89 +2230,6 @@ function initFAB() {
     }
 }
 
-// ─── Quick Add Bar ───
-function initQuickAddBar() {
-    const quickAddInput = document.getElementById("quickAddInput");
-    const quickAddBtn = document.getElementById("quickAddBtn");
-
-    if (!quickAddBtn) return;
-
-    const addItem = () => {
-        const itemName = quickAddInput.value.trim();
-        if (!itemName) return;
-
-        const customLists = loadCustomLists();
-        if (customLists.length === 0) {
-            showToast("Crea una lista primero");
-            return;
-        }
-
-        // Use active list or the most recent one
-        const activeListId = state.activeCustomListId || customLists[customLists.length - 1].id;
-        const list = customLists.find(l => l.id === activeListId);
-
-        if (!list) {
-            showToast("Selecciona una lista");
-            return;
-        }
-
-        list.items.push({
-            id: `itm_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            name: itemName,
-            category: "other",
-            completed: false,
-            dateAdded: new Date().toISOString().split("T")[0]
-        });
-
-        persistCustomLists();
-        quickAddInput.value = "";
-        renderCustomListItems();
-        showToast(`"${itemName}" agregado a ${list.name}`);
-        trackRecentList(activeListId);
-    };
-
-    quickAddBtn.addEventListener("click", addItem);
-    quickAddInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            addItem();
-        }
-    });
-}
-
-// ─── Recent Lists Tracking ───
-function renderRecentLists() {
-    const recentKey = "milpa_nime_recent_lists_v1";
-    const recent = JSON.parse(localStorage.getItem(recentKey) || "[]");
-    const customLists = loadCustomLists();
-    const section = document.getElementById("recentListsSection");
-    const buttons = document.getElementById("recentListsButtons");
-
-    if (!section || recent.length === 0) {
-        section?.classList.add("hidden");
-        return;
-    }
-
-    section.classList.remove("hidden");
-    buttons.innerHTML = "";
-
-    recent.forEach(listId => {
-        const list = customLists.find(l => l.id === listId);
-        if (list) {
-            const btn = document.createElement("button");
-            btn.type = "button";
-            btn.textContent = `${list.name} (${list.items.length})`;
-            btn.addEventListener("click", () => {
-                state.activeCustomListId = listId;
-                renderCustomLists();
-                renderCustomListItems();
-                document.getElementById("quickAddInput")?.focus();
-            });
-            buttons.appendChild(btn);
-        }
-    });
-}
-
 // ─── Add Recipe to Shopping List ───
 function initAddRecipeToList() {
     document.addEventListener("click", (e) => {
@@ -2665,68 +2241,39 @@ function initAddRecipeToList() {
             const recipeName = titleEl?.textContent || "Receta";
             const ingredientsText = card.querySelector(".ingredients-text")?.textContent || "";
 
-            showAddRecipeToListModal(recipeName, ingredientsText);
+            addRecipeIngredientsToShoppingList(recipeName, ingredientsText);
         }
     });
-
-    document.getElementById("cancelAddRecipeToList")?.addEventListener("click", closeAddRecipeToListModal);
 }
 
-function showAddRecipeToListModal(recipeName, ingredientsText) {
-    const modal = document.getElementById("addRecipeToListModal");
-    const recipeNameEl = document.getElementById("addRecipeToListRecipeName");
-    const optionsContainer = document.getElementById("addRecipeToListOptions");
-
-    if (!modal) return;
-
-    recipeNameEl.textContent = recipeName;
-    optionsContainer.innerHTML = "";
-
-    const customLists = loadCustomLists();
-    if (customLists.length === 0) {
-        const msg = document.createElement("p");
-        msg.className = "hint";
-        msg.textContent = "Crea una lista primero para agregar ingredientes";
-        optionsContainer.appendChild(msg);
-        modal.classList.remove("hidden");
+function addRecipeIngredientsToShoppingList(recipeName, ingredientsText) {
+    const names = ingredientsText.split(",").map(s => s.trim()).filter(Boolean);
+    if (!names.length) {
+        showToast("Esta receta no tiene ingredientes para agregar");
         return;
     }
-
-    customLists.forEach(list => {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "secondary";
-        btn.textContent = list.name;
-        btn.style.marginBottom = "8px";
-        btn.style.width = "100%";
-
-        btn.addEventListener("click", () => {
-            addIngredientsToList(list, ingredientsText, recipeName);
-            closeAddRecipeToListModal();
+    if (!state.shoppingList) state.shoppingList = [];
+    const existing = new Set(state.shoppingList.map(i => (i.name || "").toLowerCase()));
+    let added = 0;
+    names.forEach((name, idx) => {
+        if (existing.has(name.toLowerCase())) return;
+        const known = INGREDIENTS.find(i => i.name.toLowerCase() === name.toLowerCase());
+        state.shoppingList.push({
+            id: `manual_${Date.now()}_${idx}`,
+            name,
+            category: known ? known.category : "basicos",
+            checked: false,
+            type: "manual"
         });
-
-        optionsContainer.appendChild(btn);
+        existing.add(name.toLowerCase());
+        added++;
     });
-
-    // Add "Create new list" option
-    const newListBtn = document.createElement("button");
-    newListBtn.type = "button";
-    newListBtn.style.marginTop = "12px";
-    newListBtn.style.borderTop = "1px solid rgba(53, 37, 84, 0.1)";
-    newListBtn.style.paddingTop = "12px";
-    newListBtn.textContent = "+ Crear nueva lista";
-    newListBtn.addEventListener("click", () => {
-        closeAddRecipeToListModal();
-        showView("grocery");
-        setTimeout(() => document.getElementById("customListName")?.focus(), 300);
-    });
-    optionsContainer.appendChild(newListBtn);
-
-    modal.classList.remove("hidden");
-}
-
-function closeAddRecipeToListModal() {
-    document.getElementById("addRecipeToListModal")?.classList.add("hidden");
+    persistShoppingList();
+    renderGroceryList();
+    updateGroceryBadge();
+    showToast(added > 0
+        ? `${added} ingrediente${added !== 1 ? "s" : ""} de "${recipeName}" agregado${added !== 1 ? "s" : ""} a Compras`
+        : `Los ingredientes de "${recipeName}" ya están en tu lista`);
 }
 
 

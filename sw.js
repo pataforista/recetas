@@ -1,4 +1,4 @@
-const CACHE_NAME = 'milpa-nime-v5';
+const CACHE_NAME = 'milpa-nime-v6';
 const ASSETS = [
   './',
   './index.html',
@@ -10,8 +10,8 @@ const ASSETS = [
   './data/mealprep_bases.js',
   './data/health_rules.js',
   './modules/recipes-module.js',
-  'https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap',
-  'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200'
+  'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap',
+  'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block'
 ];
 
 self.addEventListener('install', (event) => {
