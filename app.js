@@ -56,66 +56,6 @@ function getDefaultLocation(category) {
     return "otro";
 }
 
-// ─── List Templates ───
-const LIST_TEMPLATES = [
-    {
-        id: "asado",
-        name: "Asado dominical",
-        icon: "outdoor_grill",
-        items: [
-            { name: "Carne para asar", category: "meat" },
-            { name: "Chorizos", category: "meat" },
-            { name: "Chiles para asar", category: "produce" },
-            { name: "Cebolla cambray", category: "produce" },
-            { name: "Tortillas de maíz", category: "pantry" },
-            { name: "Limones", category: "produce" },
-            { name: "Aguacate", category: "produce" },
-            { name: "Carbón", category: "other" }
-        ]
-    },
-    {
-        id: "limpieza",
-        name: "Limpieza mensual",
-        icon: "cleaning_services",
-        items: [
-            { name: "Jabón trastes", category: "other" },
-            { name: "Jabón lavatrastes", category: "other" },
-            { name: "Limpiador multiusos", category: "other" },
-            { name: "Papel de baño", category: "other" },
-            { name: "Cloro", category: "other" },
-            { name: "Esponja de cocina", category: "other" }
-        ]
-    },
-    {
-        id: "desayunos",
-        name: "Desayunos semanales",
-        icon: "breakfast_dining",
-        items: [
-            { name: "Huevos", category: "dairy" },
-            { name: "Leche", category: "dairy" },
-            { name: "Pan de caja", category: "pantry" },
-            { name: "Tortillas", category: "pantry" },
-            { name: "Frijoles", category: "pantry" },
-            { name: "Fruta de temporada", category: "produce" },
-            { name: "Queso fresco", category: "dairy" }
-        ]
-    },
-    {
-        id: "calditos",
-        name: "Semana de caldos",
-        icon: "soup_kitchen",
-        items: [
-            { name: "Pollo entero o piezas", category: "meat" },
-            { name: "Verduras para caldo", category: "produce" },
-            { name: "Pasta seca o arroz", category: "pantry" },
-            { name: "Jitomate", category: "produce" },
-            { name: "Cebolla", category: "produce" },
-            { name: "Chile serrano", category: "produce" },
-            { name: "Cilantro", category: "produce" }
-        ]
-    }
-];
-
 const CATEGORY_DESCRIPTIONS = {
     all: { name: "Todos", description: "Ver todos los ingredientes" },
     milpa: { name: "Milpa", description: "Base de la cocina mexicana 🌽" },
@@ -177,31 +117,6 @@ function calculateUrgency(purchaseDate, estimatedShelfLife) {
 }
 
 /**
- * Obtiene la clase CSS para el estado de urgencia
- */
-function getUrgencyClass(urgencyStatus) {
-    const map = {
-        fresh: "urgency-fresh",
-        aging: "urgency-aging",
-        urgent: "urgency-urgent",
-        expired: "urgency-expired"
-    };
-    return map[urgencyStatus] || "urgency-fresh";
-}
-
-/**
- * Formatea mensaje de días restantes/expirado
- */
-function formatDaysRemaining(daysRemaining, urgencyStatus) {
-    if (urgencyStatus === "expired") {
-        return `Expirado hace ${Math.abs(daysRemaining)} ${Math.abs(daysRemaining) === 1 ? "día" : "días"}`;
-    }
-    if (daysRemaining === 0) return "Expira hoy";
-    if (daysRemaining === 1) return "Expira mañana";
-    return `Expira en ${daysRemaining} ${daysRemaining === 1 ? "día" : "días"}`;
-}
-
-/**
  * Obtiene la vida útil estimada para un ingrediente
  */
 function getDefaultShelfLife(ingredientId, category) {
@@ -234,28 +149,8 @@ const state = {
 // ─── Global State & Timers ───
 let _inventoryDebounceTimer = null;
 let _globalSearchDebounceTimer = null;
-let _resultsDebounceTimer = null;
 let _browserDebounceTimer = null;
 let _recipesSearchDebounceTimer = null;
-
-// ─── Missing helper stubs ───
-function persistCustomLists() {
-    localStorage.setItem(STORAGE_KEYS.customLists, JSON.stringify(state.customLists));
-}
-
-function getActiveCustomList() {
-    if (!state.activeCustomListId) return null;
-    return state.customLists.find(l => l.id === state.activeCustomListId) || null;
-}
-
-function trackRecentList(listId) {
-    const recentKey = "milpa_nime_recent_lists_v1";
-    let recent = JSON.parse(localStorage.getItem(recentKey) || "[]");
-    recent = recent.filter(id => id !== listId);
-    recent.unshift(listId);
-    recent = recent.slice(0, 5);
-    localStorage.setItem(recentKey, JSON.stringify(recent));
-}
 
 function maybeImportFromUrl() {
     // Import sync payload from URL hash if present
@@ -284,24 +179,6 @@ function maybeImportFromUrl() {
             );
         }
     } catch { /* silently ignore malformed URLs */ }
-}
-
-function addIngredientsToList(list, ingredientsText, recipeName) {
-    if (!list || !ingredientsText) return;
-    const lines = ingredientsText.split(",").map(s => s.trim()).filter(Boolean);
-    lines.forEach((name, idx) => {
-        list.items.push({
-            id: `itm_${Date.now()}_${idx}`,
-            name,
-            qty: null,
-            unit: "",
-            have: false,
-            bought: false,
-            category: "other"
-        });
-    });
-    persistCustomLists();
-    showToast(`Ingredientes de "${recipeName}" añadidos a "${list.name}"`);
 }
 
 // ─── Helper Functions ───
@@ -355,19 +232,20 @@ function getCategoryIcon(category) {
 function getCravingIcon(craving) {
     const icons = {
         rapido: "speed",
-        casero: "home",
-        calientito: "soup_kitchen",
         reconfortante: "volunteer_activism",
-        ligero: "leafy_greens",
-        fresco: "ac_unit",
-        fria: "ac_unit",
-        llenador: "restaurant",
-        antojo_mexicano: "flag",
-        mealprep: "inventory",
-        saludable: "favorite",
+        mexicano: "flag",
         picante: "local_fire_department",
-        caldosa: "soup_kitchen",
-        cozy: "bed"
+        ligero: "leafy_greens",
+        saludable: "favorite",
+        fresco: "ac_unit",
+        caldoso: "ramen_dining",
+        llenador: "restaurant",
+        dulce: "cake",
+        crujiente: "bakery_dining",
+        cremoso: "icecream",
+        elegante: "wine_bar",
+        antojo: "fastfood",
+        internacional: "public"
     };
     return icons[craving] || "mood";
 }
@@ -375,19 +253,20 @@ function getCravingIcon(craving) {
 function humanizeCraving(value) {
     const table = {
         rapido: "Rápido",
-        casero: "Casero",
-        calientito: "Calientito",
         reconfortante: "Reconfortante",
-        ligero: "Ligero",
-        fresco: "Fresco",
-        fria: "Fría",
-        llenador: "Llenador",
-        antojo_mexicano: "Antojo mexicano",
-        mealprep: "Meal prep",
-        saludable: "Saludable",
+        mexicano: "Mexicano",
         picante: "Picante 🌶️",
-        caldosa: "Caldosa",
-        cozy: "Acogedor"
+        ligero: "Ligero",
+        saludable: "Saludable",
+        fresco: "Fresco",
+        caldoso: "Caldoso",
+        llenador: "Llenador",
+        dulce: "Dulce",
+        crujiente: "Crujiente",
+        cremoso: "Cremoso",
+        elegante: "Elegante",
+        antojo: "Antojo",
+        internacional: "Internacional"
     };
     return table[value] || value.split("_").map(capitalize).join(" ");
 }
@@ -430,25 +309,6 @@ let activeCategoryFilter = "all";
 // Pending day assignment state for day picker modal
 let _pendingRecipeId = null;
 
-/**
- * Inicializa la fecha de compra al valor de hoy en el formulario
- */
-function setupDefaultPurchaseDate() {
-    const dateInput = document.getElementById("customItemDate");
-    if (dateInput && !dateInput.value) {
-        const today = new Date().toISOString().split('T')[0];
-        dateInput.value = today;
-    }
-
-    // Initialize shelf life with default value
-    const categoryInput = document.getElementById("customItemCategory");
-    const shelfLifeInput = document.getElementById("customItemShelfLife");
-    if (shelfLifeInput && !shelfLifeInput.value) {
-        const category = categoryInput?.value || "other";
-        shelfLifeInput.value = getDefaultShelfLife(null, category);
-    }
-}
-
 // ─── Init ───
 function init() {
     // Load customLists from storage on every init
@@ -473,7 +333,6 @@ function init() {
 
     // Initialize FAB immediately (needed for quick navigation)
     initFAB();
-    initQuickAddBar();
 
     // Defer non-critical initialization to avoid blocking
     requestIdleCallback(() => {
@@ -507,6 +366,8 @@ function bindEvents() {
     document.body.dataset.eventsWired = "true";
 
     suggestBtn.addEventListener("click", handleSuggest);
+    document.getElementById("surpriseBtn")?.addEventListener("click", handleSurprise);
+    document.getElementById("surpriseBtnEmpty")?.addEventListener("click", handleSurprise);
 
     document.getElementById("clearFiltersBtn")?.addEventListener("click", () => {
         state.selectedCravings = [];
@@ -607,12 +468,6 @@ function bindEvents() {
                 showToast("Error: el enlace o código no es válido");
             }
         }
-    });
-
-    // ─── Cooking Mode ───
-    document.getElementById("closeCookingMode")?.addEventListener("click", () => {
-        document.getElementById("cookingMode")?.classList.add("hidden");
-        document.body.style.overflow = "";
     });
 
     // ─── Add Recipe to List modal ───
@@ -730,74 +585,9 @@ function showToast(message, actionText = null, actionCb = null, duration = 4000)
  * Shows a toast with multiple action buttons (choice toast).
  * choices = [{text, cb}]
  */
-function showChoice(message, choices, duration = 6000) {
-    const container = document.getElementById("toastContainer");
-    const toast = document.createElement("div");
-    toast.className = "toast toast-choice";
-
-    const textSpan = document.createElement("span");
-    textSpan.textContent = message;
-    toast.appendChild(textSpan);
-
-    choices.forEach(({ text, cb }) => {
-        const btn = document.createElement("button");
-        btn.className = "toast-action";
-        btn.textContent = text;
-        btn.addEventListener("click", () => {
-            cb();
-            toast.classList.add("exit");
-            setTimeout(() => toast.remove(), 300);
-        });
-        toast.appendChild(btn);
-    });
-
-    container.appendChild(toast);
-    setTimeout(() => {
-        if (toast.parentElement) {
-            toast.classList.add("exit");
-            toast.addEventListener("animationend", () => toast.remove());
-        }
-    }, duration);
-}
 
 // ─── Shopping List Helpers ───
-function mapIngredientCategoryToListCategory(ingCategory) {
-    const map = {
-        lacteos: "dairy",
-        verduras: "produce",
-        frutas: "produce",
-        proteinas: "meat",
-        milpa: "pantry",
-        leguminosas: "pantry",
-        cereales: "pantry",
-        basicos: "pantry",
-        grasas: "pantry",
-        hierbas: "pantry"
-    };
-    return map[ingCategory] || "other";
-}
 
-function addIngredientToShoppingList(ingredient) {
-    if (!state.shoppingList) state.shoppingList = [];
-
-    if (state.shoppingList.some(i => i.id === ingredient.id || i.name === ingredient.name)) {
-        showToast(`${ingredient.name} ya está en la lista`);
-        return;
-    }
-
-    state.shoppingList.push({
-        id: ingredient.id,
-        name: ingredient.name,
-        category: ingredient.category || "basicos",
-        checked: false,
-        type: "manual"
-    });
-
-    persistShoppingList();
-    showToast(`${ingredient.name} añadido a compras`, "Ver lista", () => {
-        showView("grocery");
-    });
-}
 
 // ─── Confirm Modal ───
 let _confirmCallback = null;
@@ -1075,6 +865,7 @@ function renderInventory() {
                         <option value="fridge" ${state.inventory[item.id]?.location === "fridge" ? "selected" : ""}>Refri</option>
                         <option value="freezer" ${state.inventory[item.id]?.location === "freezer" ? "selected" : ""}>Congela</option>
                     </select>
+                    ${isOwned ? `<button type="button" class="spoiled-btn" title="Se echó a perder" aria-label="Marcar ${item.name} como desperdiciado"><span class="material-symbols-outlined" aria-hidden="true">delete</span></button>` : ""}
                 </div>
             `;
 
@@ -1095,6 +886,14 @@ function renderInventory() {
                 e.stopPropagation();
                 updateLocation(item.id, e.target.value);
             });
+
+            const spoiledBtn = row.querySelector('.spoiled-btn');
+            if (spoiledBtn) {
+                spoiledBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    markSpoiled(item.id);
+                });
+            }
 
             row.addEventListener('click', (e) => {
                 if (e.target.tagName !== "SELECT" && e.target.tagName !== "INPUT") {
@@ -1160,15 +959,6 @@ function renderExpiringBanner() {
     if (namesEl) namesEl.textContent = urgentItems.slice(0, 3).join(", ") + (urgentItems.length > 3 ? "…" : "");
 }
 
-function updateInventoryItemUrgency(ingredientId, wrapper) {
-    const urgencySelect = wrapper.dataset.urgencySelect || wrapper.querySelector("select");
-    const hasItem = !!state.inventory[ingredientId]?.has;
-    if (urgencySelect) {
-        urgencySelect.disabled = !hasItem;
-        urgencySelect.value = state.inventory[ingredientId]?.urgency || "normal";
-    }
-    wrapper.classList.toggle("has-item", hasItem);
-}
 
 // ─── Cravings ───
 function renderCravings() {
@@ -1266,8 +1056,6 @@ function handleSuggest() {
         _sortCriterion = "score";
         document.querySelectorAll(".sort-chip").forEach(c => c.classList.toggle("active", c.dataset.sort === "score"));
         document.getElementById("resultsToolbar")?.classList.remove("hidden");
-        const resSearch = document.getElementById("resultsSearch");
-        if (resSearch) resSearch.value = "";
 
         summaryBoxEl.textContent = buildSummary(userContext, ranked);
         renderRankedResults(ranked);
@@ -1283,6 +1071,90 @@ function handleSuggest() {
             resultsHeader.scrollIntoView({ behavior: 'smooth' });
         }
     });
+}
+
+// ─── Sorpréndeme: ideas al azar factibles para México (sin necesidad de inventario) ───
+function recipeFeasibility(recipe) {
+    const req = recipe.ingredientsRequired || [];
+    if (!req.length) return { score: 0, commonRatio: 0 };
+    let common = 0;
+    req.forEach(id => {
+        const ing = INGREDIENTS.find(i => i.id === id);
+        if (!ing || ing.frequency === "alta" || ing.frequency === "media") common++;
+    });
+    const commonRatio = common / req.length;
+    let score = commonRatio * 60;            // hasta 60 pts por accesibilidad
+    if (recipe.lowFriction) score += 12;
+    if (recipe.effort === "bajo") score += 12; else if (recipe.effort === "medio") score += 6;
+    if (recipe.timeMin <= 20) score += 12; else if (recipe.timeMin <= 35) score += 6;
+    return { score: Math.round(score), commonRatio };
+}
+
+function weightedSampleDiverse(pool, n, maxPerFamily = 2) {
+    const chosen = [];
+    const famCount = {};
+    const items = pool.slice();
+    while (chosen.length < n && items.length) {
+        const total = items.reduce((s, x) => s + x.weight, 0);
+        let r = Math.random() * total;
+        let idx = 0;
+        for (; idx < items.length - 1; idx++) { r -= items[idx].weight; if (r <= 0) break; }
+        const pick = items.splice(idx, 1)[0];
+        const fam = pick.recipe.family || "x";
+        if ((famCount[fam] || 0) >= maxPerFamily) continue;
+        famCount[fam] = (famCount[fam] || 0) + 1;
+        chosen.push(pick);
+    }
+    return chosen;
+}
+
+const MILPA_INGS = ["nopal", "nopales_cocidos", "elote", "frijol", "calabacita", "tortilla_maiz", "masa_maiz", "chile_poblano", "epazote"];
+
+function handleSurprise() {
+    const maxTime = Number(getSelectedChipValue("timeChips") || 60);
+    const cravings = [...state.selectedCravings];
+    const recentIds = new Set(state.recentSuggestedRecipes.map(i => i.id));
+
+    const pool = RECIPES.map(r => {
+        const f = recipeFeasibility(r);
+        let weight = f.score;
+        if (r.timeMin > maxTime) weight -= 40;                                   // filtro suave de tiempo
+        if (cravings.length && (r.cravings || []).some(c => cravings.includes(c))) weight += 25;
+        if (recentIds.has(r.id)) weight -= 30;                                   // evita repetir lo reciente
+        return { recipe: r, feas: f.score, ratio: f.commonRatio, weight: Math.max(1, weight) };
+    }).filter(x => x.feas >= 45);
+
+    const picks = weightedSampleDiverse(pool, 6);
+
+    if (!picks.length) {
+        summaryBoxEl.textContent = "No encontré ideas factibles ahora mismo. Intenta de nuevo.";
+        return;
+    }
+
+    const items = picks.map(p => {
+        const reasons = [];
+        if (p.ratio >= 0.8) reasons.push("Ingredientes muy comunes y fáciles de conseguir en México");
+        if (p.recipe.lowFriction) reasons.push("Pocos pasos, sin complicaciones");
+        if (p.recipe.timeMin <= 20) reasons.push(`Lista en ${p.recipe.timeMin} min`);
+        if ((p.recipe.cravings || []).some(c => cravings.includes(c))) reasons.push("Coincide con tu antojo");
+        if ((p.recipe.ingredientsRequired || []).some(id => MILPA_INGS.includes(id))) reasons.push("Bono: Base Milpa");
+        if (!reasons.length) reasons.push("Idea factible para hoy");
+        return { recipe: p.recipe, score: p.feas, reasons, requiredMatches: 1 };
+    });
+
+    _lastRanked = items;
+    addToRecentRecipes(items.map(i => i.recipe.id));
+    _sortCriterion = "score";
+    document.querySelectorAll(".sort-chip").forEach(c => c.classList.toggle("active", c.dataset.sort === "score"));
+    document.getElementById("resultsToolbar")?.classList.remove("hidden");
+
+    summaryBoxEl.textContent = `🎲 ${items.length} ideas al azar, factibles con ingredientes fáciles de conseguir. Toca "Sorpréndeme" para otras.`;
+    renderRankedResults(items);
+    const countEl = document.getElementById("resultsCount");
+    if (countEl) countEl.textContent = `${items.length} idea${items.length !== 1 ? "s" : ""}`;
+    mealPrepBoxEl.innerHTML = renderMealPrepSuggestions(items);
+
+    document.getElementById("resultsPanel")?.scrollIntoView({ behavior: "smooth" });
 }
 
 const SUBSTITUTIONS = {
@@ -1311,13 +1183,6 @@ const SUBSTITUTIONS = {
     espinaca: ["acelga", "verdolaga", "quelites", "kale"],
 };
 
-function shuffleArray(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-}
 
 function rankRecipes(recipes, context) {
     // Calculate frequency of each recipe in recent history
@@ -1893,6 +1758,7 @@ function renderGroceryHub() {
     renderGroceryList();
     setupUnifiedQuickAdd();
     setupGroceryEvents();
+    renderWasteStats();
 }
 
 function renderGroceryList() {
@@ -2066,157 +1932,6 @@ function setupGroceryEvents() {
     });
 }
 
-function renderCustomLists() {
-    const container = document.getElementById("customListsContainer");
-    const addForm = document.getElementById("addCustomItemForm");
-    container.innerHTML = "";
-
-    if (!state.customLists.length) {
-        addForm?.classList.add("hidden");
-        container.innerHTML = "<p class='hint'>Crea tu primera lista para organizar tus compras.</p>";
-        return;
-    }
-
-    addForm?.classList.remove("hidden");
-    state.customLists.forEach((list) => {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = `chip ${list.id === state.activeCustomListId ? "active" : ""}`;
-        btn.textContent = `${list.name} (${list.items.length})`;
-        btn.addEventListener("click", () => {
-            state.activeCustomListId = list.id;
-            trackRecentList(list.id);
-            renderCustomLists();
-            renderCustomListItems();
-        });
-        container.appendChild(btn);
-    });
-}
-
-function renderCustomListItems() {
-    const list = getActiveCustomList();
-    const title = document.getElementById("activeCustomListTitle");
-    const container = document.getElementById("customListItems");
-    container.innerHTML = "";
-
-    if (!list) {
-        title.textContent = "Nueva compra";
-        return;
-    }
-
-    title.textContent = `Agregar a: ${list.name}`;
-
-    if (!list.items.length) {
-        container.innerHTML = "<p class='hint'>Tu lista está vacía. Agrega elementos arriba.</p>";
-        return;
-    }
-
-    // Sort items by urgency: expired → urgent → aging → fresh → no date
-    const sortedItems = [...list.items].sort((a, b) => {
-        // Items without purchaseDate go to the end
-        if (!a.purchaseDate && !b.purchaseDate) return 0;
-        if (!a.purchaseDate) return 1;
-        if (!b.purchaseDate) return -1;
-
-        // Calculate urgency for both items
-        const urgencyA = calculateUrgency(a.purchaseDate, a.estimatedShelfLife || 14);
-        const urgencyB = calculateUrgency(b.purchaseDate, b.estimatedShelfLife || 14);
-
-        // Order by urgency: expired > urgent > aging > fresh
-        const urgencyOrder = { expired: 0, urgent: 1, aging: 2, fresh: 3 };
-        if (urgencyOrder[urgencyA.status] !== urgencyOrder[urgencyB.status]) {
-            return urgencyOrder[urgencyA.status] - urgencyOrder[urgencyB.status];
-        }
-
-        // If same urgency level, show more urgent first (less days remaining)
-        return urgencyA.daysRemaining - urgencyB.daysRemaining;
-    });
-
-    sortedItems.forEach((item) => {
-        const row = document.createElement("div");
-        row.className = `grocery-item custom-list-item-row ${item.bought ? "checked" : ""}`;
-
-        // Calculate urgency if item has purchaseDate
-        let urgencyBadge = "";
-        if (item.purchaseDate) {
-            const urgency = calculateUrgency(item.purchaseDate, item.estimatedShelfLife || 14);
-            const urgencyClass = getUrgencyClass(urgency.status);
-            const daysText = formatDaysRemaining(urgency.daysRemaining, urgency.status);
-            urgencyBadge = `
-                <span class="urgency-badge ${urgencyClass}">
-                    <span class="urgency-dot"></span>
-                    <span class="urgency-label">${urgency.status.toUpperCase()}</span>
-                </span>
-                <span class="days-remaining">${daysText}</span>
-            `;
-        }
-
-        const checkLabel = document.createElement("label");
-        checkLabel.className = "grocery-checkline";
-        const boughtCb = document.createElement("input");
-        boughtCb.type = "checkbox";
-        boughtCb.setAttribute("aria-label", `Comprado ${item.name}`);
-        if (item.bought) boughtCb.checked = true;
-        const textSpan = document.createElement("span");
-        const strongEl = document.createElement("strong");
-        strongEl.textContent = item.name;
-        textSpan.appendChild(strongEl);
-        if (item.qty) {
-            const qtyText = document.createTextNode(` • ${item.qty}${item.unit ? ` ${item.unit}` : ""}`);
-            textSpan.appendChild(qtyText);
-        }
-        if (item.category && item.category !== "other") {
-            const catSmall = document.createElement("small");
-            catSmall.className = "category-tag";
-            catSmall.textContent = item.category;
-            textSpan.appendChild(catSmall);
-        }
-        checkLabel.appendChild(boughtCb);
-        checkLabel.appendChild(textSpan);
-
-        const urgencyDiv = document.createElement("div");
-        urgencyDiv.className = "item-urgency";
-        urgencyDiv.innerHTML = urgencyBadge;
-
-        const haveLabel = document.createElement("label");
-        haveLabel.className = "mini-toggle";
-        haveLabel.textContent = "Tengo ";
-        const haveCb = document.createElement("input");
-        haveCb.type = "checkbox";
-        if (item.have) haveCb.checked = true;
-        haveLabel.appendChild(haveCb);
-
-        const deleteBtn = document.createElement("button");
-        deleteBtn.type = "button";
-        deleteBtn.className = "text-btn item-delete-btn";
-        deleteBtn.style.display = "none";
-        deleteBtn.textContent = "Eliminar";
-
-        row.appendChild(checkLabel);
-        row.appendChild(urgencyDiv);
-        row.appendChild(haveLabel);
-        row.appendChild(deleteBtn);
-
-        boughtCb.addEventListener("change", (e) => {
-            item.bought = e.target.checked;
-            persistCustomLists();
-            row.classList.toggle("checked", item.bought);
-        });
-        haveCb.addEventListener("change", (e) => {
-            item.have = e.target.checked;
-            persistCustomLists();
-        });
-        deleteBtn.addEventListener("click", () => {
-            list.items = list.items.filter((it) => it.id !== item.id);
-            persistCustomLists();
-            renderCustomLists();
-            renderCustomListItems();
-        });
-
-        container.appendChild(row);
-    });
-}
-
 function generateGroceryListFromPlan() {
     const list = {};
     Object.values(state.weeklyPlan).forEach((recipeId) => {
@@ -2251,30 +1966,6 @@ function renderInitialMessage() {
 }
 
 // ─── Reset ───
-function handleReset() {
-    showConfirm(
-        "¿Limpiar todo?",
-        "Se borrarán inventario, antojos, plan y listas de compra.",
-        () => {
-            state.inventory = {};
-            state.selectedCravings = [];
-            state.weeklyPlan = {};
-            state.shoppingList = [];
-            state.wasteLog = [];
-            persistInventory();
-            persistCravings();
-            persistWeeklyPlan();
-            persistShoppingList();
-            persistWasteLog();
-            renderInventory();
-            renderCravings();
-            renderInitialMessage();
-            renderGroceryHub();
-            resultsEl.innerHTML = "";
-            showToast("Selecciones limpiadas");
-        }
-    );
-}
 
 // ─── Utilities ───
 function prettyIngredients(ingredients) {
@@ -2303,15 +1994,6 @@ function prettyIngredients(ingredients) {
     }).join(", ");
 }
 
-function ensureInventoryItem(id, category = null) {
-    if (!state.inventory[id]) {
-        state.inventory[id] = {
-            has: false,
-            urgency: "normal",
-            location: category ? getDefaultLocation(category) : "otro"
-        };
-    }
-}
 
 
 // ─── Storage ───
@@ -2380,6 +2062,20 @@ function logWaste(ingredientId, ingredientName, action) {
     persistWasteLog();
 }
 
+function markSpoiled(ingredientId) {
+    const entry = state.inventory[ingredientId];
+    if (!entry?.has) return;
+    const name = INGREDIENTS.find(i => i.id === ingredientId)?.name || ingredientId;
+    entry.has = false;
+    entry.urgency = "normal";
+    delete entry.dateAdded;
+    logWaste(ingredientId, name, "wasted");
+    persistInventory();
+    renderInventory();
+    renderWasteStats();
+    showToast(`"${name}" marcado como desperdiciado`);
+}
+
 // ─── Waste Stats Rendering ───
 function renderWasteStats() {
     const section = document.getElementById("wasteStatsSection");
@@ -2418,45 +2114,6 @@ function renderWasteStats() {
         </div>
         <p class="hint" style="margin-top:4px;text-align:center;">${consumedPct}% aprovechado este mes</p>
     `;
-}
-
-// ─── List Templates Rendering ───
-function renderListTemplates() {
-    const chips = document.getElementById("templateChips");
-    if (!chips) return;
-    chips.innerHTML = "";
-
-    LIST_TEMPLATES.forEach(template => {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "chip template-chip";
-        btn.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">${template.icon}</span> ${template.name}`;
-        btn.addEventListener("click", () => {
-            const list = {
-                id: `lst_${Date.now()}`,
-                name: template.name,
-                items: template.items.map((item, idx) => ({
-                    id: `itm_${Date.now()}_${idx}`,
-                    name: item.name,
-                    qty: null,
-                    unit: "",
-                    have: false,
-                    bought: false,
-                    purchaseDate: Date.now(),
-                    estimatedShelfLife: getDefaultShelfLife(null, item.category === "produce" ? "dairy" : item.category === "meat" ? "meat" : "pantry"),
-                    category: item.category,
-                    ingredientId: null
-                }))
-            };
-            state.customLists.unshift(list);
-            state.activeCustomListId = list.id;
-            state.groceryView = "custom";
-            persistCustomLists();
-            renderGroceryHub();
-            showToast(`Lista "${template.name}" creada con ${template.items.length} productos`);
-        });
-        chips.appendChild(btn);
-    });
 }
 
 function loadRecentSuggestedRecipes() {
@@ -2519,7 +2176,6 @@ function initFAB() {
     const fabMainBtn = document.getElementById("fabMainBtn");
     const fabMenu = document.getElementById("fabMenu");
     const fabBackdrop = document.getElementById("fabBackdrop");
-    const fabNewList = document.getElementById("fabNewList");
     const fabQuickAdd = document.getElementById("fabQuickAdd");
     const fabGoToGrocery = document.getElementById("fabGoToGrocery");
 
@@ -2541,20 +2197,12 @@ function initFAB() {
     });
 
     // FAB actions
-    fabNewList?.addEventListener("click", () => {
-        showView("grocery");
-        const input = document.getElementById("customListName");
-        setTimeout(() => {
-            input?.focus();
-            input?.scrollIntoView({ behavior: "smooth", block: "center" });
-        }, 300);
-        closeFABMenu();
-    });
-
     fabQuickAdd?.addEventListener("click", () => {
         showView("grocery");
         setTimeout(() => {
-            document.getElementById("quickAddInput")?.focus();
+            const input = document.getElementById("unifiedQuickAddInput");
+            input?.focus();
+            input?.scrollIntoView({ behavior: "smooth", block: "center" });
         }, 300);
         closeFABMenu();
     });
@@ -2571,89 +2219,6 @@ function initFAB() {
     }
 }
 
-// ─── Quick Add Bar ───
-function initQuickAddBar() {
-    const quickAddInput = document.getElementById("quickAddInput");
-    const quickAddBtn = document.getElementById("quickAddBtn");
-
-    if (!quickAddBtn) return;
-
-    const addItem = () => {
-        const itemName = quickAddInput.value.trim();
-        if (!itemName) return;
-
-        const customLists = loadCustomLists();
-        if (customLists.length === 0) {
-            showToast("Crea una lista primero");
-            return;
-        }
-
-        // Use active list or the most recent one
-        const activeListId = state.activeCustomListId || customLists[customLists.length - 1].id;
-        const list = customLists.find(l => l.id === activeListId);
-
-        if (!list) {
-            showToast("Selecciona una lista");
-            return;
-        }
-
-        list.items.push({
-            id: `itm_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            name: itemName,
-            category: "other",
-            completed: false,
-            dateAdded: new Date().toISOString().split("T")[0]
-        });
-
-        persistCustomLists();
-        quickAddInput.value = "";
-        renderCustomListItems();
-        showToast(`"${itemName}" agregado a ${list.name}`);
-        trackRecentList(activeListId);
-    };
-
-    quickAddBtn.addEventListener("click", addItem);
-    quickAddInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            addItem();
-        }
-    });
-}
-
-// ─── Recent Lists Tracking ───
-function renderRecentLists() {
-    const recentKey = "milpa_nime_recent_lists_v1";
-    const recent = JSON.parse(localStorage.getItem(recentKey) || "[]");
-    const customLists = loadCustomLists();
-    const section = document.getElementById("recentListsSection");
-    const buttons = document.getElementById("recentListsButtons");
-
-    if (!section || recent.length === 0) {
-        section?.classList.add("hidden");
-        return;
-    }
-
-    section.classList.remove("hidden");
-    buttons.innerHTML = "";
-
-    recent.forEach(listId => {
-        const list = customLists.find(l => l.id === listId);
-        if (list) {
-            const btn = document.createElement("button");
-            btn.type = "button";
-            btn.textContent = `${list.name} (${list.items.length})`;
-            btn.addEventListener("click", () => {
-                state.activeCustomListId = listId;
-                renderCustomLists();
-                renderCustomListItems();
-                document.getElementById("quickAddInput")?.focus();
-            });
-            buttons.appendChild(btn);
-        }
-    });
-}
-
 // ─── Add Recipe to Shopping List ───
 function initAddRecipeToList() {
     document.addEventListener("click", (e) => {
@@ -2665,68 +2230,39 @@ function initAddRecipeToList() {
             const recipeName = titleEl?.textContent || "Receta";
             const ingredientsText = card.querySelector(".ingredients-text")?.textContent || "";
 
-            showAddRecipeToListModal(recipeName, ingredientsText);
+            addRecipeIngredientsToShoppingList(recipeName, ingredientsText);
         }
     });
-
-    document.getElementById("cancelAddRecipeToList")?.addEventListener("click", closeAddRecipeToListModal);
 }
 
-function showAddRecipeToListModal(recipeName, ingredientsText) {
-    const modal = document.getElementById("addRecipeToListModal");
-    const recipeNameEl = document.getElementById("addRecipeToListRecipeName");
-    const optionsContainer = document.getElementById("addRecipeToListOptions");
-
-    if (!modal) return;
-
-    recipeNameEl.textContent = recipeName;
-    optionsContainer.innerHTML = "";
-
-    const customLists = loadCustomLists();
-    if (customLists.length === 0) {
-        const msg = document.createElement("p");
-        msg.className = "hint";
-        msg.textContent = "Crea una lista primero para agregar ingredientes";
-        optionsContainer.appendChild(msg);
-        modal.classList.remove("hidden");
+function addRecipeIngredientsToShoppingList(recipeName, ingredientsText) {
+    const names = ingredientsText.split(",").map(s => s.trim()).filter(Boolean);
+    if (!names.length) {
+        showToast("Esta receta no tiene ingredientes para agregar");
         return;
     }
-
-    customLists.forEach(list => {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "secondary";
-        btn.textContent = list.name;
-        btn.style.marginBottom = "8px";
-        btn.style.width = "100%";
-
-        btn.addEventListener("click", () => {
-            addIngredientsToList(list, ingredientsText, recipeName);
-            closeAddRecipeToListModal();
+    if (!state.shoppingList) state.shoppingList = [];
+    const existing = new Set(state.shoppingList.map(i => (i.name || "").toLowerCase()));
+    let added = 0;
+    names.forEach((name, idx) => {
+        if (existing.has(name.toLowerCase())) return;
+        const known = INGREDIENTS.find(i => i.name.toLowerCase() === name.toLowerCase());
+        state.shoppingList.push({
+            id: `manual_${Date.now()}_${idx}`,
+            name,
+            category: known ? known.category : "basicos",
+            checked: false,
+            type: "manual"
         });
-
-        optionsContainer.appendChild(btn);
+        existing.add(name.toLowerCase());
+        added++;
     });
-
-    // Add "Create new list" option
-    const newListBtn = document.createElement("button");
-    newListBtn.type = "button";
-    newListBtn.style.marginTop = "12px";
-    newListBtn.style.borderTop = "1px solid rgba(53, 37, 84, 0.1)";
-    newListBtn.style.paddingTop = "12px";
-    newListBtn.textContent = "+ Crear nueva lista";
-    newListBtn.addEventListener("click", () => {
-        closeAddRecipeToListModal();
-        showView("grocery");
-        setTimeout(() => document.getElementById("customListName")?.focus(), 300);
-    });
-    optionsContainer.appendChild(newListBtn);
-
-    modal.classList.remove("hidden");
-}
-
-function closeAddRecipeToListModal() {
-    document.getElementById("addRecipeToListModal")?.classList.add("hidden");
+    persistShoppingList();
+    renderGroceryList();
+    updateGroceryBadge();
+    showToast(added > 0
+        ? `${added} ingrediente${added !== 1 ? "s" : ""} de "${recipeName}" agregado${added !== 1 ? "s" : ""} a Compras`
+        : `Los ingredientes de "${recipeName}" ya están en tu lista`);
 }
 
 
@@ -2873,13 +2409,7 @@ function renderRankedResults(ranked, query = "") {
 }
 
 function applySortAndFilter() {
-    const query = document.getElementById("resultsSearch")?.value || "";
     let working = [..._lastRanked];
-
-    // Filter
-    if (query.trim()) {
-        working = working.filter(item => recipeMatches(item.recipe, query));
-    }
 
     // "Solo comunes" Toggle
     const commonOnly = document.getElementById("commonOnlyToggle")?.checked;
@@ -2901,7 +2431,7 @@ function applySortAndFilter() {
     }
     // default: score (already sorted from rankRecipes)
 
-    renderRankedResults(working, query.trim());
+    renderRankedResults(working);
     const countEl = document.getElementById("resultsCount");
     if (countEl) countEl.textContent = `${working.length} receta${working.length !== 1 ? "s" : ""}`;
 }
@@ -2925,12 +2455,9 @@ const _browserState = {
 };
 
 const FAMILY_LABELS = {
-    pollo: "Pollo", frijol: "Frijol", nopal: "Nopal", huevo: "Huevo",
-    verduras: "Verduras", pescado: "Pescado", res: "Res", cerdo: "Cerdo",
-    tofu: "Tofu", elote: "Elote", pasta: "Pasta", postres: "Postres",
-    leguminosas: "Leguminosas", cereales: "Cereales", milpa: "Milpa",
-    atun: "Atún", atun_fresco: "Atún fresco", pescado_blanco: "Pez blanco",
-    pescados: "Pescados", queso: "Queso", maiz: "Maíz", miso: "Miso"
+    leguminosas: "Leguminosas", pollo: "Pollo", res: "Res", cerdo: "Cerdo",
+    pescados: "Pescados", huevo: "Huevo", queso: "Queso", verduras: "Verduras",
+    maiz: "Maíz", cereales: "Cereales", postres: "Postres", basicos: "Básicos"
 };
 
 function openRecipesBrowserModal(selectionMode = false, onSelect = null) {
@@ -3445,29 +2972,9 @@ function initSearch() {
         chip.addEventListener("click", () => sortResults(chip.dataset.sort));
     });
 
-    const resSearch = document.getElementById("resultsSearch");
-    const resClear = document.getElementById("resultsSearchClear");
-
-    if (resSearch) {
-        resSearch.addEventListener("input", () => {
-            resClear?.classList.toggle("hidden", !resSearch.value);
-            clearTimeout(_resultsDebounceTimer);
-            _resultsDebounceTimer = setTimeout(() => applySortAndFilter(), 150);
-        });
-    }
-
     document.getElementById("commonOnlyToggle")?.addEventListener("change", () => {
         applySortAndFilter();
     });
-
-    if (resClear) {
-        resClear.addEventListener("click", () => {
-            resSearch.value = "";
-            resClear.classList.add("hidden");
-            applySortAndFilter();
-            resSearch.focus();
-        });
-    }
 
     // ── Recipe Browser Modal ────────────────────────────────────
     document.getElementById("browseAllRecipesBtn")?.addEventListener("click", () => openRecipesBrowserModal());
@@ -3552,10 +3059,11 @@ function loadRecipeFilters() {
 
     const mealTypeSelect = document.getElementById("recipeFilterMealType");
     if (mealTypeSelect && mealTypeSelect.options.length <= 1) {
+        const mealTypeLabels = { comida: "Comida", desayuno: "Desayuno", cena: "Cena", colacion: "Colación", comida_indulgente: "Comida no tan sana", postre: "Postre" };
         getAllMealTypes().forEach((type) => {
             const option = document.createElement("option");
             option.value = type;
-            option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+            option.textContent = mealTypeLabels[type] || (type.charAt(0).toUpperCase() + type.slice(1));
             mealTypeSelect.appendChild(option);
         });
     }

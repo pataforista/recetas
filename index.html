@@ -168,6 +168,9 @@
                 <button id="suggestBtn" type="button" class="primary-action">
                   <span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span> Sugerir Recetas
                 </button>
+                <button id="surpriseBtn" type="button" class="secondary-action" title="Ideas al azar sin necesidad de inventario">
+                  <span class="material-symbols-outlined" aria-hidden="true">casino</span> Sorpréndeme
+                </button>
                 <button id="clearFiltersBtn" type="button" class="secondary-action">
                   <span class="material-symbols-outlined">restart_alt</span> Limpiar
                 </button>
@@ -201,7 +204,10 @@
               <div class="empty-state">
                 <span class="empty-icon">✨</span>
                 <p class="empty-title">Aún sin sugerencias</p>
-                <p class="empty-sub">Ajusta tu inventario y presiona "Sugerir"</p>
+                <p class="empty-sub">Ajusta tu inventario y presiona "Sugerir", o pide ideas al azar.</p>
+                <button id="surpriseBtnEmpty" type="button" class="primary-action" style="margin-top:12px;">
+                  <span class="material-symbols-outlined" aria-hidden="true">casino</span> Sorpréndeme con ideas
+                </button>
               </div>
             </div>
             <div class="panel-actions">
@@ -374,10 +380,6 @@
       <span class="material-symbols-outlined">add</span>
     </button>
     <div id="fabMenu" class="fab-menu hidden">
-      <button id="fabNewList" class="fab-action" aria-label="Nueva lista">
-        <span class="material-symbols-outlined">note_add</span>
-        <span class="fab-label">Nueva lista</span>
-      </button>
       <button id="fabQuickAdd" class="fab-action" aria-label="Agregar item">
         <span class="material-symbols-outlined">shopping_cart</span>
         <span class="fab-label">Agregar item</span>
@@ -471,44 +473,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Cooking Mode Overlay -->
-  <div id="cookingMode" class="cooking-mode hidden">
-    <button id="closeCookingMode" class="cooking-close-btn" aria-label="Cerrar modo cocina">
-      <span class="material-symbols-outlined">close</span>
-    </button>
-    <div id="cookingStepCounter" class="cooking-progress-badge">Paso 1 de 5</div>
-    
-    <div class="cooking-content">
-      <h2 id="cookingRecipeTitle" class="cooking-recipe-title"></h2>
-      <div id="cookingStepText" class="cooking-step-text"></div>
-    </div>
-
-    <div class="cooking-nav">
-      <button id="cookingPrevBtn" class="cooking-nav-btn secondary">
-        <span class="material-symbols-outlined">arrow_back</span>
-        Atrás
-      </button>
-      <button id="cookingNextBtn" class="cooking-nav-btn primary">
-        Siguiente
-        <span class="material-symbols-outlined">arrow_forward</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- Modal: Add Recipe Ingredients to List -->
-  <div id="addRecipeToListModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="addRecipeToListTitle">
-    <div class="modal">
-      <h3 id="addRecipeToListTitle">Agregar ingredientes a lista</h3>
-      <p id="addRecipeToListRecipeName" class="hint"></p>
-      <p class="hint" style="margin-bottom: 12px;">Selecciona a qué lista agregarlos:</p>
-      <div id="addRecipeToListOptions" class="add-recipe-list-options"></div>
-      <div class="actions" style="justify-content: flex-end; margin-top: 8px;">
-        <button id="cancelAddRecipeToList" class="secondary" type="button">Cancelar</button>
-      </div>
-    </div>
-  </div>
-
 
   <template id="recipeCardTemplate">
     <article class="recipe-card">
@@ -671,7 +635,6 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script type="module" src="./app.js"></script>
 </body>
 
