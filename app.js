@@ -5,18 +5,9 @@ import { HEALTH_RULES } from "./data/health_rules.js";
 import { RECIPES } from "./data/recipes.js";
 import {
     getAllRecipes,
-    getRecipeById,
-    searchRecipesByName,
-    filterRecipesByFamily,
-    filterRecipesByMealType,
-    filterRecipesByTime,
-    filterRecipesByEffort,
-    filterRecipes,
     sortRecipes,
     getAllFamilies,
-    getAllMealTypes,
-    getRecipeStats,
-    getIngredientName
+    getAllMealTypes
 } from "./modules/recipes-module.js";
 
 const STORAGE_KEYS = {
@@ -26,7 +17,8 @@ const STORAGE_KEYS = {
     shoppingList: "milpa_nime_shopping_list_v1",
     customLists: "milpa_nime_custom_lists_v1",
     wasteLog: "milpa_nime_waste_log_v1",
-    recentSuggestedRecipes: "milpa_nime_recent_recipes_v1"
+    recentSuggestedRecipes: "milpa_nime_recent_recipes_v1",
+    cookHistory: "milpa_nime_cook_history_v1"
 };
 
 const CRAVINGS = [
@@ -141,6 +133,7 @@ const state = {
     wasteLog: loadWasteLog(),
     currentMonth: new Date().getMonth() + 1,
     recentSuggestedRecipes: loadRecentSuggestedRecipes(),
+    cookHistory: loadCookHistory(),
     customLists: [],
     activeCustomListId: null,
     groceryView: "auto"
@@ -333,6 +326,7 @@ function init() {
 
     // Initialize FAB immediately (needed for quick navigation)
     initFAB();
+    initRouting();
 
     // Defer non-critical initialization to avoid blocking
     requestIdleCallback(() => {
@@ -356,7 +350,7 @@ function initCollapsibles() {
 function handleShortcutParam() {
     const params = new URLSearchParams(window.location.search);
     const view = params.get("view");
-    if (view && ["today", "planner", "mealprep", "grocery", "recipes"].includes(view)) {
+    if (view && VIEW_META[view]) {
         showView(view);
     }
 }
@@ -368,6 +362,12 @@ function bindEvents() {
     suggestBtn.addEventListener("click", handleSuggest);
     document.getElementById("surpriseBtn")?.addEventListener("click", handleSurprise);
     document.getElementById("surpriseBtnEmpty")?.addEventListener("click", handleSurprise);
+
+    // Acceso rápido a "Sorpréndeme" desde cualquier vista (header)
+    document.getElementById("headerSurpriseBtn")?.addEventListener("click", () => {
+        showView("today");
+        handleSurprise();
+    });
 
     document.getElementById("clearFiltersBtn")?.addEventListener("click", () => {
         state.selectedCravings = [];
@@ -501,9 +501,13 @@ const VIEW_META = {
     recipes:  { subtitle: "Consulta el catálogo completo de recetas" },
 };
 
-function showView(viewId) {
+function showView(viewId, { pushHistory = true } = {}) {
+    if (!VIEW_META[viewId]) return;
     document.querySelectorAll(".nav-item").forEach((btn) => {
-        btn.classList.toggle("active", btn.getAttribute("data-view") === viewId);
+        const isActive = btn.getAttribute("data-view") === viewId;
+        btn.classList.toggle("active", isActive);
+        if (isActive) btn.setAttribute("aria-current", "page");
+        else btn.removeAttribute("aria-current");
     });
     document.querySelectorAll(".page-view").forEach((view) => {
         view.classList.toggle("active", view.id === `view-${viewId}`);
@@ -521,6 +525,30 @@ function showView(viewId) {
     if (viewId === "mealprep") renderMealPrepInitial();
     if (viewId === "grocery") { renderGroceryHub(); updateGroceryBadge(); }
     if (viewId === "recipes") initializeRecipesView();
+
+    // Refleja la pestaña activa en la URL para que recargar la página o usar
+    // el botón atrás/adelante del navegador no te regrese siempre a "Hoy".
+    if (pushHistory) {
+        const targetHash = `#${viewId}`;
+        if (window.location.hash !== targetHash && !window.location.hash.includes("sync=")) {
+            history.pushState({ view: viewId }, "", targetHash);
+        }
+    }
+}
+
+/** Restaura la pestaña activa desde el hash de la URL y engancha atrás/adelante */
+function initRouting() {
+    const hashView = window.location.hash.replace(/^#\/?/, "");
+    if (hashView && hashView !== "today" && VIEW_META[hashView]) {
+        showView(hashView, { pushHistory: false });
+    }
+
+    window.addEventListener("popstate", (e) => {
+        const view = e.state?.view || window.location.hash.replace(/^#\/?/, "") || "today";
+        if (VIEW_META[view]) {
+            showView(view, { pushHistory: false });
+        }
+    });
 }
 
 // ─── Grocery Nav Badge ───
@@ -602,8 +630,9 @@ function showConfirm(title, message, onConfirm) {
 
     const okBtn = document.getElementById("confirmOk");
     const handler = () => {
+        const callback = _confirmCallback;
         closeConfirmModal();
-        _confirmCallback?.();
+        callback?.();
         okBtn.removeEventListener("click", handler);
     };
     okBtn.addEventListener("click", handler);
@@ -1546,10 +1575,17 @@ function createRecipeCard(item) {
     if (viewDetailBtn) {
         viewDetailBtn.addEventListener("click", (e) => {
             e.stopPropagation();
-            openRecipesBrowserModal(false);
-            openRecipeDetail(recipe.id);
+            showRecipeDetailOverlay(recipe.id);
         });
     }
+
+    // Toda la tarjeta es tocable para ver el detalle (patrón estándar en apps
+    // modernas de recetas): un tap en cualquier parte que no sea un botón
+    // abre la receta, igual que el botón explícito "Ver receta".
+    node.addEventListener("click", (e) => {
+        if (e.target.closest("button")) return;
+        showRecipeDetailOverlay(recipe.id);
+    });
 
     return node;
 }
@@ -1571,9 +1607,18 @@ function handleCook(recipeId) {
                 }
             });
 
+            // 2. Record cook history (veces cocinada / última vez)
+            recordRecipeCooked(recipeId);
+
             persistInventory();
             renderInventory();
-            
+
+            // Refresh the recipe detail panel if it's showing this same recipe
+            const detailPanel = document.getElementById("recipeDetailPanel");
+            if (detailPanel && !detailPanel.classList.contains("hidden")) {
+                openRecipeDetail(recipeId);
+            }
+
             // Celebration
             showConfetti();
             showToast("¡Buen provecho! Ingredientes actualizados.");
@@ -1861,8 +1906,31 @@ function renderGroceryList() {
                 if (item.type === 'plan') {
                     toggleIngredient(item.id);
                 } else {
+                    // `item` es una copia usada solo para renderizar; hay que mutar
+                    // el objeto real dentro de state.shoppingList para que persista.
+                    const realItem = state.shoppingList.find(i => i.id === item.id);
+                    if (realItem) realItem.checked = cb.checked;
                     item.checked = cb.checked;
                     persistShoppingList();
+                    // Si el item manual corresponde a un ingrediente conocido, marcarlo
+                    // también como disponible en el inventario (vínculo compras → inventario)
+                    if (item.ingredientId) {
+                        if (!state.inventory[item.ingredientId]) {
+                            state.inventory[item.ingredientId] = { has: false, urgency: "normal", category: INGREDIENTS.find(i => i.id === item.ingredientId)?.category || "other" };
+                        }
+                        state.inventory[item.ingredientId].has = cb.checked;
+                        if (cb.checked) {
+                            state.inventory[item.ingredientId].dateAdded = Date.now();
+                            if (!state.inventory[item.ingredientId].location) {
+                                state.inventory[item.ingredientId].location = getDefaultLocation(state.inventory[item.ingredientId].category);
+                            }
+                        } else {
+                            delete state.inventory[item.ingredientId].dateAdded;
+                        }
+                        persistInventory();
+                        updateInventoryBadge();
+                        renderInventory();
+                    }
                     renderGroceryList();
                 }
             });
@@ -1902,6 +1970,7 @@ function setupUnifiedQuickAdd() {
             id: `manual_${Date.now()}`,
             name,
             category: known ? known.category : "basicos",
+            ingredientId: known ? known.id : null,
             checked: false,
             type: "manual"
         };
@@ -2142,6 +2211,28 @@ function addToRecentRecipes(recipeIds) {
     persistRecentSuggestedRecipes();
 }
 
+// ─── Cook History (veces cocinada / última vez) ───
+function loadCookHistory() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.cookHistory)) || {}; } catch { return {}; }
+}
+function persistCookHistory() {
+    localStorage.setItem(STORAGE_KEYS.cookHistory, JSON.stringify(state.cookHistory));
+}
+function recordRecipeCooked(recipeId) {
+    const entry = state.cookHistory[recipeId] || { count: 0, lastCookedAt: null };
+    entry.count += 1;
+    entry.lastCookedAt = Date.now();
+    state.cookHistory[recipeId] = entry;
+    persistCookHistory();
+}
+function formatCookHistory(recipeId) {
+    const entry = state.cookHistory[recipeId];
+    if (!entry || !entry.count) return "Aún no la has cocinado";
+    const days = Math.floor((Date.now() - entry.lastCookedAt) / (24 * 60 * 60 * 1000));
+    const when = days <= 0 ? "hoy" : days === 1 ? "hace 1 día" : days < 30 ? `hace ${days} días` : `hace ${Math.floor(days / 30)} mes${Math.floor(days / 30) > 1 ? "es" : ""}`;
+    return `Cocinada ${entry.count} ${entry.count === 1 ? "vez" : "veces"} · última vez ${when}`;
+}
+
 // ─── PWA Install ───
 function setupPWAInstall() {
     let deferredPrompt;
@@ -2236,9 +2327,12 @@ function initAddRecipeToList() {
 }
 
 function addRecipeIngredientsToShoppingList(recipeName, ingredientsText) {
-    const names = ingredientsText.split(",").map(s => s.trim()).filter(Boolean);
+    const names = ingredientsText.split(",")
+        .map(s => s.trim())
+        .filter(Boolean)
+        .filter(s => !s.includes("✅")); // ya los tienes en inventario, no hace falta comprarlos
     if (!names.length) {
-        showToast("Esta receta no tiene ingredientes para agregar");
+        showToast("Ya tienes todos los ingredientes de esta receta en tu inventario");
         return;
     }
     if (!state.shoppingList) state.shoppingList = [];
@@ -2251,6 +2345,7 @@ function addRecipeIngredientsToShoppingList(recipeName, ingredientsText) {
             id: `manual_${Date.now()}_${idx}`,
             name,
             category: known ? known.category : "basicos",
+            ingredientId: known ? known.id : null,
             checked: false,
             type: "manual"
         });
@@ -2263,6 +2358,39 @@ function addRecipeIngredientsToShoppingList(recipeName, ingredientsText) {
     showToast(added > 0
         ? `${added} ingrediente${added !== 1 ? "s" : ""} de "${recipeName}" agregado${added !== 1 ? "s" : ""} a Compras`
         : `Los ingredientes de "${recipeName}" ya están en tu lista`);
+}
+
+/** Agrega solo los ingredientes REQUERIDOS que faltan en el inventario a la lista de compra */
+function addMissingIngredientsToGrocery(recipe) {
+    const missingIds = (recipe.ingredientsRequired || []).filter(id => !state.inventory[id]?.has);
+    if (!missingIds.length) {
+        showToast("Ya tienes todos los ingredientes de esta receta en tu inventario");
+        return;
+    }
+    if (!state.shoppingList) state.shoppingList = [];
+    const existing = new Set(state.shoppingList.map(i => (i.name || "").toLowerCase()));
+    let added = 0;
+    missingIds.forEach((id, idx) => {
+        const ing = INGREDIENTS.find(i => i.id === id);
+        const name = ing ? ing.name : id;
+        if (existing.has(name.toLowerCase())) return;
+        state.shoppingList.push({
+            id: `manual_${Date.now()}_${idx}`,
+            name,
+            category: ing ? ing.category : "basicos",
+            ingredientId: id,
+            checked: false,
+            type: "manual"
+        });
+        existing.add(name.toLowerCase());
+        added++;
+    });
+    persistShoppingList();
+    renderGroceryList();
+    updateGroceryBadge();
+    showToast(added > 0
+        ? `${added} ingrediente${added !== 1 ? "s" : ""} faltante${added !== 1 ? "s" : ""} agregado${added !== 1 ? "s" : ""} a Compras`
+        : `Esos ingredientes ya están en tu lista de compra`);
 }
 
 
@@ -2459,6 +2587,12 @@ const FAMILY_LABELS = {
     pescados: "Pescados", huevo: "Huevo", queso: "Queso", verduras: "Verduras",
     maiz: "Maíz", cereales: "Cereales", postres: "Postres", basicos: "Básicos"
 };
+
+/** Abre el detalle de una receta como overlay, sin importar desde qué vista se llame */
+function showRecipeDetailOverlay(recipeId) {
+    openRecipesBrowserModal(false);
+    openRecipeDetail(recipeId);
+}
 
 function openRecipesBrowserModal(selectionMode = false, onSelect = null) {
     const modal = document.getElementById("recipesBrowserModal");
@@ -2665,11 +2799,18 @@ function openRecipeDetail(recipeId) {
         const name = ing ? ing.name : id;
         const amountStr = item.amount && item.unit ? `${item.amount} ${item.unit}` : "";
         const notes = item.notes ? ` — ${item.notes}` : "";
-        return `<li class="rd-ingredient-item">
+        const owned = !!state.inventory[id]?.has;
+        return `<li class="rd-ingredient-item ${owned ? "owned" : "missing"}">
+            <span class="material-symbols-outlined rd-ingredient-status" aria-hidden="true">${owned ? "check_circle" : "remove_shopping_cart"}</span>
             <span class="rd-ingredient-name">${escapeHtml(name)}${escapeHtml(notes)}</span>
             ${amountStr ? `<span class="rd-ingredient-amount">${escapeHtml(amountStr)}</span>` : ""}
         </li>`;
     }).join("");
+
+    const missingCount = allRequired.filter(item => {
+        const id = typeof item === "string" ? item : item.id;
+        return !state.inventory[id]?.has;
+    }).length;
 
     const optionalIngredients = recipe.ingredientsOptional?.filter(id => !detailedIds.has(id)) || [];
     const optionalHtml = optionalIngredients.map(id => {
@@ -2732,10 +2873,12 @@ function openRecipeDetail(recipeId) {
                 <span class="rd-badge"><span class="material-symbols-outlined" aria-hidden="true">restaurant</span>${escapeHtml(FAMILY_LABELS[recipe.family] || capitalize(recipe.family || ""))}</span>
                 <span class="rd-badge"><span class="material-symbols-outlined" aria-hidden="true">schedule</span>${recipe.timeMin} min</span>
                 <span class="rd-badge"><span class="material-symbols-outlined" aria-hidden="true">flatware</span>${escapeHtml(recipe.format || "")}</span>
+                ${recipe.servings ? `<span class="rd-badge"><span class="material-symbols-outlined" aria-hidden="true">groups</span>${recipe.servings} porc.</span>` : ""}
                 ${recipe.effort ? `<span class="rd-badge"><span class="material-symbols-outlined" aria-hidden="true">fitness_center</span>${effortLabel[recipe.effort] || recipe.effort}</span>` : ""}
                 ${recipe.mealType ? `<span class="rd-badge"><span class="material-symbols-outlined" aria-hidden="true">sunny</span>${mealTypeLabel[recipe.mealType] || recipe.mealType}</span>` : ""}
             </div>
             <p class="rd-desc">${escapeHtml(recipe.description || "")}</p>
+            <p class="rd-cook-history"><span class="material-symbols-outlined" aria-hidden="true">history</span>${escapeHtml(formatCookHistory(recipe.id))}</p>
         </div>
 
         ${cravingsHtml ? `
@@ -2745,7 +2888,7 @@ function openRecipeDetail(recipeId) {
         </div>` : ""}
 
         <div class="rd-section">
-            <p class="rd-section-title"><span class="material-symbols-outlined" aria-hidden="true">grocery</span>Ingredientes necesarios</p>
+            <p class="rd-section-title"><span class="material-symbols-outlined" aria-hidden="true">grocery</span>Ingredientes necesarios${missingCount ? ` · te faltan ${missingCount}` : " · los tienes todos ✅"}</p>
             <ul class="rd-ingredients-list">${requiredHtml}</ul>
         </div>
 
@@ -2753,6 +2896,12 @@ function openRecipeDetail(recipeId) {
         <div class="rd-section">
             <p class="rd-section-title"><span class="material-symbols-outlined" aria-hidden="true">add_circle</span>Ingredientes opcionales</p>
             <ul class="rd-ingredients-list">${optionalHtml}</ul>
+        </div>` : ""}
+
+        ${recipe.steps?.length ? `
+        <div class="rd-section">
+            <p class="rd-section-title"><span class="material-symbols-outlined" aria-hidden="true">format_list_numbered</span>Preparación</p>
+            <ol class="rd-steps-list">${recipe.steps.map(step => `<li>${escapeHtml(step)}</li>`).join("")}</ol>
         </div>` : ""}
 
         ${profileHtml ? `
@@ -2769,17 +2918,32 @@ function openRecipeDetail(recipeId) {
         </div>
 
         <div class="rd-actions">
+            <button type="button" class="action-btn primary-action" id="rdCookedBtn">
+                <span class="material-symbols-outlined" aria-hidden="true">local_fire_department</span>
+                Ya la cociné
+            </button>
             <button type="button" class="action-btn" id="rdAddToPlanBtn">
                 <span class="material-symbols-outlined" aria-hidden="true">calendar_add_on</span>
                 Añadir al plan
             </button>
+            ${missingCount ? `
+            <button type="button" class="action-btn" id="rdAddMissingBtn">
+                <span class="material-symbols-outlined" aria-hidden="true">shopping_cart</span>
+                Agregar ${missingCount} faltante${missingCount !== 1 ? "s" : ""} a Compras
+            </button>` : ""}
         </div>
     `;
 
     document.getElementById("rdAddToPlanBtn")?.addEventListener("click", () => {
         openDayPicker(recipe.id);
     });
-    
+    document.getElementById("rdCookedBtn")?.addEventListener("click", () => {
+        handleCook(recipe.id);
+    });
+    document.getElementById("rdAddMissingBtn")?.addEventListener("click", () => {
+        addMissingIngredientsToGrocery(recipe);
+    });
+
     const list = document.getElementById("recipesBrowserList");
     const detail = document.getElementById("recipeDetailPanel");
     if (list) list.classList.add("hidden");
@@ -2911,7 +3075,7 @@ function searchAll(query) {
     box.querySelectorAll(".search-result-item[data-type='recipe']").forEach(btn => {
         btn.addEventListener("click", () => {
             closeSearchModal();
-            openDayPicker(btn.dataset.id);
+            showRecipeDetailOverlay(btn.dataset.id);
         });
     });
 }
@@ -2977,7 +3141,15 @@ function initSearch() {
     });
 
     // ── Recipe Browser Modal ────────────────────────────────────
-    document.getElementById("browseAllRecipesBtn")?.addEventListener("click", () => openRecipesBrowserModal());
+    // "Explorar todas" lleva al catálogo único (pestaña Recetas) en vez de abrir
+    // un segundo explorador con sus propios filtros — una sola forma de navegar
+    // el catálogo completo, en vez de dos experiencias distintas para lo mismo.
+    document.getElementById("browseAllRecipesBtn")?.addEventListener("click", () => {
+        showView("recipes");
+        requestAnimationFrame(() => {
+            document.getElementById("recipeSearchInput")?.focus();
+        });
+    });
 
     document.getElementById("closeRecipesBrowser")?.addEventListener("click", closeRecipesBrowserModal);
 
@@ -3154,105 +3326,13 @@ function renderRecipes() {
         </article>
     `).join("");
 
-    // Add event listeners to recipe cards
-    container.querySelectorAll(".recipe-card-view-btn").forEach((btn) => {
-        btn.addEventListener("click", (e) => {
-            const card = e.target.closest(".recipe-card");
-            const recipeId = card.dataset.recipeId;
-            showRecipeDetail(recipeId);
-        });
-    });
-}
-
-function showRecipeDetail(recipeId) {
-    const recipe = getRecipeById(recipeId);
-    if (!recipe) return;
-
-    // Create a modal-like detail view
-    const modal = document.createElement("div");
-    modal.className = "recipe-detail-modal";
-    modal.innerHTML = `
-        <div class="recipe-detail-overlay" role="dialog" aria-modal="true">
-            <div class="recipe-detail-content">
-                <div class="recipe-detail-header">
-                    <h2>${escapeHtml(recipe.name)}</h2>
-                    <button class="close-btn" aria-label="Cerrar" type="button">
-                        <span class="material-symbols-outlined" aria-hidden="true">close</span>
-                    </button>
-                </div>
-
-                <div class="recipe-detail-body">
-                    <p class="recipe-detail-description">${escapeHtml(recipe.description || "")}</p>
-
-                    <div class="recipe-detail-info-grid">
-                        <div class="info-card">
-                            <span class="info-label">Familia</span>
-                            <span class="info-value">${recipe.family}</span>
-                        </div>
-                        <div class="info-card">
-                            <span class="info-label">Tiempo</span>
-                            <span class="info-value">${recipe.timeMin} min</span>
-                        </div>
-                        <div class="info-card">
-                            <span class="info-label">Esfuerzo</span>
-                            <span class="info-value">${recipe.effort}</span>
-                        </div>
-                        <div class="info-card">
-                            <span class="info-label">Tipo</span>
-                            <span class="info-value">${recipe.mealType}</span>
-                        </div>
-                    </div>
-
-                    <h3>Ingredientes Requeridos</h3>
-                    <ul class="ingredients-list required">
-                        ${recipe.ingredientsRequired.map((id) =>
-                            `<li><span class="material-symbols-outlined" aria-hidden="true">done</span>${escapeHtml(getIngredientName(id))}</li>`
-                        ).join("")}
-                    </ul>
-
-                    ${recipe.ingredientsOptional && recipe.ingredientsOptional.length > 0 ? `
-                        <h3>Ingredientes Opcionales</h3>
-                        <ul class="ingredients-list optional">
-                            ${recipe.ingredientsOptional.map((id) =>
-                                `<li><span class="material-symbols-outlined" aria-hidden="true">edit</span>${escapeHtml(getIngredientName(id))}</li>`
-                            ).join("")}
-                        </ul>
-                    ` : ""}
-
-                    ${recipe.cravings && recipe.cravings.length > 0 ? `
-                        <h3>Cravings</h3>
-                        <div class="cravings-list">
-                            ${recipe.cravings.map((craving) =>
-                                `<span class="craving-chip">${craving}</span>`
-                            ).join("")}
-                        </div>
-                    ` : ""}
-                </div>
-
-                <div class="recipe-detail-actions">
-                    <button class="primary-btn add-to-plan-btn" type="button" data-recipe-id="${recipe.id}">
-                        <span class="material-symbols-outlined" aria-hidden="true">add</span>
-                        Agregar al plan
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-
-    document.body.appendChild(modal);
-
-    const closeBtn = modal.querySelector(".close-btn");
-    const overlay = modal.querySelector(".recipe-detail-overlay");
-    const addBtn = modal.querySelector(".add-to-plan-btn");
-
-    closeBtn.addEventListener("click", () => modal.remove());
-    overlay.addEventListener("click", (e) => {
-        if (e.target === overlay) modal.remove();
-    });
-
-    addBtn?.addEventListener("click", () => {
-        openDayPicker(recipeId);
-        modal.remove();
+    // Add event listeners to recipe cards — reutiliza el mismo panel de detalle
+    // enriquecido (ingredientes vs. inventario, pasos, historial de cocinado) que
+    // usa el explorador modal, para que la experiencia sea consistente sin importar
+    // desde dónde se llegue a una receta. Toda la tarjeta es tocable, no solo el
+    // botón "Ver detalle".
+    container.querySelectorAll(".recipe-card").forEach((card) => {
+        card.addEventListener("click", () => showRecipeDetailOverlay(card.dataset.recipeId));
     });
 }
 
