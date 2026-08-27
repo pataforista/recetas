@@ -326,6 +326,7 @@ function init() {
 
     // Initialize FAB immediately (needed for quick navigation)
     initFAB();
+    initRouting();
 
     // Defer non-critical initialization to avoid blocking
     requestIdleCallback(() => {
@@ -349,7 +350,7 @@ function initCollapsibles() {
 function handleShortcutParam() {
     const params = new URLSearchParams(window.location.search);
     const view = params.get("view");
-    if (view && ["today", "planner", "mealprep", "grocery", "recipes"].includes(view)) {
+    if (view && VIEW_META[view]) {
         showView(view);
     }
 }
@@ -500,7 +501,8 @@ const VIEW_META = {
     recipes:  { subtitle: "Consulta el catálogo completo de recetas" },
 };
 
-function showView(viewId) {
+function showView(viewId, { pushHistory = true } = {}) {
+    if (!VIEW_META[viewId]) return;
     document.querySelectorAll(".nav-item").forEach((btn) => {
         const isActive = btn.getAttribute("data-view") === viewId;
         btn.classList.toggle("active", isActive);
@@ -523,6 +525,30 @@ function showView(viewId) {
     if (viewId === "mealprep") renderMealPrepInitial();
     if (viewId === "grocery") { renderGroceryHub(); updateGroceryBadge(); }
     if (viewId === "recipes") initializeRecipesView();
+
+    // Refleja la pestaña activa en la URL para que recargar la página o usar
+    // el botón atrás/adelante del navegador no te regrese siempre a "Hoy".
+    if (pushHistory) {
+        const targetHash = `#${viewId}`;
+        if (window.location.hash !== targetHash && !window.location.hash.includes("sync=")) {
+            history.pushState({ view: viewId }, "", targetHash);
+        }
+    }
+}
+
+/** Restaura la pestaña activa desde el hash de la URL y engancha atrás/adelante */
+function initRouting() {
+    const hashView = window.location.hash.replace(/^#\/?/, "");
+    if (hashView && hashView !== "today" && VIEW_META[hashView]) {
+        showView(hashView, { pushHistory: false });
+    }
+
+    window.addEventListener("popstate", (e) => {
+        const view = e.state?.view || window.location.hash.replace(/^#\/?/, "") || "today";
+        if (VIEW_META[view]) {
+            showView(view, { pushHistory: false });
+        }
+    });
 }
 
 // ─── Grocery Nav Badge ───
@@ -1549,10 +1575,17 @@ function createRecipeCard(item) {
     if (viewDetailBtn) {
         viewDetailBtn.addEventListener("click", (e) => {
             e.stopPropagation();
-            openRecipesBrowserModal(false);
-            openRecipeDetail(recipe.id);
+            showRecipeDetailOverlay(recipe.id);
         });
     }
+
+    // Toda la tarjeta es tocable para ver el detalle (patrón estándar en apps
+    // modernas de recetas): un tap en cualquier parte que no sea un botón
+    // abre la receta, igual que el botón explícito "Ver receta".
+    node.addEventListener("click", (e) => {
+        if (e.target.closest("button")) return;
+        showRecipeDetailOverlay(recipe.id);
+    });
 
     return node;
 }
@@ -2555,6 +2588,12 @@ const FAMILY_LABELS = {
     maiz: "Maíz", cereales: "Cereales", postres: "Postres", basicos: "Básicos"
 };
 
+/** Abre el detalle de una receta como overlay, sin importar desde qué vista se llame */
+function showRecipeDetailOverlay(recipeId) {
+    openRecipesBrowserModal(false);
+    openRecipeDetail(recipeId);
+}
+
 function openRecipesBrowserModal(selectionMode = false, onSelect = null) {
     const modal = document.getElementById("recipesBrowserModal");
     const list = document.getElementById("recipesBrowserList");
@@ -3036,8 +3075,7 @@ function searchAll(query) {
     box.querySelectorAll(".search-result-item[data-type='recipe']").forEach(btn => {
         btn.addEventListener("click", () => {
             closeSearchModal();
-            openRecipesBrowserModal(false);
-            openRecipeDetail(btn.dataset.id);
+            showRecipeDetailOverlay(btn.dataset.id);
         });
     });
 }
@@ -3103,7 +3141,15 @@ function initSearch() {
     });
 
     // ── Recipe Browser Modal ────────────────────────────────────
-    document.getElementById("browseAllRecipesBtn")?.addEventListener("click", () => openRecipesBrowserModal());
+    // "Explorar todas" lleva al catálogo único (pestaña Recetas) en vez de abrir
+    // un segundo explorador con sus propios filtros — una sola forma de navegar
+    // el catálogo completo, en vez de dos experiencias distintas para lo mismo.
+    document.getElementById("browseAllRecipesBtn")?.addEventListener("click", () => {
+        showView("recipes");
+        requestAnimationFrame(() => {
+            document.getElementById("recipeSearchInput")?.focus();
+        });
+    });
 
     document.getElementById("closeRecipesBrowser")?.addEventListener("click", closeRecipesBrowserModal);
 
@@ -3283,14 +3329,10 @@ function renderRecipes() {
     // Add event listeners to recipe cards — reutiliza el mismo panel de detalle
     // enriquecido (ingredientes vs. inventario, pasos, historial de cocinado) que
     // usa el explorador modal, para que la experiencia sea consistente sin importar
-    // desde dónde se llegue a una receta.
-    container.querySelectorAll(".recipe-card-view-btn").forEach((btn) => {
-        btn.addEventListener("click", (e) => {
-            const card = e.target.closest(".recipe-card");
-            const recipeId = card.dataset.recipeId;
-            openRecipesBrowserModal(false);
-            openRecipeDetail(recipeId);
-        });
+    // desde dónde se llegue a una receta. Toda la tarjeta es tocable, no solo el
+    // botón "Ver detalle".
+    container.querySelectorAll(".recipe-card").forEach((card) => {
+        card.addEventListener("click", () => showRecipeDetailOverlay(card.dataset.recipeId));
     });
 }
 
