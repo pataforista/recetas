@@ -362,6 +362,8 @@ function bindEvents() {
     suggestBtn.addEventListener("click", handleSuggest);
     document.getElementById("surpriseBtn")?.addEventListener("click", handleSurprise);
     document.getElementById("surpriseBtnEmpty")?.addEventListener("click", handleSurprise);
+    document.getElementById("topSurpriseBtn")?.addEventListener("click", handleSurprise);
+    document.getElementById("updateBtn")?.addEventListener("click", () => window.location.reload());
 
     // Acceso rápido a "Sorpréndeme" desde cualquier vista (header)
     document.getElementById("headerSurpriseBtn")?.addEventListener("click", () => {
@@ -880,7 +882,7 @@ function renderInventory() {
                     <input type="checkbox" ${isOwned ? "checked" : ""} />
                 </div>
                 <div class="item-main">
-                    <span class="item-icon">${getCategoryIcon(item.category)}</span>
+                    <span class="item-icon material-symbols-outlined" aria-hidden="true">${getCategoryIcon(item.category)}</span>
                     <span class="item-name">${item.name}</span>
                 </div>
                 <div class="item-controls">
@@ -1862,7 +1864,7 @@ function renderGroceryList() {
     sortedCats.forEach(cat => {
         const section = document.createElement("div");
         section.className = "grocery-aisle";
-        section.innerHTML = `<h3 class="aisle-header">${getCategoryIcon(cat)} ${capitalize(cat)}</h3>`;
+        section.innerHTML = `<h3 class="aisle-header"><span class="material-symbols-outlined" aria-hidden="true">${getCategoryIcon(cat)}</span> ${capitalize(cat)}</h3>`;
         
         const list = document.createElement("div");
         list.className = "aisle-list";
@@ -2400,13 +2402,20 @@ function registerSW() {
     if (!("serviceWorker" in navigator)) return;
 
     navigator.serviceWorker.register("./sw.js").then((registration) => {
+        // Respaldo: el sw.js nuevo llama a self.skipWaiting() solo, pero por si
+        // algún navegador lo retrasa, forzamos el paso a "waiting" -> activo.
+        const forceActivate = () => {
+            registration.waiting?.postMessage("skipWaiting");
+        };
+
         // Detect when a new SW is waiting
         const onUpdateFound = () => {
             const newWorker = registration.installing;
             if (!newWorker) return;
             newWorker.addEventListener("statechange", () => {
                 if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-                    showUpdateBanner(registration);
+                    showUpdateBanner();
+                    forceActivate();
                 }
             });
         };
@@ -2415,8 +2424,14 @@ function registerSW() {
 
         // If there's already a waiting SW on load
         if (registration.waiting && navigator.serviceWorker.controller) {
-            showUpdateBanner(registration);
+            showUpdateBanner();
+            forceActivate();
         }
+
+        // Revisa si hay una versión nueva cada vez que la app vuelve a primer plano
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") registration.update().catch(() => {});
+        });
     }).catch(console.error);
 
     // When the SW controller changes (after skipWaiting), reload
@@ -2425,15 +2440,8 @@ function registerSW() {
     });
 }
 
-function showUpdateBanner(registration) {
-    const banner = document.getElementById("updateBanner");
-    const updateBtn = document.getElementById("updateBtn");
-    banner.classList.remove("hidden");
-
-    updateBtn.addEventListener("click", () => {
-        const sw = registration.waiting;
-        if (sw) sw.postMessage("skipWaiting");
-    }, { once: true });
+function showUpdateBanner() {
+    document.getElementById("updateBanner")?.classList.remove("hidden");
 }
 
 // ─── Search System ───────────────────────────────────────────────────────────

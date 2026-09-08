@@ -24,16 +24,15 @@
   <link rel="icon" href="./assets/icon.svg" type="image/svg+xml" />
   <link rel="manifest" href="./manifest.webmanifest" />
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" />
+  <!-- Tipografías e iconos empaquetados localmente (ver styles.css): así la app
+       no depende de que Google Fonts responda a tiempo, ni en modo offline. -->
   <link rel="stylesheet" href="./styles.css" />
   <title>Milpa NiME</title>
 </head>
 
 <body>
+  <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
+
   <!-- Offline Banner -->
   <div id="offlineBanner" class="offline-banner hidden" role="status">
     <span class="material-symbols-outlined" aria-hidden="true">wifi_off</span>
@@ -41,10 +40,10 @@
   </div>
 
   <!-- Update Banner -->
-  <div id="updateBanner" class="update-banner hidden" role="status">
+  <div id="updateBanner" class="update-banner hidden" role="status" aria-live="polite">
     <span><span class="material-symbols-outlined" aria-hidden="true">system_update</span> Nueva versión
-      disponible</span>
-    <button id="updateBtn" class="secondary" type="button">Actualizar</button>
+      disponible, actualizando…</span>
+    <button id="updateBtn" class="secondary" type="button">Actualizar ahora</button>
   </div>
 
   <header class="app-header">
@@ -68,9 +67,21 @@
     </div>
   </header>
 
-  <main class="layout">
+  <main id="main-content" class="layout" tabindex="-1">
     <div id="view-today" class="page-view active">
       <div class="dashboard-container">
+        <!-- Section 0: Random Recipe (Always visible, first thing you see) -->
+        <section class="panel surprise-hero" id="section-surprise" aria-labelledby="surpriseHeroTitle">
+          <span class="surprise-hero-dice" aria-hidden="true">🎲</span>
+          <div class="surprise-hero-text">
+            <h2 id="surpriseHeroTitle">¿No sabes qué cocinar?</h2>
+            <p class="hint">Te damos una receta al azar, lista para hoy — sin necesidad de llenar tu inventario.</p>
+          </div>
+          <button id="topSurpriseBtn" type="button" class="primary-action surprise-hero-btn">
+            <span class="material-symbols-outlined" aria-hidden="true">casino</span> Receta aleatoria
+          </button>
+        </section>
+
         <!-- Section 1: Inventory (Collapsible) -->
         <section class="panel collapsible-panel" id="section-inventory">
           <header class="panel-header section-toggle" data-target="inventory-body">
@@ -189,7 +200,7 @@
             <h2>Sugerencias</h2>
           </header>
           <div class="panel-body">
-            <div id="summaryBox" class="summary-box"></div>
+            <div id="summaryBox" class="summary-box" role="status" aria-live="polite"></div>
             <div id="resultsToolbar" class="results-toolbar hidden">
               <div class="results-toolbar-main">
                 <span id="resultsCount" class="results-count"></span>

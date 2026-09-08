@@ -1,3 +1,39 @@
+/* ─── Fuentes locales (sin depender de Google Fonts) ───
+   Empaquetadas en assets/fonts/ y cacheadas por el Service Worker, para que
+   la app siempre muestre íconos y tipografía correctos, incluso offline o
+   con mala conexión. */
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('./assets/fonts/outfit-variable.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('./assets/fonts/material-symbols-outlined.woff2') format('woff2');
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
 :root {
   /* Richard Scarry "Busytown" Palette */
   --clr-tomato: #E55B3C;
@@ -78,6 +114,42 @@ body {
 /* Utility */
 .hidden {
   display: none !important;
+}
+
+/* ─── Accessibility: skip link ─── */
+.skip-link {
+  position: absolute;
+  top: -60px;
+  left: 12px;
+  z-index: 1000;
+  background: var(--clr-ink);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+/* ─── Accessibility: respect reduced-motion preference ─── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .panel:hover,
+  .sketchy-block:hover,
+  .recipe-card:hover,
+  button:hover:not(:disabled) {
+    transform: none !important;
+  }
 }
 
 /* â”€â”€â”€ Banners â”€â”€â”€ */
@@ -172,7 +244,10 @@ body {
   max-width: 1000px; /* Expanded for better Bento feel on larger screens */
   margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  /* minmax(0, 1fr) evita que contenido interno sin salto de línea (chips,
+     filtros con scroll horizontal) fuerce el ancho de la cuadrícula más
+     allá de la pantalla ("grid blowout"). */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--bento-gap);
 }
 
@@ -854,6 +929,7 @@ body {
   flex-direction: column;
   gap: 6px;
   margin-bottom: 16px;
+  min-width: 0;
 }
 
 .field>span {
@@ -1283,12 +1359,78 @@ button.error-btn:hover {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%;
   max-width: 800px;
+  min-width: 0;
   margin: 0 auto;
 }
 
 .collapsible-panel {
   overflow: hidden;
+}
+
+/* ─── Random Recipe Hero (top of "Hoy") ─── */
+.surprise-hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: var(--clr-gold);
+  border: var(--scarry-border);
+  box-shadow: var(--scarry-shadow);
+}
+
+.surprise-hero-dice {
+  font-size: 2.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.surprise-hero-text {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.surprise-hero-text h2 {
+  margin: 0 0 4px;
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: var(--clr-ink);
+}
+
+.surprise-hero-text .hint {
+  margin: 0;
+  color: var(--clr-ink);
+  opacity: 0.75;
+}
+
+.surprise-hero-btn {
+  flex-shrink: 0;
+  background: var(--clr-tomato);
+  color: white;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 14px 28px;
+  font-size: 0.95rem;
+  box-shadow: 0 8px 20px rgba(229, 91, 60, 0.35);
+}
+
+.surprise-hero-btn:hover:not(:disabled) {
+  background: #d14b2e;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(229, 91, 60, 0.45);
+}
+
+@media (max-width: 480px) {
+  .surprise-hero {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .surprise-hero-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 .section-toggle {
@@ -2486,7 +2628,7 @@ button.error-btn:hover {
   }
 
   .page-view.active {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .planner-grid {
