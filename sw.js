@@ -1,4 +1,4 @@
-const CACHE_NAME = 'milpa-nime-v6';
+const CACHE_NAME = 'milpa-nime-v7';
 const ASSETS = [
   './',
   './index.html',
@@ -10,11 +10,13 @@ const ASSETS = [
   './data/mealprep_bases.js',
   './data/health_rules.js',
   './modules/recipes-module.js',
-  'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap',
-  'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block'
+  './assets/fonts/outfit-variable.woff2',
+  './assets/fonts/material-symbols-outlined.woff2'
 ];
 
 self.addEventListener('install', (event) => {
+  // No esperar a que se cierren las pestañas viejas: activa esta versión en cuanto termine de instalar.
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
@@ -26,7 +28,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
       );
-    })
+    }).then(() => self.clients.claim()) // toma control de las pestañas abiertas de inmediato
   );
 });
 
