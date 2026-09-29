@@ -61,6 +61,48 @@
   
   --nav-height: 84px;
 
+  /* Tokens que el CSS usaba sin definir (selects, banners, botones, modales
+     quedaban transparentes o sin espaciado). */
+  --md-sys-color-on-surface-variant: #5A4A3A;
+  --md-sys-color-surface-variant: #F1EAE0;
+  --md-sys-color-surface-container: #F6F1EA;
+  --md-sys-color-surface-container-low: #FAF6F0;
+  --md-sys-color-outline: #8A7A6A;
+  --md-sys-color-outline-variant: #E2D8CB;
+  --md-sys-color-error: #B3261E;
+  --md-sys-color-error-container: #FCE4E1;
+  --md-sys-color-on-error-container: #5C0F0A;
+  --md-sys-color-secondary: #4E7D22;
+  --md-sys-color-secondary-container: #E3F1D3;
+  --md-sys-color-on-secondary-container: #1F3A08;
+  --md-sys-color-tertiary: #0277BD;
+  --md-sys-color-on-tertiary: #FFFFFF;
+  --md-sys-color-tertiary-container: #DDF1FB;
+  --md-sys-color-on-tertiary-container: #01344F;
+  --md-sys-color-success: #2E7D32;
+  --md-sys-color-warning: #9A5B00;
+  --md-sys-color-primary-dark: #C4432A;
+  --md-sys-shape-corner-medium: 12px;
+  --md-sys-shape-corner-large: 16px;
+  --md-sys-shape-corner-extra-large: 28px;
+  --md-sys-elevation-1: 0 1px 3px rgba(0, 0, 0, 0.12);
+  --md-sys-elevation-2: 0 4px 14px rgba(0, 0, 0, 0.12);
+  --md-sys-elevation-3: 0 12px 36px rgba(0, 0, 0, 0.2);
+  --bento-gap: 16px;
+  --bento-card-bg: #FFFFFF;
+  --bento-radius: 20px;
+  --bento-padding: 24px;
+  --bento-border: 1px solid rgba(0, 0, 0, 0.05);
+  --bento-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  --bg-secondary: #F6F1EA;
+  --text-primary: #332211;
+  --text-secondary: #5A4A3A;
+  --border-color: #E2D8CB;
+  --clr-brand-accent: #E55B3C;
+  --toggle-width: 48px;
+  --toggle-height: 28px;
+  --toggle-thumb: 22px;
+
   /* Legacy Tokens Compatibility (Busytown Mappings) */
   --clr-stone: #EFE9E1;
   --clr-violet: var(--clr-ink);
@@ -1164,7 +1206,7 @@ button.error-btn:hover {
 }
 
 .summary-box::before {
-  content: 'ðŸ½ï¸';
+  content: '🍽️';
   font-size: 1.2rem;
   flex-shrink: 0;
 }
@@ -1805,7 +1847,7 @@ button.error-btn:hover {
 }
 
 .planner-day.is-today h3::after {
-  content: 'â€¢';
+  content: '•';
   color: var(--md-sys-color-secondary);
   font-size: 1.2rem;
   line-height: 1;
@@ -5228,3 +5270,133 @@ body {
   100% { transform: translateY(0px); }
 }
 
+/* ══════════════════════════════════════════════════════════════
+   Refinamientos de usabilidad (van al final para ganar la cascada)
+   ══════════════════════════════════════════════════════════════ */
+
+/* Sin "temblor" al tocar: los rotates/translate por hover solo con puntero fino */
+.panel:hover, .sketchy-block:hover { transform: none; }
+
+/* Botón flotante: solo en Compras (la clase la pone showView) */
+.fab-container.fab-hidden { display: none; }
+.fab-main[aria-expanded="true"] { transform: rotate(45deg); }
+.fab-container { bottom: calc(var(--nav-height) + 24px + env(safe-area-inset-bottom, 0px)); }
+
+/* Encabezado alineado con el resto del contenido */
+.app-header { width: calc(100% - 24px); }
+@media (max-width: 600px) {
+  .app-header { margin: 12px auto 0; padding: 14px 16px; border-radius: 20px; align-items: center; }
+  .app-header h1 { font-size: 1.5rem; }
+  .subtitle { margin-top: 2px; font-size: 0.8rem; }
+  .icon-btn { width: 44px; height: 44px; }
+}
+
+/* Encabezados de panel: título a la izquierda, acción/flecha a la derecha */
+.panel-header { justify-content: space-between; }
+.section-toggle { min-height: 48px; }
+.section-toggle:focus-visible, .nav-item:focus-visible { outline: 3px solid var(--clr-ink); outline-offset: 2px; }
+.panel-header .header-main { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.panel-header .header-main h2 { margin: 0; }
+.panel-header .toggle-icon { margin-left: auto; }
+.panel-header .text-btn { min-height: 44px; padding: 0 14px; }
+
+/* Inventario: se ve completo (antes se recortaba a 2000px) y el CTA queda a mano */
+.collapsible-panel { overflow: visible; }
+.collapsible-panel:not(.collapsed) .section-content { max-height: none; overflow: visible; }
+.inventory-footer {
+  position: sticky;
+  bottom: calc(var(--nav-height) + 8px + env(safe-area-inset-bottom, 0px));
+  z-index: 5;
+  margin: 16px -4px 0;
+  padding: 12px 4px;
+  display: flex;
+  background: linear-gradient(to top, #fff 70%, rgba(255, 255, 255, 0));
+}
+.inventory-footer .primary-action { flex: 1; width: 100%; }
+.inventory-item { min-height: 52px; padding: 8px 12px; }
+.inventory-item .checkbox-wrap { min-width: 32px; min-height: 32px; }
+.inventory-item .item-icon { opacity: 0.55; font-size: 1.2rem; }
+.inventory-item.has-item .item-controls { flex-wrap: wrap; }
+.inventory-no-results { grid-column: 1 / -1; }
+
+/* Receta al azar: un toque, una receta, "Otra" */
+.surprise-hero { padding: 20px; }
+.surprise-hero-btn { min-height: 56px; }
+.surprise-result {
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  background: #fff;
+  border: 2px solid var(--clr-ink);
+  border-radius: 18px;
+  padding: 16px;
+  text-align: left;
+  box-shadow: 4px 4px 0 var(--clr-ink);
+  animation: slideUp 0.25s ease-out;
+}
+.surprise-pick-title { margin: 0 0 4px; font-size: 1.35rem; font-weight: 900; line-height: 1.2; color: var(--clr-ink); outline: none; }
+.surprise-pick-meta { margin: 0 0 8px; font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); }
+.surprise-pick-desc { margin: 0 0 14px; color: var(--clr-ink); line-height: 1.45; }
+.surprise-pick-actions { display: flex; gap: 8px; }
+.surprise-pick-actions button {
+  flex: 1; min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border-radius: 999px; font-weight: 800; border: 2px solid var(--clr-ink); background: #fff; color: var(--clr-ink); cursor: pointer;
+}
+.surprise-pick-actions .surprise-pick-again { background: var(--clr-tomato); color: #fff; }
+@media (max-width: 480px) {
+  .surprise-hero { gap: 12px; }
+  .surprise-hero-dice { display: none; }
+  .surprise-hero { align-items: stretch; }
+  .surprise-hero-text { flex: 0 0 auto; }
+  .surprise-result { flex: 0 0 auto; }
+  .surprise-hero .surprise-hero-btn { flex: 0 0 auto; height: auto; min-height: 56px; }
+}
+
+/* Tarjetas de resultados: el segundo bloque .recipe-card (pestaña Recetas) pisaba estas */
+#results .recipe-card { padding: 0; gap: 0; cursor: pointer; margin-bottom: 16px; border: 2px solid var(--clr-ink); }
+#results .recipe-card:hover { transform: none; }
+#results .recipe-card-inner { padding: 16px; }
+.recipe-top { flex-wrap: wrap; }
+.recipe-title { font-size: 1.25rem; flex: 1 1 60%; }
+.recipe-meta { flex-wrap: wrap; row-gap: 2px; }
+.recipe-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  padding: 12px 16px 16px;
+  border-top: 1.5px dashed var(--border-color);
+}
+.recipe-actions .action-btn {
+  min-height: 46px; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--bg-secondary); color: var(--clr-ink); border: 1.5px solid var(--border-color);
+}
+.recipe-actions .action-btn.primary-action {
+  grid-column: 1 / -1; height: auto; min-height: 50px; background: var(--clr-tomato); color: #fff;
+  border: 2px solid var(--clr-ink); box-shadow: 2px 2px 0 var(--clr-ink); font-size: 0.95rem;
+}
+.recipe-expand-btn { min-height: 44px; }
+
+/* Pestaña Recetas: filtros y tarjetas propias */
+.recipes-container .recipe-card { padding: 16px; gap: 12px; border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 0; }
+.filters-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.filters-group select, .form-group select { width: 100%; border: 1.5px solid var(--md-sys-color-outline-variant); }
+.form-group label { display: block; margin-bottom: 4px; }
+.sort-btn { min-height: 40px; }
+
+/* Detalle de receta: botón "volver" visible */
+.recipes-detail-header .icon-btn { background: var(--bg-secondary); color: var(--clr-ink); }
+
+/* Navegación inferior sólida y con objetivos táctiles cómodos */
+@media (max-width: 600px) {
+  .bottom-nav { bottom: calc(8px + env(safe-area-inset-bottom, 0px)); background: var(--clr-paper); }
+  .nav-item { min-height: 56px; }
+}
+.surprise-pick-actions button { white-space: nowrap; padding: 0 12px; }
+.quick-add-bar { align-items: center; padding: 6px 6px 6px 14px; overflow: hidden; }
+.quick-add-bar input { flex: 1; min-width: 0; background: transparent; border: none; outline: none; font: inherit; }
+.quick-add-bar .primary-btn { flex: 0 0 44px; width: 44px; height: 44px; padding: 0; border-radius: 50%; }
+#resultsPanel > .panel-header { justify-content: flex-start; }
+.results-toolbar-main { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.sort-chips { display: flex; gap: 6px; }
+.sort-chip, .toggle-control { min-height: 40px; }

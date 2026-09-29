@@ -75,8 +75,9 @@
           <span class="surprise-hero-dice" aria-hidden="true">🎲</span>
           <div class="surprise-hero-text">
             <h2 id="surpriseHeroTitle">¿No sabes qué cocinar?</h2>
-            <p class="hint">Te damos una receta al azar, lista para hoy — sin necesidad de llenar tu inventario.</p>
+            <p class="hint">Un toque y te damos una receta al azar, sin llenar tu inventario.</p>
           </div>
+          <div id="surpriseResult" class="surprise-result hidden" role="status" aria-live="polite"></div>
           <button id="topSurpriseBtn" type="button" class="primary-action surprise-hero-btn">
             <span class="material-symbols-outlined" aria-hidden="true">casino</span> Receta aleatoria
           </button>
@@ -90,7 +91,7 @@
               <h2>Inventario</h2>
               <span id="inventoryCount" class="panel-badge"></span>
             </div>
-            <span class="material-symbols-outlined toggle-icon">expand_more</span>
+            <span class="material-symbols-outlined toggle-icon" aria-hidden="true">expand_more</span>
           </header>
           <div id="inventory-body" class="section-content">
             <div class="panel-body">
@@ -131,8 +132,8 @@
                   <p class="empty-sub">Selecciona una categoría para ver tus ingredientes</p>
                 </div>
               </div>
-              <div class="inventory-footer" style="margin-top: 24px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
-                <button id="suggestBtn" type="button" class="primary-action" style="flex: 1; min-width: 250px;">
+              <div class="inventory-footer">
+                <button id="suggestBtn" type="button" class="primary-action">
                   <span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span> Sugerir Recetas
                 </button>
               </div>
@@ -147,7 +148,7 @@
               <span class="material-symbols-outlined" aria-hidden="true">tune</span>
               <h2>Filtros (Opcional)</h2>
             </div>
-            <span class="material-symbols-outlined toggle-icon">expand_more</span>
+            <span class="material-symbols-outlined toggle-icon" aria-hidden="true">expand_more</span>
           </header>
           <div id="context-body" class="section-content">
             <div class="panel-body">
@@ -501,11 +502,6 @@
         <p class="recipe-meta"></p>
         <p class="recipe-description"></p>
 
-        <div class="recipe-simple-stats">
-          <div class="simple-stat"><span class="material-symbols-outlined">schedule</span> <span class="time-text"></span></div>
-          <div class="simple-stat"><span class="material-symbols-outlined">restaurant</span> <span class="family-text"></span></div>
-        </div>
-
         <div class="recipe-collapsible">
            <!-- Pro Tip Section (Visible when expanded) -->
            <div class="recipe-section protip-section hidden">
@@ -553,8 +549,8 @@
 
       <div class="recipe-actions">
         <button type="button" class="action-btn start-cooking-btn primary-action">
-          <span class="material-symbols-outlined">local_fire_department</span>
-          Cocinar
+          <span class="material-symbols-outlined">check_circle</span>
+          Ya cociné
         </button>
         <button type="button" class="action-btn add-to-list-btn">
           <span class="material-symbols-outlined">shopping_cart</span>
