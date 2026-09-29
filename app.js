@@ -1066,41 +1066,43 @@ function handleSuggest() {
 
     // Use rAF to allow button state to render before heavy work
     requestAnimationFrame(() => {
-        const ranked = rankRecipes(RECIPES, userContext).slice(0, 6);
+        setTimeout(() => {
+            const ranked = rankRecipes(RECIPES, userContext).slice(0, 6);
 
-        if (!ranked.length) {
-            summaryBoxEl.textContent = "No encontré coincidencias suficientes. Marca más ingredientes o usa un modo más flexible.";
-            resultsEl.innerHTML = "";
-            mealPrepBoxEl.innerHTML = renderMealPrepSuggestions([]);
-            _lastRanked = [];
-            document.getElementById("resultsToolbar")?.classList.add("hidden");
+            if (!ranked.length) {
+                summaryBoxEl.textContent = "No encontré coincidencias suficientes. Marca más ingredientes o usa un modo más flexible.";
+                resultsEl.innerHTML = "";
+                mealPrepBoxEl.innerHTML = renderMealPrepSuggestions([]);
+                _lastRanked = [];
+                document.getElementById("resultsToolbar")?.classList.add("hidden");
+                suggestBtn.disabled = false;
+                suggestBtn.innerHTML = originalText;
+                return;
+            }
+
+            _lastRanked = ranked;
+
+            // Save suggested recipes to history for diversity tracking
+            addToRecentRecipes(ranked.map(item => item.recipe.id));
+
+            _sortCriterion = "score";
+            document.querySelectorAll(".sort-chip").forEach(c => c.classList.toggle("active", c.dataset.sort === "score"));
+            document.getElementById("resultsToolbar")?.classList.remove("hidden");
+
+            summaryBoxEl.textContent = buildSummary(userContext, ranked);
+            renderRankedResults(ranked);
+            const countEl = document.getElementById("resultsCount");
+            if (countEl) countEl.textContent = `${ranked.length} receta${ranked.length !== 1 ? "s" : ""}`;
+            mealPrepBoxEl.innerHTML = renderMealPrepSuggestions(ranked);
             suggestBtn.disabled = false;
             suggestBtn.innerHTML = originalText;
-            return;
-        }
 
-        _lastRanked = ranked;
-
-        // Save suggested recipes to history for diversity tracking
-        addToRecentRecipes(ranked.map(item => item.recipe.id));
-
-        _sortCriterion = "score";
-        document.querySelectorAll(".sort-chip").forEach(c => c.classList.toggle("active", c.dataset.sort === "score"));
-        document.getElementById("resultsToolbar")?.classList.remove("hidden");
-
-        summaryBoxEl.textContent = buildSummary(userContext, ranked);
-        renderRankedResults(ranked);
-        const countEl = document.getElementById("resultsCount");
-        if (countEl) countEl.textContent = `${ranked.length} receta${ranked.length !== 1 ? "s" : ""}`;
-        mealPrepBoxEl.innerHTML = renderMealPrepSuggestions(ranked);
-        suggestBtn.disabled = false;
-        suggestBtn.innerHTML = originalText;
-
-        // Scroll to results
-        const resultsHeader = document.getElementById("resultsPanel");
-        if (resultsHeader) {
-            resultsHeader.scrollIntoView({ behavior: 'smooth' });
-        }
+            // Scroll to results
+            const resultsHeader = document.getElementById("resultsPanel");
+            if (resultsHeader) {
+                resultsHeader.scrollIntoView({ behavior: 'smooth' });
+            }
+        }, 600); // 600ms fake delay for better UX
     });
 }
 
@@ -1142,50 +1144,57 @@ function weightedSampleDiverse(pool, n, maxPerFamily = 2) {
 const MILPA_INGS = ["nopal", "nopales_cocidos", "elote", "frijol", "calabacita", "tortilla_maiz", "masa_maiz", "chile_poblano", "epazote"];
 
 function handleSurprise() {
-    const maxTime = Number(getSelectedChipValue("timeChips") || 60);
-    const cravings = [...state.selectedCravings];
-    const recentIds = new Set(state.recentSuggestedRecipes.map(i => i.id));
+    summaryBoxEl.innerHTML = `<span class="material-symbols-outlined spinning" aria-hidden="true">sync</span> <span>Generando ideas...</span>`;
+    document.getElementById("resultsToolbar")?.classList.add("hidden");
+    if (resultsEl) resultsEl.innerHTML = "";
+    if (mealPrepBoxEl) mealPrepBoxEl.innerHTML = "";
 
-    const pool = RECIPES.map(r => {
-        const f = recipeFeasibility(r);
-        let weight = f.score;
-        if (r.timeMin > maxTime) weight -= 40;                                   // filtro suave de tiempo
-        if (cravings.length && (r.cravings || []).some(c => cravings.includes(c))) weight += 25;
-        if (recentIds.has(r.id)) weight -= 30;                                   // evita repetir lo reciente
-        return { recipe: r, feas: f.score, ratio: f.commonRatio, weight: Math.max(1, weight) };
-    }).filter(x => x.feas >= 45);
+    setTimeout(() => {
+        const maxTime = Number(getSelectedChipValue("timeChips") || 60);
+        const cravings = [...state.selectedCravings];
+        const recentIds = new Set(state.recentSuggestedRecipes.map(i => i.id));
 
-    const picks = weightedSampleDiverse(pool, 6);
+        const pool = RECIPES.map(r => {
+            const f = recipeFeasibility(r);
+            let weight = f.score;
+            if (r.timeMin > maxTime) weight -= 40;                                   // filtro suave de tiempo
+            if (cravings.length && (r.cravings || []).some(c => cravings.includes(c))) weight += 25;
+            if (recentIds.has(r.id)) weight -= 30;                                   // evita repetir lo reciente
+            return { recipe: r, feas: f.score, ratio: f.commonRatio, weight: Math.max(1, weight) };
+        }).filter(x => x.feas >= 45);
 
-    if (!picks.length) {
-        summaryBoxEl.textContent = "No encontré ideas factibles ahora mismo. Intenta de nuevo.";
-        return;
-    }
+        const picks = weightedSampleDiverse(pool, 6);
 
-    const items = picks.map(p => {
-        const reasons = [];
-        if (p.ratio >= 0.8) reasons.push("Ingredientes muy comunes y fáciles de conseguir en México");
-        if (p.recipe.lowFriction) reasons.push("Pocos pasos, sin complicaciones");
-        if (p.recipe.timeMin <= 20) reasons.push(`Lista en ${p.recipe.timeMin} min`);
-        if ((p.recipe.cravings || []).some(c => cravings.includes(c))) reasons.push("Coincide con tu antojo");
-        if ((p.recipe.ingredientsRequired || []).some(id => MILPA_INGS.includes(id))) reasons.push("Bono: Base Milpa");
-        if (!reasons.length) reasons.push("Idea factible para hoy");
-        return { recipe: p.recipe, score: p.feas, reasons, requiredMatches: 1 };
-    });
+        if (!picks.length) {
+            summaryBoxEl.textContent = "No encontré ideas factibles ahora mismo. Intenta de nuevo.";
+            return;
+        }
 
-    _lastRanked = items;
-    addToRecentRecipes(items.map(i => i.recipe.id));
-    _sortCriterion = "score";
-    document.querySelectorAll(".sort-chip").forEach(c => c.classList.toggle("active", c.dataset.sort === "score"));
-    document.getElementById("resultsToolbar")?.classList.remove("hidden");
+        const items = picks.map(p => {
+            const reasons = [];
+            if (p.ratio >= 0.8) reasons.push("Ingredientes muy comunes y fáciles de conseguir en México");
+            if (p.recipe.lowFriction) reasons.push("Pocos pasos, sin complicaciones");
+            if (p.recipe.timeMin <= 20) reasons.push(`Lista en ${p.recipe.timeMin} min`);
+            if ((p.recipe.cravings || []).some(c => cravings.includes(c))) reasons.push("Coincide con tu antojo");
+            if ((p.recipe.ingredientsRequired || []).some(id => MILPA_INGS.includes(id))) reasons.push("Bono: Base Milpa");
+            if (!reasons.length) reasons.push("Idea factible para hoy");
+            return { recipe: p.recipe, score: p.feas, reasons, requiredMatches: 1 };
+        });
 
-    summaryBoxEl.textContent = `🎲 ${items.length} ideas al azar, factibles con ingredientes fáciles de conseguir. Toca "Sorpréndeme" para otras.`;
-    renderRankedResults(items);
-    const countEl = document.getElementById("resultsCount");
-    if (countEl) countEl.textContent = `${items.length} idea${items.length !== 1 ? "s" : ""}`;
-    mealPrepBoxEl.innerHTML = renderMealPrepSuggestions(items);
+        _lastRanked = items;
+        addToRecentRecipes(items.map(i => i.recipe.id));
+        _sortCriterion = "score";
+        document.querySelectorAll(".sort-chip").forEach(c => c.classList.toggle("active", c.dataset.sort === "score"));
+        document.getElementById("resultsToolbar")?.classList.remove("hidden");
 
-    document.getElementById("resultsPanel")?.scrollIntoView({ behavior: "smooth" });
+        summaryBoxEl.textContent = `🎲 ${items.length} ideas al azar, factibles con ingredientes fáciles de conseguir. Toca "Sorpréndeme" para otras.`;
+        renderRankedResults(items);
+        const countEl = document.getElementById("resultsCount");
+        if (countEl) countEl.textContent = `${items.length} idea${items.length !== 1 ? "s" : ""}`;
+        mealPrepBoxEl.innerHTML = renderMealPrepSuggestions(items);
+
+        document.getElementById("resultsPanel")?.scrollIntoView({ behavior: "smooth" });
+    }, 600);
 }
 
 const SUBSTITUTIONS = {
@@ -2401,7 +2410,7 @@ function addMissingIngredientsToGrocery(recipe) {
 function registerSW() {
     if (!("serviceWorker" in navigator)) return;
 
-    navigator.serviceWorker.register("./sw.js").then((registration) => {
+    navigator.serviceWorker.register("./sw.js", { updateViaCache: 'none' }).then((registration) => {
         // Respaldo: el sw.js nuevo llama a self.skipWaiting() solo, pero por si
         // algún navegador lo retrasa, forzamos el paso a "waiting" -> activo.
         const forceActivate = () => {

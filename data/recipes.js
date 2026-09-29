@@ -5980,4 +5980,52 @@ export const RECIPES = [
             "derivatives": []
         }
     }
+,
+    {
+        "id": "sopa_de_milpa_guias",
+        "name": "Sopa de Milpa Tradicional",
+        "family": "verduras",
+        "format": "caldo",
+        "description": "Una celebraci�n de la milpa: calabacita, elote y flor de calabaza en un caldo ligero con epazote.",
+        "servings": 4,
+        "timeMin": 25,
+        "effort": "bajo",
+        "mealType": "comida",
+        "lowFriction": true,
+        "ingredientsRequired": ["calabacita", "elote", "flor_calabaza"],
+        "ingredientsOptional": ["cebolla", "jitomate", "epazote", "chile_poblano"],
+        "cravings": ["reconfortante", "caldo"],
+        "steps": [
+            "Limpia la flor de calabaza retirando el tallo y el pistilo.",
+            "En una olla, sofr�e cebolla y jitomate (5m).",
+            "Agrega agua o caldo, elote y hierve 10m.",
+            "A�ade calabacita y epazote, cocina 5m m�s.",
+            "Apaga, agrega flor de calabaza, tapa y reposa 2m.",
+            "Sazona con sal y sirve."
+        ],
+        "seasonalBoostIngredients": ["flor_calabaza", "calabacita", "elote"]
+    },
+    {
+        "id": "chayotes_rellenos_atun",
+        "name": "Chayotes Rellenos de At�n a la Mexicana",
+        "family": "pescados",
+        "format": "plato",
+        "description": "Chayotes tiernos rellenos con una mezcla nutritiva de at�n.",
+        "servings": 2,
+        "timeMin": 30,
+        "effort": "medio",
+        "mealType": "comida",
+        "lowFriction": false,
+        "ingredientsRequired": ["chayote", "atun", "jitomate"],
+        "ingredientsOptional": ["cebolla", "elote", "queso_fresco", "chile_serrano"],
+        "cravings": ["saludable", "fresco"],
+        "steps": [
+            "Corta chayotes a la mitad y cuece en agua con sal 20m.",
+            "Escurre at�n y pica verduras.",
+            "Retira centro del chayote cocido y pica la pulpa.",
+            "Sofr�e cebolla, tomate, chile, at�n y pulpa.",
+            "Rellena chayotes con el guiso."
+        ],
+        "seasonalBoostIngredients": ["chayote"]
+    }
 ];

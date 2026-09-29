@@ -131,16 +131,21 @@
                   <p class="empty-sub">Selecciona una categoría para ver tus ingredientes</p>
                 </div>
               </div>
+              <div class="inventory-footer" style="margin-top: 24px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+                <button id="suggestBtn" type="button" class="primary-action" style="flex: 1; min-width: 250px;">
+                  <span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span> Sugerir Recetas
+                </button>
+              </div>
             </div>
           </div>
         </section>
 
         <!-- Section 2: Context (Collapsible) -->
-        <section class="panel collapsible-panel" id="section-context">
+        <section class="panel collapsible-panel collapsed" id="section-context">
           <header class="panel-header section-toggle" data-target="context-body">
             <div class="header-main">
-              <span class="material-symbols-outlined" aria-hidden="true">psychology</span>
-              <h2>Contexto</h2>
+              <span class="material-symbols-outlined" aria-hidden="true">tune</span>
+              <h2>Filtros (Opcional)</h2>
             </div>
             <span class="material-symbols-outlined toggle-icon">expand_more</span>
           </header>
@@ -179,9 +184,6 @@
               </div>
 
               <div class="context-footer">
-                <button id="suggestBtn" type="button" class="primary-action">
-                  <span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span> Sugerir Recetas
-                </button>
                 <button id="surpriseBtn" type="button" class="secondary-action" title="Ideas al azar sin necesidad de inventario">
                   <span class="material-symbols-outlined" aria-hidden="true">casino</span> Sorpréndeme
                 </button>

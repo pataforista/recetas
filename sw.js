@@ -1,4 +1,4 @@
-const CACHE_NAME = 'milpa-nime-v7';
+const CACHE_NAME = 'milpa-nime-v8';
 const ASSETS = [
   './',
   './index.html',
