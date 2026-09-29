@@ -308,6 +308,7 @@ function init() {
     state.customLists = loadCustomLists();
 
     initCollapsibles();
+    initModalDismiss();
     // Critical path - render UI immediately
     renderInventoryFilters();
     renderInventory();
@@ -339,9 +340,15 @@ function init() {
 
 function initCollapsibles() {
     document.querySelectorAll('.section-toggle').forEach(toggle => {
-        toggle.addEventListener('click', () => {
-            const panel = toggle.closest('.panel');
-            panel.classList.toggle('collapsed');
+        const panel = toggle.closest('.panel');
+        toggle.setAttribute('role', 'button');
+        toggle.setAttribute('tabindex', '0');
+        const sync = () => toggle.setAttribute('aria-expanded', String(!panel.classList.contains('collapsed')));
+        const flip = () => { panel.classList.toggle('collapsed'); sync(); };
+        sync();
+        toggle.addEventListener('click', flip);
+        toggle.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flip(); }
         });
     });
 }
@@ -362,13 +369,14 @@ function bindEvents() {
     suggestBtn.addEventListener("click", handleSuggest);
     document.getElementById("surpriseBtn")?.addEventListener("click", handleSurprise);
     document.getElementById("surpriseBtnEmpty")?.addEventListener("click", handleSurprise);
-    document.getElementById("topSurpriseBtn")?.addEventListener("click", handleSurprise);
+    document.getElementById("topSurpriseBtn")?.addEventListener("click", handleQuickPick);
     document.getElementById("updateBtn")?.addEventListener("click", () => window.location.reload());
 
     // Acceso rápido a "Sorpréndeme" desde cualquier vista (header)
     document.getElementById("headerSurpriseBtn")?.addEventListener("click", () => {
         showView("today");
-        handleSurprise();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        handleQuickPick();
     });
 
     document.getElementById("clearFiltersBtn")?.addEventListener("click", () => {
@@ -500,7 +508,7 @@ const VIEW_META = {
     planner:  { subtitle: "Plan de comidas de la semana" },
     mealprep: { subtitle: "Prepara bases para la semana" },
     grocery:  { subtitle: "Lista de compras" },
-    recipes:  { subtitle: "Consulta el catálogo completo de recetas" },
+    recipes:  { subtitle: "Todo el catálogo" },
 };
 
 function showView(viewId, { pushHistory = true } = {}) {
@@ -630,14 +638,15 @@ function showConfirm(title, message, onConfirm) {
     const modal = document.getElementById("confirmModal");
     modal.classList.remove("hidden");
 
+    // onclick (no addEventListener): evita apilar un handler nuevo cada vez
+    // que se abre el diálogo y se cancela.
     const okBtn = document.getElementById("confirmOk");
-    const handler = () => {
+    okBtn.onclick = () => {
         const callback = _confirmCallback;
         closeConfirmModal();
         callback?.();
-        okBtn.removeEventListener("click", handler);
     };
-    okBtn.addEventListener("click", handler);
+    okBtn.focus();
 }
 
 function closeConfirmModal() {
@@ -851,9 +860,13 @@ function renderInventory() {
     inventoryListEl.innerHTML = "";
     renderExpiringBanner();
 
-    const categories = CATEGORY_ORDER.filter(cat => 
+    const allCategories = CATEGORY_ORDER.filter(cat => 
         INGREDIENTS.some(ing => ing.category === cat)
     );
+    // El chip de categoría activo limita la lista; "all" muestra todo.
+    const categories = activeCategoryFilter === "all"
+        ? allCategories
+        : allCategories.filter(cat => cat === activeCategoryFilter);
 
     const fragment = document.createDocumentFragment();
 
@@ -879,7 +892,7 @@ function renderInventory() {
 
             row.innerHTML = `
                 <div class="checkbox-wrap">
-                    <input type="checkbox" ${isOwned ? "checked" : ""} />
+                    <input type="checkbox" aria-label="Tengo ${escapeHtml(item.name)}" ${isOwned ? "checked" : ""} />
                 </div>
                 <div class="item-main">
                     <span class="item-icon material-symbols-outlined" aria-hidden="true">${getCategoryIcon(item.category)}</span>
@@ -937,8 +950,14 @@ function renderInventory() {
     });
 
     inventoryListEl.appendChild(fragment);
-    renderInventoryQuickNav(categories);
+    // El atajo por categoría solo tiene sentido cuando se ven todas.
+    renderInventoryQuickNav(activeCategoryFilter === "all" ? categories : []);
     updateInventoryBadge();
+
+    // Marcar/desmarcar reconstruye la lista: reaplica la búsqueda vigente
+    // para que no "se pierda" el filtro tras cada toque.
+    const searchInput = document.getElementById("inventorySearch");
+    if (searchInput && searchInput.value.trim()) filterInventory(searchInput.value);
 }
 
 function renderInventoryQuickNav(categories) {
@@ -1103,6 +1122,79 @@ function handleSuggest() {
                 resultsHeader.scrollIntoView({ behavior: 'smooth' });
             }
         }, 600); // 600ms fake delay for better UX
+    });
+}
+
+// ─── Receta al azar (un toque, una receta; "Otra" para volver a tirar) ───
+let _lastQuickPickId = null;
+
+function handleQuickPick() {
+    const box = document.getElementById("surpriseResult");
+    if (!box) return handleSurprise();
+
+    const maxTime = Number(getSelectedChipValue("timeChips") || 60);
+    const cravings = [...state.selectedCravings];
+    const pool = RECIPES.map(r => {
+        const f = recipeFeasibility(r);
+        let weight = f.score;
+        if (r.timeMin > maxTime) weight -= 40;
+        if (cravings.length && (r.cravings || []).some(c => cravings.includes(c))) weight += 25;
+        return { recipe: r, weight: Math.max(1, weight), feas: f.score };
+    }).filter(x => x.feas >= 45 && x.recipe.id !== _lastQuickPickId);
+
+    const picks = weightedSampleDiverse(pool, 1);
+    if (!picks.length) {
+        box.classList.remove("hidden");
+        box.textContent = "No encontré ideas ahora mismo. Intenta de nuevo.";
+        return;
+    }
+    const r = picks[0].recipe;
+    _lastQuickPickId = r.id;
+
+    box.classList.remove("hidden");
+    box.innerHTML = `
+        <h3 class="surprise-pick-title"></h3>
+        <p class="surprise-pick-meta">${escapeHtml(capitalize(r.family))} · ${escapeHtml(String(r.format || ""))} · ${r.timeMin} min</p>
+        <p class="surprise-pick-desc"></p>
+        <div class="surprise-pick-actions">
+            <button type="button" class="surprise-pick-view">
+                <span class="material-symbols-outlined" aria-hidden="true">menu_book</span> Ver receta
+            </button>
+            <button type="button" class="surprise-pick-again">
+                <span class="material-symbols-outlined" aria-hidden="true">refresh</span> Otra
+            </button>
+        </div>`;
+    box.querySelector(".surprise-pick-title").textContent = r.name;
+    box.querySelector(".surprise-pick-desc").textContent = r.description || "";
+    box.querySelector(".surprise-pick-view").addEventListener("click", () => showRecipeDetailOverlay(r.id));
+    box.querySelector(".surprise-pick-again").addEventListener("click", handleQuickPick);
+    box.querySelector(".surprise-pick-title").setAttribute("tabindex", "-1");
+    box.querySelector(".surprise-pick-title").focus({ preventScroll: true });
+
+    // La tarjeta ya trae "Otra": el botón grande sobra una vez que hay resultado.
+    document.getElementById("topSurpriseBtn")?.classList.add("hidden");
+    addToRecentRecipes([r.id]);
+}
+
+// ─── Cerrar diálogos con Esc o tocando el fondo ───
+function initModalDismiss() {
+    const dismissers = {
+        confirmModal: closeConfirmModal,
+        dayPickerModal: closeDayPicker,
+        cravingMenuModal: closeCravingModal,
+        inventoryFilterModal: closeInventoryModal,
+        syncModal: () => document.getElementById("syncModal")?.classList.add("hidden"),
+    };
+    Object.entries(dismissers).forEach(([id, close]) => {
+        const el = document.getElementById(id);
+        el?.addEventListener("click", (e) => { if (e.target === el) close(); });
+    });
+    document.addEventListener("keydown", (e) => {
+        if (e.key !== "Escape") return;
+        for (const [id, close] of Object.entries(dismissers)) {
+            const el = document.getElementById(id);
+            if (el && !el.classList.contains("hidden")) { close(); break; }
+        }
     });
 }
 
@@ -1450,7 +1542,7 @@ function frequencyScore(recipe, reasons) {
 
 function metabolicScore(recipe, mode, reasons) {
     let score = 0;
-    const p = recipe.profile;
+    const p = recipe.profile || {}; // 2 recetas aún no tienen perfil nutricional
 
     if (p.fiber === "alta") score += HEALTH_RULES.scoringBonuses.highFiber;
     if (p.fiber === "baja") score += HEALTH_RULES.scoringPenalties.lowFiber;
@@ -1531,7 +1623,9 @@ function createRecipeCard(item) {
         ...recipe.ingredientsOptional
     ];
     node.querySelector(".ingredients-text").innerHTML = prettyIngredients(allIngredients);
-    node.querySelector(".profile-text").innerHTML = buildProfileText(recipe.profile);
+    const profileSection = node.querySelector(".profile-section");
+    if (recipe.profile) node.querySelector(".profile-text").innerHTML = buildProfileText(recipe.profile);
+    else profileSection?.classList.add("hidden");
     node.querySelector(".mealprep-text").textContent = buildMealPrepText(recipe.mealPrep);
 
     // Populate Pro Tip if exists
@@ -2496,38 +2590,52 @@ function recipeMatches(recipe, query) {
 
 function filterInventory(query) {
     const q = query.trim();
-    const items = inventoryListEl.querySelectorAll(".inventory-item");
 
-    // If query is empty, show all and restore normal rendering
-    if (!q) {
-        items.forEach(item => { item.style.display = ""; });
-        // Remove highlights
-        inventoryListEl.querySelectorAll(".inventory-name mark").forEach(m => {
-            const parent = m.parentNode;
-            parent.innerHTML = parent.innerHTML.replace(/<\/?mark>/gi, "");
-        });
-        return;
+    // Buscar debe abarcar todo el catálogo: si había una categoría activa,
+    // se vuelve a "Todo" antes de filtrar.
+    if (q && activeCategoryFilter !== "all") {
+        activeCategoryFilter = "all";
+        renderInventoryFilters();
+        renderInventory();
+        return; // renderInventory reaplica la búsqueda
     }
 
-    const filtered = INGREDIENTS.filter(ing => ingredientMatches(ing, q));
-    const matchIds = new Set(filtered.map(i => i.id));
+    const matchIds = q
+        ? new Set(INGREDIENTS.filter(ing => ingredientMatches(ing, q)).map(i => i.id))
+        : null;
 
-    items.forEach(item => {
-        const nameEl = item.querySelector(".inventory-name");
-        const ingId = item.dataset.ingId;
-        if (matchIds.has(ingId)) {
-            item.style.display = "";
-            if (nameEl) {
-                nameEl.innerHTML = highlight(
-                    // strip existing marks first
-                    nameEl.textContent,
-                    q
-                );
-            }
-        } else {
-            item.style.display = "none";
-        }
+    let visible = 0;
+    inventoryListEl.querySelectorAll(".inventory-item").forEach(row => {
+        const ing = INGREDIENTS.find(i => i.id === row.dataset.id);
+        const nameEl = row.querySelector(".item-name");
+        const show = !matchIds || matchIds.has(row.dataset.id);
+        row.style.display = show ? "" : "none";
+        if (show) visible++;
+        if (nameEl && ing) nameEl.innerHTML = q && show ? highlight(ing.name, q) : escapeHtml(ing.name);
     });
+
+    // Oculta encabezados de categoría que se quedaron sin filas visibles.
+    inventoryListEl.querySelectorAll(".inventory-section-header").forEach(header => {
+        let next = header.nextElementSibling;
+        let hasVisible = false;
+        while (next && next.classList.contains("inventory-item")) {
+            if (next.style.display !== "none") { hasVisible = true; break; }
+            next = next.nextElementSibling;
+        }
+        header.style.display = hasVisible ? "" : "none";
+    });
+
+    let empty = inventoryListEl.querySelector(".inventory-no-results");
+    if (q && visible === 0) {
+        if (!empty) {
+            empty = document.createElement("div");
+            empty.className = "empty-state inventory-no-results";
+            inventoryListEl.appendChild(empty);
+        }
+        empty.innerHTML = `<span class="empty-icon">🔍</span><p class="empty-title">Sin resultados para "${escapeHtml(q)}"</p><p class="empty-sub">Prueba con otro nombre o revisa la ortografía.</p>`;
+    } else if (empty) {
+        empty.remove();
+    }
 }
 
 // ── Results search & sort ─────────────────────────────────────────────────────
